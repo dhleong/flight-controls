@@ -12,7 +12,8 @@ public class ConnectActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_connect);
+//        setContentView(R.layout.activity_connect);
+        setContentView(R.layout.widget_radio_stack); // jump here for testing the ui components
     }
 
 
