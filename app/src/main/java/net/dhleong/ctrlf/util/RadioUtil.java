@@ -17,9 +17,17 @@ public class RadioUtil {
         final int lastDropped = khz / 10; // -> 12797
         final int firstDropped = lastDropped - 10000; // -> 2797
 
+        int param = 0;
+        int divisor = 1;
+        for (int i=0; i < 4; i++) {
+            // pick off the digit, then re-interpret as hex
+            final int digit = (firstDropped / divisor) % 10;
+            param += digit * Math.pow(16, i);
+
+            divisor *= 10;
+        }
+
         // then it becomes hex: 0x2797
-        //  We should do this with just math instead of allocating
-        //  a string every time, but this is a quick way to test
-        return Integer.parseInt(String.valueOf(firstDropped), 16);
+        return param;
     }
 }
