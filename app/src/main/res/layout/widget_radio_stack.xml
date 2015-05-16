@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<net.dhleong.ctrlf.view.RadioStackView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-              android:orientation="vertical">
+    >
 
     <net.dhleong.ctrlf.ui.NavComView
+        android:id="@+id/navcom1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         style="@style/Radio.Panel"
         />
 
-</LinearLayout>
+</net.dhleong.ctrlf.view.RadioStackView>

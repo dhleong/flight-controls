@@ -34,9 +34,8 @@ public class FineDialView extends View {
     static final long VIBRATION_MS = 15;
 
     static final int STATE_EMPTY = 0;
-    static final int STATE_INNER = 1;
-    static final int STATE_OUTER = 2;
-
+    public static final int STATE_INNER = 1;
+    public static final int STATE_OUTER = 2;
 
     final int width, center;
 
@@ -173,11 +172,7 @@ public class FineDialView extends View {
             final int newDetents = totalDetents - lastDetents;
             if (newDetents != 0) {
                 lastDetents = totalDetents;
-                detentSubjects[state].onNext(newDetents);
-
-                if (isHapticFeedbackEnabled()) {
-                    vibrator.vibrate(VIBRATION_MS);
-                }
+                performDetentsMoved(state, newDetents);
             }
             break;
 
@@ -187,6 +182,14 @@ public class FineDialView extends View {
         }
 
         return true;
+    }
+
+    public void performDetentsMoved(final int state, final int newDetents) {
+        detentSubjects[state].onNext(newDetents);
+
+        if (isHapticFeedbackEnabled()) {
+            vibrator.vibrate(VIBRATION_MS);
+        }
     }
 
     @Override

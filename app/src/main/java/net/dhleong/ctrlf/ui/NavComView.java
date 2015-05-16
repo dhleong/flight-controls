@@ -8,8 +8,10 @@ import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.ViewGroup;
 import net.dhleong.ctrlf.ui.art.FrequencyArtist;
+import rx.Observable;
 import rx.functions.Action1;
 import rx.functions.Func1;
+import rx.subjects.BehaviorSubject;
 
 /**
  * One piece of NavCom equipment
@@ -31,15 +33,25 @@ public class NavComView extends ViewGroup {
     private final FrequencyArtist comStandbyArtist = new FrequencyArtist();
     private final RectF frequencyRect = new RectF();
 
-    private final FineDialView comDial;
+    // public for easy functional testing
+    public final FineDialView comDial;
 
     private float fontSize;
+
+    private final BehaviorSubject<Integer> comStandbySubject = BehaviorSubject.create();
 
     @SuppressWarnings("FieldCanBeLocal")
     private final Action1<Integer> setComStandbyFrequency = new Action1<Integer>() {
         @Override
         public void call(final Integer khz) {
             setComStandbyFrequency(khz);
+        }
+    };
+    @SuppressWarnings("FieldCanBeLocal")
+    private final Action1<? super Integer> notifyComStandbyFrequency = new Action1<Integer>() {
+        @Override
+        public void call(final Integer integer) {
+            comStandbySubject.onNext(integer);
         }
     };
 
@@ -68,6 +80,7 @@ public class NavComView extends ViewGroup {
         comDial = new FineDialView(context);
         addView(comDial);
 
+        // connect events
         comDial.outerDetents()
                 .map(new Func1<Integer, Integer>() {
                     @Override
@@ -75,7 +88,8 @@ public class NavComView extends ViewGroup {
                         return Math.max(0, comStandbyArtist.getFrequency() + detents * OUTER_DETENTS);
                     }
                 })
-               .subscribe(setComStandbyFrequency);
+                .doOnNext(notifyComStandbyFrequency)
+                .subscribe(setComStandbyFrequency);
         comDial.innerDetents()
                .map(new Func1<Integer, Integer>() {
                    @Override
@@ -83,11 +97,16 @@ public class NavComView extends ViewGroup {
                        return Math.max(0, comStandbyArtist.getFrequency() + detents * INNER_DETENTS);
                    }
                })
+               .doOnNext(notifyComStandbyFrequency)
                .subscribe(setComStandbyFrequency);
     }
 
     public int getComFrequency() {
         return comFrequencyArtist.getFrequency();
+    }
+
+    public Observable<Integer> comStandbyFrequencies() {
+        return comStandbySubject;
     }
 
     public void setFontSize(final int unit, final int size) {

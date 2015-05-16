@@ -1,21 +1,55 @@
 package net.dhleong.ctrlf;
 
-import android.support.v7.app.ActionBarActivity;
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.TextView;
+import butterknife.ButterKnife;
+import butterknife.ButterKnife.Setter;
+import butterknife.InjectView;
+import butterknife.InjectViews;
+import butterknife.OnClick;
+import net.dhleong.ctrlf.model.Connection;
+import rx.Observer;
+import rx.functions.Action0;
+
+import javax.inject.Inject;
+import java.util.List;
 
 
 public class ConnectActivity
         extends ActionBarActivity {
 
+    static final Setter<? super View, Boolean> ENABLED = new Setter<View, Boolean>() {
+        @Override
+        public void set(final View view, final Boolean aBoolean, final int i) {
+            view.setEnabled(aBoolean);
+        }
+    };
+
+    @Inject Connection connection;
+
+    @InjectView(R.id.host) TextView host;
+    @InjectView(R.id.port) TextView port;
+    @InjectViews({R.id.host, R.id.port, R.id.connect}) List<View> allViews;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-//        setContentView(R.layout.activity_connect);
-        setContentView(R.layout.widget_radio_stack); // jump here for testing the ui components
-    }
+        setContentView(R.layout.activity_connect);
+        ButterKnife.inject(this);
 
+        final App app = (App) getApplication();
+        app.getAppComponent().inject(this);
+
+        // TODO just restore previous one
+        host.setText("192.168.1.30");
+        port.setText("44506");
+
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -37,5 +71,45 @@ public class ConnectActivity
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @OnClick(R.id.connect) void connect() {
+        final int portNo;
+        try {
+            portNo = Integer.parseInt(String.valueOf(port.getText()));
+        } catch (NumberFormatException e) {
+            port.setError(getString(R.string.illegal_port));
+            return;
+        }
+
+        ButterKnife.apply(allViews, ENABLED, false);
+        connection.connect(host.getText().toString(), portNo)
+            .finallyDo(new Action0() {
+                @Override
+                public void call() {
+                    ButterKnife.apply(allViews, ENABLED, true);
+                }
+            })
+            .subscribe(new Observer<Connection>() {
+                @Override
+                public void onCompleted() {
+                    onConnected();
+                }
+
+                @Override
+                public void onError(final Throwable throwable) {
+                    throwable.printStackTrace();
+                }
+
+                @Override
+                public void onNext(final Connection connection) {
+
+                }
+            });
+    }
+
+    /** Called on successful connection */
+    void onConnected() {
+        startActivity(new Intent(this, ControlsActivity.class));
     }
 }

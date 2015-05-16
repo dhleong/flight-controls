@@ -3,4 +3,9 @@
 
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+    <string name="illegal_port">Illegal port number</string>
+    <string name="controls">Controls</string>
+    <string name="ip_address">IP Address</string>
+    <string name="port">Port</string>
+    <string name="connect">Connect</string>
 </resources>

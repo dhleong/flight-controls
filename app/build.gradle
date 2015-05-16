@@ -1,16 +1,25 @@
 buildscript {
     repositories {
         mavenCentral()
+
+        maven {
+            url "https://oss.sonatype.org/content/repositories/snapshots/"
+        }
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:1.2.2'
+        classpath 'com.neenbedankt.gradle.plugins:android-apt:1.4'
+        classpath 'org.robolectric:robolectric-gradle-plugin:1.1.0-SNAPSHOT'
     }
 }
-apply plugin: 'com.android.application'
 
 repositories {
     mavenCentral()
 }
+
+apply plugin: 'com.android.application'
+apply plugin: 'com.neenbedankt.android-apt'
+apply plugin: 'org.robolectric'
 
 android {
     compileSdkVersion 21
@@ -43,7 +52,15 @@ dependencies {
 
     compile 'io.reactivex:rxandroid:0.24.0'
     compile 'com.android.support:appcompat-v7:21.0.3'
+    compile 'com.google.dagger:dagger:2.0'
+    compile 'com.jakewharton:butterknife:6.1.0'
+    compile 'org.glassfish:javax.annotation:10.0-b28' // for dagger-generated classes
+
+    apt 'com.google.dagger:dagger-compiler:2.0'
 
     testCompile 'junit:junit:4.12'
     testCompile 'org.assertj:assertj-core:1.6.1'
+    testCompile 'org.mockito:mockito-core:1.10.19'
+    testCompile 'org.robolectric:robolectric:2.4'
 }
+
