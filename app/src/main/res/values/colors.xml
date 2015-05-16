@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="dial_outer">#393545</color>
+    <color name="dial_inner">#2F2F3F</color>
+    <color name="dial_gap">#111</color>
+</resources>

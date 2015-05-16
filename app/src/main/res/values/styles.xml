@@ -5,4 +5,9 @@
         <!-- Customize your theme here. -->
     </style>
 
+    <style name="Radio" />
+    <style name="Radio.Panel">
+        <item name="android:padding">@dimen/activity_horizontal_margin</item>
+    </style>
+
 </resources>
