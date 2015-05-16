@@ -1,6 +1,6 @@
 buildscript {
     repositories {
-        jcenter()
+        mavenCentral()
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:1.2.2'
@@ -9,7 +9,7 @@ buildscript {
 apply plugin: 'com.android.application'
 
 repositories {
-    jcenter()
+    mavenCentral()
 }
 
 android {
@@ -40,6 +40,8 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
+
+    compile 'io.reactivex:rxandroid:0.24.0'
     compile 'com.android.support:appcompat-v7:21.0.3'
 
     testCompile 'junit:junit:4.12'

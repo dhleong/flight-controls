@@ -8,6 +8,8 @@ import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.ViewGroup;
 import net.dhleong.ctrlf.ui.art.FrequencyArtist;
+import rx.functions.Action1;
+import rx.functions.Func1;
 
 /**
  * One piece of NavCom equipment
@@ -18,6 +20,12 @@ public class NavComView extends ViewGroup {
 
     static final int DEFAULT_FONT_SIZE = 70;
 
+    /**
+     * How many khz to move the frequency per outer detent
+     */
+    static final Integer OUTER_DETENTS = 1000;
+    static final Integer INNER_DETENTS = 50; // TODO "pull" for 25
+
     // TODO: Actually, we have several of these
     private final FrequencyArtist comFrequencyArtist = new FrequencyArtist();
     private final FrequencyArtist comStandbyArtist = new FrequencyArtist();
@@ -26,6 +34,14 @@ public class NavComView extends ViewGroup {
     private final FineDialView comDial;
 
     private float fontSize;
+
+    @SuppressWarnings("FieldCanBeLocal")
+    private final Action1<Integer> setComStandbyFrequency = new Action1<Integer>() {
+        @Override
+        public void call(final Integer khz) {
+            setComStandbyFrequency(khz);
+        }
+    };
 
     public NavComView(final Context context) {
         this(context, null);
@@ -51,6 +67,23 @@ public class NavComView extends ViewGroup {
         // build kids
         comDial = new FineDialView(context);
         addView(comDial);
+
+        comDial.outerDetents()
+                .map(new Func1<Integer, Integer>() {
+                    @Override
+                    public Integer call(final Integer detents) {
+                        return Math.max(0, comStandbyArtist.getFrequency() + detents * OUTER_DETENTS);
+                    }
+                })
+               .subscribe(setComStandbyFrequency);
+        comDial.innerDetents()
+               .map(new Func1<Integer, Integer>() {
+                   @Override
+                   public Integer call(final Integer detents) {
+                       return Math.max(0, comStandbyArtist.getFrequency() + detents * INNER_DETENTS);
+                   }
+               })
+               .subscribe(setComStandbyFrequency);
     }
 
     public int getComFrequency() {

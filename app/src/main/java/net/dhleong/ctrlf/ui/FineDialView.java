@@ -1,14 +1,19 @@
 package net.dhleong.ctrlf.ui;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
+import android.os.Build.VERSION_CODES;
+import android.os.Vibrator;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 import net.dhleong.ctrlf.R;
+import rx.Observable;
+import rx.subjects.PublishSubject;
 
 /**
  * The FineDialView represents a touchable knob with
@@ -23,12 +28,15 @@ public class FineDialView extends View {
     static final int DIAMETER_INNER_DIPS = 60;
     static final int WIDTH_OUTER_DIPS = 20;
 
-    // radians of motion between "clicks"
-    static final double DETENT_ANGLE = Math.toRadians(4);
+    /** radians of motion between "clicks" */
+    static final double DETENT_ANGLE = Math.toRadians(35);
+    /** duration in ms of the vibration when hitting a detent */
+    static final long VIBRATION_MS = 15;
 
     static final int STATE_EMPTY = 0;
     static final int STATE_INNER = 1;
     static final int STATE_OUTER = 2;
+
 
     final int width, center;
 
@@ -40,14 +48,24 @@ public class FineDialView extends View {
     final Paint innerPaint;
     final Paint gapPaint;
 
+    final Vibrator vibrator;
+
     private int state = STATE_EMPTY;
     private float downX, downY;
     private float lastX, lastY;
     private double downAngle, lastAngle;
+    private int lastDetents;
 
     private float[] rotations = {0, 0, 0};
     private float downRotation;
     private Paint linePaint;
+
+    @SuppressWarnings("unchecked")
+    private PublishSubject<Integer>[] detentSubjects = new PublishSubject[] {
+            null,
+            PublishSubject.<Integer>create(),
+            PublishSubject.<Integer>create()
+    };
 
     public FineDialView(final Context context) {
         this(context, null);
@@ -85,6 +103,16 @@ public class FineDialView extends View {
         linePaint = new Paint();
         linePaint.setStrokeWidth(3 * density);
         linePaint.setColor(0xffCCCCCC);
+
+        vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+    }
+
+    public Observable<Integer> innerDetents() {
+        return detentSubjects[STATE_INNER];
+    }
+
+    public Observable<Integer> outerDetents() {
+        return detentSubjects[STATE_OUTER];
     }
 
     @Override
@@ -96,8 +124,6 @@ public class FineDialView extends View {
         canvas.save();
         canvas.rotate((float) Math.toDegrees(rotations[STATE_OUTER]), center, center);
         canvas.drawCircle(center, center, radiusOuter, outerPaint);
-//        canvas.drawLine(center, radiusOuter - outerPaint.getStrokeWidth(), center,
-//                radiusOuter + outerPaint.getStrokeWidth(), linePaint);
         final float lineCenter = center - radiusOuter;
         final float half = outerPaint.getStrokeWidth() / 2f;
         canvas.drawLine(center, lineCenter - half, center,
@@ -112,6 +138,7 @@ public class FineDialView extends View {
         canvas.restore();
     }
 
+    @TargetApi(VERSION_CODES.LOLLIPOP)
     @Override
     public boolean onTouchEvent(final MotionEvent event) {
 
@@ -119,11 +146,10 @@ public class FineDialView extends View {
         final float y = event.getY();
         final float dcX = x - center; // delta-to-center X
         final float dcY = y - center; // delta-to-center Y
-        final double hypot = Math.hypot(dcX, dcY);
 
         switch (event.getActionMasked()) {
         case MotionEvent.ACTION_DOWN:
-            if (hypot < radiusInner) {
+            if (Math.hypot(dcX, dcY) < radiusInner) {
                 state = STATE_INNER;
             } else {
                 state = STATE_OUTER;
@@ -133,16 +159,26 @@ public class FineDialView extends View {
             downY = lastY = y;
             downAngle = lastAngle = angle(dcY, dcX);
             downRotation = rotations[state];
+            lastDetents = 0; // reset!
             break;
 
         case MotionEvent.ACTION_MOVE:
             final double angle = angle(dcY, dcX);
-            final double delta = angleDelta(lastAngle, angle);
-            rotations[state] += delta;
+            rotations[state] += angleDelta(lastAngle, angle);
             lastAngle = angle;
             invalidate();
 
-            final int detents = (int) (delta / DETENT_ANGLE);
+            final double totalDelta = rotations[state] - downRotation;
+            final int totalDetents = (int) (totalDelta / DETENT_ANGLE);
+            final int newDetents = totalDetents - lastDetents;
+            if (newDetents != 0) {
+                lastDetents = totalDetents;
+                detentSubjects[state].onNext(newDetents);
+
+                if (isHapticFeedbackEnabled()) {
+                    vibrator.vibrate(VIBRATION_MS);
+                }
+            }
             break;
 
         case MotionEvent.ACTION_UP:
@@ -171,9 +207,8 @@ public class FineDialView extends View {
     private static double angleDelta(final double downAngle, final double angle) {
         final double base = angle - downAngle;
         if (base > Math.PI) return Math.PI * 2 - base;
-        if (base < -Math.PI) return Math.PI * -2 + base;
+        if (base < -Math.PI) return Math.PI * 2 + base;
         return base;
     }
-
 
 }
