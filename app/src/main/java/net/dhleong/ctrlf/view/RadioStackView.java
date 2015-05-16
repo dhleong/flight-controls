@@ -2,7 +2,6 @@ package net.dhleong.ctrlf.view;
 
 import android.content.Context;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.widget.LinearLayout;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -11,7 +10,6 @@ import net.dhleong.ctrlf.R;
 import net.dhleong.ctrlf.ui.NavComView;
 import net.dhleong.ctrlf.util.Named;
 import rx.Observer;
-import rx.functions.Action1;
 
 import javax.inject.Inject;
 
@@ -44,14 +42,6 @@ public class RadioStackView extends LinearLayout {
 
         // bind/init
         navCom1.comStandbyFrequencies()
-                .doOnNext(new Action1<Integer>() {
-                    @Override
-                    public void call(final Integer integer) {
-                        Log.v("RSV", "Notifying com1 standby: " + integer);
-                    }
-                })
                .subscribe(com1Observer);
-
-        Log.v("RSV", "forward to: " + com1Observer);
     }
 }

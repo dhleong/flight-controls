@@ -1,6 +1,5 @@
 package net.dhleong.ctrlf.model;
 
-import android.util.Log;
 import flightsim.simconnect.SimConnect;
 import flightsim.simconnect.SimConnectConstants;
 import net.dhleong.ctrlf.util.IOAction;
@@ -15,6 +14,7 @@ import rx.schedulers.Schedulers;
 import rx.subjects.BehaviorSubject;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author dhleong
@@ -55,14 +55,12 @@ public class FsxConnection implements Connection {
 
         sc.mapClientEventToSimEvent(RadioEvents.COM1_STANDBY, "COM_STBY_RADIO_SET");
 
-        Log.v("FSXC", "subscribeTo: " + standbyCom1Subject);
-        // TODO debounce or whatever
         standbyCom1Subject.subscribeOn(Schedulers.io())
+                          .debounce(250, TimeUnit.MILLISECONDS)
                           .subscribe(new IOAction<Integer>(ioexs) {
                               @Override
                               protected void perform(final Integer frequency) throws
                                       IOException {
-                                  Log.v("FSXC", "setCom1Standby: " + frequency);
                                   final int param = RadioUtil.frequencyAsParam(frequency);
                                   sc.transmitClientEvent(CLIENT_ID, RadioEvents.COM1_STANDBY,
                                           param,
