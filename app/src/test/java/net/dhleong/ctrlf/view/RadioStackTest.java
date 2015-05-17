@@ -95,10 +95,22 @@ public class RadioStackTest {
         assertThat(view.navCom1.getComStandbyFrequency()).isEqualTo(119_250);
     }
 
+    @Test
+    public void swapCom1() {
+        assertThat(module.com1swaps).isEmpty();
+
+        view.navCom1.comSwap.performClick();
+
+        assertThat(module.com1swaps).isNotEmpty();
+    }
+
     private class RadioTestModule extends TestModule {
 
         private final ReplaySubject<Integer> com1Subject = ReplaySubject.create();
         List<Integer> com1 = new ArrayList<>();
+
+        private ReplaySubject<Void> com1SwapSubject = ReplaySubject.create();
+        List<Void> com1swaps = new ArrayList<>();
 
         BehaviorSubject<RadioStatus> radioStatusSubject = BehaviorSubject.create();
 
@@ -109,12 +121,20 @@ public class RadioStackTest {
                     com1.add(integer);
                 }
             });
+
+            com1SwapSubject.subscribe(new Action1<Void>() {
+                @Override
+                public void call(final Void aVoid) {
+                    com1swaps.add(aVoid);
+                }
+            });
         }
 
         @Override
         protected void mockConnection(final Connection mock) {
             when(mock.getStandbyCom1Observer()).thenReturn(com1Subject);
             when(mock.radioStatus()).thenReturn(radioStatusSubject);
+            when(mock.getCom1SwapObserver()).thenReturn(com1SwapSubject);
         }
     }
 }

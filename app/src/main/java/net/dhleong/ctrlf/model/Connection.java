@@ -14,6 +14,8 @@ public interface Connection {
 
     Observable<Connection> connect(final String host, final int port);
 
+    Observer<Void> getCom1SwapObserver();
+
     Observer<Integer> getStandbyCom1Observer();
 
 }

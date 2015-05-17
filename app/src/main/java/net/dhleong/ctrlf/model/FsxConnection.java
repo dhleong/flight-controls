@@ -16,6 +16,7 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 import rx.subjects.BehaviorSubject;
+import rx.subjects.PublishSubject;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -35,7 +36,7 @@ public class FsxConnection implements Connection, SimObjectDataHandler {
     }
 
     enum RadioEvent {
-        COM1_STANDBY
+        COM1_SWAP, COM1_STANDBY
     }
 
     enum DataType {
@@ -49,6 +50,7 @@ public class FsxConnection implements Connection, SimObjectDataHandler {
 
     final BehaviorSubject<IOException> ioexs = BehaviorSubject.create();
 
+    final PublishSubject<Void> com1SwapSubject = PublishSubject.create();
     final BehaviorSubject<Integer> standbyCom1Subject = BehaviorSubject.create();
     final BehaviorSubject<RadioStatus> radioStatusSubject = BehaviorSubject.create();
 
@@ -70,11 +72,21 @@ public class FsxConnection implements Connection, SimObjectDataHandler {
 
         // map events
         sc.mapClientEventToSimEvent(RadioEvent.COM1_STANDBY, "COM_STBY_RADIO_SET");
+        sc.mapClientEventToSimEvent(RadioEvent.COM1_SWAP, "COM_STBY_RADIO_SWAP");
 
         // bind data types
         RadioStatus.bindDataDefinition(sc, DataType.RADIO_STATUS);
 
         // rx subscriptions
+        com1SwapSubject.subscribeOn(Schedulers.io())
+                       .subscribe(new IOAction<Void>(ioexs) {
+                           @Override
+                           protected void perform(final Void aVoid) throws IOException {
+                               sc.transmitClientEvent(CLIENT_ID, RadioEvent.COM1_SWAP,
+                                       0, GroupId.GROUP_0,
+                                       SimConnectConstants.EVENT_FLAG_GROUPID_IS_PRIORITY);
+                           }
+                       });
         standbyCom1Subject.subscribeOn(Schedulers.io())
                           .debounce(250, TimeUnit.MILLISECONDS)
                           .subscribe(new IOAction<Integer>(ioexs) {
@@ -116,6 +128,10 @@ public class FsxConnection implements Connection, SimObjectDataHandler {
         }
     }
 
+    @Override
+    public Observer<Void> getCom1SwapObserver() {
+        return com1SwapSubject;
+    }
     @Override
     public Observer<Integer> getStandbyCom1Observer() {
         return standbyCom1Subject;

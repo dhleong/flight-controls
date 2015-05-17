@@ -28,7 +28,8 @@ public class RadioStackView
     @InjectView(R.id.navcom1) NavComView navCom1;
 
     @Inject Observable<RadioStatus> radioStatus;
-    @Inject @Named("COM1") Observer<Integer> com1Observer;
+    @Inject @Named("COM1Swap") Observer<Void> com1SwapObserver;
+    @Inject @Named("COM1Standby") Observer<Integer> com1Observer;
 
     private CompositeSubscription subscriptions = new CompositeSubscription();
 
@@ -58,10 +59,16 @@ public class RadioStackView
         // bind/init
         subscriptions.add(
                 navCom1.comStandbyFrequencies()
-                       .subscribe(com1Observer));
+                       .subscribe(com1Observer)
+        );
+        subscriptions.add(
+                navCom1.comFrequencySwaps()
+                       .subscribe(com1SwapObserver)
+        );
         subscriptions.add(
                 radioStatus.observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(this));
+                    .subscribe(this)
+        );
     }
 
     @Override

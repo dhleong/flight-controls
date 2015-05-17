@@ -20,7 +20,11 @@ public class RadioStackModule {
         return conn.radioStatus();
     }
 
-    @Provides @Named("COM1") Observer<Integer> provideStandbyCom1Observer(Connection conn) {
+    @Provides @Named("COM1Swap") Observer<Void> provideCom1Swap(Connection conn) {
+        return conn.getCom1SwapObserver();
+    }
+
+    @Provides @Named("COM1Standby") Observer<Integer> provideStandbyCom1Observer(Connection conn) {
         return conn.getStandbyCom1Observer();
     }
 }

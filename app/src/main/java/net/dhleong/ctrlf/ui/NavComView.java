@@ -8,7 +8,9 @@ import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.ViewGroup;
 import net.dhleong.ctrlf.ui.art.FrequencyArtist;
+import net.dhleong.ctrlf.util.RxUtil;
 import rx.Observable;
+import rx.android.view.ViewObservable;
 import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.subjects.BehaviorSubject;
@@ -34,6 +36,7 @@ public class NavComView extends ViewGroup {
     private final RectF frequencyRect = new RectF();
 
     // public for easy functional testing
+    public final SwapButton comSwap;
     public final FineDialView comDial;
 
     private float fontSize;
@@ -41,6 +44,7 @@ public class NavComView extends ViewGroup {
     private int comFrequency, comStandbyFrequency;
 
     private final BehaviorSubject<Integer> comStandbySubject = BehaviorSubject.create();
+    private final Observable<Void> comSwaps;
 
     @SuppressWarnings("FieldCanBeLocal")
     private final Action1<Integer> setComStandbyFrequency = new Action1<Integer>() {
@@ -79,8 +83,22 @@ public class NavComView extends ViewGroup {
 //        }
 
         // build kids
+        comSwap = new SwapButton(context);
         comDial = new FineDialView(context);
+        addView(comSwap);
         addView(comDial);
+
+        comSwaps = ViewObservable.clicks(comSwap)
+                .map(RxUtil.CLICK_TO_VOID);
+        comSwaps.subscribe(new Action1<Void>() {
+            @Override
+            public void call(final Void aVoid) {
+                final int oldActive = comFrequency;
+                final int oldStandby = comStandbyFrequency;
+                setComFrequency(oldStandby);
+                setComStandbyFrequency(oldActive);
+            }
+        });
 
         // connect events
         comDial.outerDetents()
@@ -113,6 +131,9 @@ public class NavComView extends ViewGroup {
 
     public Observable<Integer> comStandbyFrequencies() {
         return comStandbySubject;
+    }
+    public Observable<Void> comFrequencySwaps() {
+        return comSwaps;
     }
 
     public void setFontSize(final int unit, final int size) {
@@ -193,6 +214,7 @@ public class NavComView extends ViewGroup {
 
         // TODO build proper specs?
         comDial.measure(widthMeasureSpec, heightMeasureSpec);
+        comSwap.measure(widthMeasureSpec, heightMeasureSpec);
 
         int width, height;
         if (widthMode == MeasureSpec.EXACTLY
@@ -236,5 +258,9 @@ public class NavComView extends ViewGroup {
         final int dialHalfWidth = (int) (dialWidth / 2f);
 
         comDial.layout(left - dialHalfWidth, top, left + dialHalfWidth, top + dialHeight);
+
+        comSwap.layout(left, top,
+                left + comSwap.getMeasuredWidth(),
+                top + comSwap.getMeasuredHeight());
     }
 }

@@ -103,7 +103,11 @@ public class FineDialView extends View {
         linePaint.setStrokeWidth(3 * density);
         linePaint.setColor(0xffCCCCCC);
 
-        vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+        if (isInEditMode()) {
+            vibrator = null;
+        } else {
+            vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+        }
     }
 
     public Observable<Integer> innerDetents() {
