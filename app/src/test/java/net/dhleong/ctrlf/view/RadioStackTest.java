@@ -6,6 +6,7 @@ import net.dhleong.ctrlf.App;
 import net.dhleong.ctrlf.R;
 import net.dhleong.ctrlf.TestProvider;
 import net.dhleong.ctrlf.model.Connection;
+import net.dhleong.ctrlf.model.RadioStatus;
 import net.dhleong.ctrlf.module.TestModule;
 import net.dhleong.ctrlf.ui.FineDialView;
 import org.junit.Before;
@@ -15,6 +16,7 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import rx.functions.Action1;
+import rx.subjects.BehaviorSubject;
 import rx.subjects.ReplaySubject;
 
 import java.util.ArrayList;
@@ -65,10 +67,21 @@ public class RadioStackTest {
         assertThat(module.com1).containsExactly(128_500);
     }
 
+    @Test
+    public void testReceive() {
+        view.navCom1.setComFrequency(127_250);
+        assertThat(view.navCom1.getComFrequency()).isEqualTo(127_250);
+
+        module.radioStatusSubject.onNext(new RadioStatus(118_000, 119_250));
+        assertThat(view.navCom1.getComFrequency()).isEqualTo(118_000);
+    }
+
     private class RadioTestModule extends TestModule {
 
         private final ReplaySubject<Integer> com1Subject = ReplaySubject.create();
         List<Integer> com1 = new ArrayList<>();
+
+        BehaviorSubject<RadioStatus> radioStatusSubject = BehaviorSubject.create();
 
         RadioTestModule() {
             com1Subject.subscribe(new Action1<Integer>() {
@@ -82,6 +95,7 @@ public class RadioStackTest {
         @Override
         protected void mockConnection(final Connection mock) {
             when(mock.getStandbyCom1Observer()).thenReturn(com1Subject);
+            when(mock.radioStatus()).thenReturn(radioStatusSubject);
         }
     }
 }

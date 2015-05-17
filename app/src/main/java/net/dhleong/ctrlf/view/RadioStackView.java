@@ -7,9 +7,13 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import net.dhleong.ctrlf.App;
 import net.dhleong.ctrlf.R;
+import net.dhleong.ctrlf.model.RadioStatus;
 import net.dhleong.ctrlf.ui.NavComView;
 import net.dhleong.ctrlf.util.Named;
+import rx.Observable;
 import rx.Observer;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
 import rx.subscriptions.CompositeSubscription;
 
 import javax.inject.Inject;
@@ -17,10 +21,13 @@ import javax.inject.Inject;
 /**
  * @author dhleong
  */
-public class RadioStackView extends LinearLayout {
+public class RadioStackView
+        extends LinearLayout
+        implements Action1<RadioStatus> {
 
     @InjectView(R.id.navcom1) NavComView navCom1;
 
+    @Inject Observable<RadioStatus> radioStatus;
     @Inject @Named("COM1") Observer<Integer> com1Observer;
 
     private CompositeSubscription subscriptions = new CompositeSubscription();
@@ -52,6 +59,9 @@ public class RadioStackView extends LinearLayout {
         subscriptions.add(
                 navCom1.comStandbyFrequencies()
                        .subscribe(com1Observer));
+        subscriptions.add(
+                radioStatus.observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(this));
     }
 
     @Override
@@ -59,5 +69,11 @@ public class RadioStackView extends LinearLayout {
         super.onDetachedFromWindow();
 
         subscriptions.unsubscribe();
+    }
+
+    @Override
+    public void call(final RadioStatus radioStatus) {
+        navCom1.setComFrequency(radioStatus.com1Active);
+        navCom1.setComStandbyFrequency(radioStatus.com1Standby);
     }
 }

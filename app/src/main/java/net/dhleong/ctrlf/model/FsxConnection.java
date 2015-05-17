@@ -2,6 +2,10 @@ package net.dhleong.ctrlf.model;
 
 import flightsim.simconnect.SimConnect;
 import flightsim.simconnect.SimConnectConstants;
+import flightsim.simconnect.SimConnectPeriod;
+import flightsim.simconnect.recv.DispatcherTask;
+import flightsim.simconnect.recv.RecvSimObjectData;
+import flightsim.simconnect.recv.SimObjectDataHandler;
 import net.dhleong.ctrlf.util.IOAction;
 import net.dhleong.ctrlf.util.RadioUtil;
 import rx.Observable;
@@ -19,26 +23,37 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author dhleong
  */
-public class FsxConnection implements Connection {
+public class FsxConnection implements Connection, SimObjectDataHandler {
 
     private static final String APP_NAME = "net.dhleong.ctrlf";
 
     // 0 means the user's plane
     private static final int CLIENT_ID = 0;
 
-    enum GROUP_ID {
+    enum GroupId {
         GROUP_0
     }
 
-    enum RadioEvents {
+    enum RadioEvent {
         COM1_STANDBY
+    }
+
+    enum DataType {
+        RADIO_STATUS;
+
+        static final DataType[] types = values();
+        static DataType fromInt(final int input) {
+            return types[input];
+        }
     }
 
     final BehaviorSubject<IOException> ioexs = BehaviorSubject.create();
 
     final BehaviorSubject<Integer> standbyCom1Subject = BehaviorSubject.create();
+    final BehaviorSubject<RadioStatus> radioStatusSubject = BehaviorSubject.create();
 
     SimConnect simConnect;
+    DispatchThread thread;
 
     public FsxConnection() {
         ioexs.subscribe(new Action1<IOException>() {
@@ -53,8 +68,13 @@ public class FsxConnection implements Connection {
     /** Called when the connection is established */
     void init(final SimConnect sc) throws IOException {
 
-        sc.mapClientEventToSimEvent(RadioEvents.COM1_STANDBY, "COM_STBY_RADIO_SET");
+        // map events
+        sc.mapClientEventToSimEvent(RadioEvent.COM1_STANDBY, "COM_STBY_RADIO_SET");
 
+        // bind data types
+        RadioStatus.bindDataDefinition(sc, DataType.RADIO_STATUS);
+
+        // rx subscriptions
         standbyCom1Subject.subscribeOn(Schedulers.io())
                           .debounce(250, TimeUnit.MILLISECONDS)
                           .subscribe(new IOAction<Integer>(ioexs) {
@@ -62,17 +82,48 @@ public class FsxConnection implements Connection {
                               protected void perform(final Integer frequency) throws
                                       IOException {
                                   final int param = RadioUtil.frequencyAsParam(frequency);
-                                  sc.transmitClientEvent(CLIENT_ID, RadioEvents.COM1_STANDBY,
+                                  sc.transmitClientEvent(CLIENT_ID, RadioEvent.COM1_STANDBY,
                                           param,
-                                          GROUP_ID.GROUP_0,
+                                          GroupId.GROUP_0,
                                           SimConnectConstants.EVENT_FLAG_GROUPID_IS_PRIORITY);
                               }
                           });
+
+        // register listeners
+        final DispatcherTask dt = new DispatcherTask(sc);
+        dt.addSimObjectDataHandler(this);
+
+        // listener thread
+        thread = new DispatchThread(sc, dt);
+        thread.start();
+
+        // finally, request some initial data
+        // TODO we should probably not do this until the "sim start" event
+        // NB: just be lazy and reuse the data type as the request id
+        sc.requestDataOnSimObject(DataType.RADIO_STATUS, DataType.RADIO_STATUS, 0, SimConnectPeriod.ONCE);
     }
 
     @Override
-    public Observer<Integer> getStandbyCom1Observer(){
+    public void handleSimObject(final SimConnect simConnect,
+            final RecvSimObjectData data) {
+
+        final DataType request = DataType.fromInt(data.getRequestID());
+        switch (request) {
+        case RADIO_STATUS:
+            // parse and dispatch
+            radioStatusSubject.onNext(new RadioStatus(data));
+            break;
+        }
+    }
+
+    @Override
+    public Observer<Integer> getStandbyCom1Observer() {
         return standbyCom1Subject;
+    }
+
+    @Override
+    public Observable<RadioStatus> radioStatus() {
+        return radioStatusSubject;
     }
 
     @Override
@@ -95,6 +146,10 @@ public class FsxConnection implements Connection {
 
     @Override
     public void disconnect() {
+
+        final DispatchThread thread = this.thread;
+        if (thread != null) thread.cancel();
+
         final SimConnect thisConnection = simConnect;
         if (thisConnection == null) return;
 
@@ -110,5 +165,33 @@ public class FsxConnection implements Connection {
             }
         }).subscribeOn(Schedulers.io())
           .subscribe(); // just do it (tm)
+    }
+
+    private static class DispatchThread extends Thread {
+        private final SimConnect sc;
+        private final DispatcherTask task;
+
+        boolean running;
+
+        public DispatchThread(final SimConnect sc, DispatcherTask task) {
+            this.sc = sc;
+            this.task = task;
+        }
+
+        @Override
+        public void run() {
+            while (running) {
+                try {
+                    sc.callDispatch(task);
+                } catch (IOException e) {
+                    // TODO we should probably do something with this....
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        void cancel() {
+            running = false;
+        }
     }
 }

@@ -30,4 +30,28 @@ public class RadioUtil {
         // then it becomes hex: 0x2797
         return param;
     }
+
+    public static int paramAsFrequency(final int param) {
+        // the 100000 is assumed
+        int frequency = 100000;
+
+        // inspired by Integer.toHexString
+        int power = 10;
+        int index = 7;
+        int number = param;
+        do {
+            final int digit = number & 0xf;
+            frequency += digit * power;
+
+            power *= 10;
+        } while ((number >>>= 4) != 0 || (--index < 0));
+
+        final int lastDigit = param & 0xf;
+        if (lastDigit == 2 || lastDigit == 7) {
+            // see above
+            frequency += 5;
+        }
+
+        return frequency;
+    }
 }
