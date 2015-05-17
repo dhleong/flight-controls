@@ -2,6 +2,8 @@ package net.dhleong.ctrlf.ui;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.Paint.Style;
 import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
@@ -35,6 +37,9 @@ public class NavComView extends ViewGroup {
     private final FrequencyArtist comFrequencyArtist = new FrequencyArtist();
     private final FrequencyArtist comStandbyArtist = new FrequencyArtist();
     private final RectF frequencyRect = new RectF();
+
+    private final Paint framePaint;
+    private final RectF frameRect = new RectF();
 
     // public for easy functional testing
     public final SwapButton comSwap;
@@ -71,17 +76,19 @@ public class NavComView extends ViewGroup {
 
         setWillNotDraw(false);
 
+        // TODO do we need to bother attrs?
         setFontSize(TypedValue.COMPLEX_UNIT_SP, DEFAULT_FONT_SIZE);
 
-        if (attrs != null) {
-            // TODO
-        }
-
-        // TODO is there a default one in the attrs?
-//        if (isInEditMode()) { // FIXME commented out for testing only
+        if (isInEditMode()) {
             setComFrequency(128_500);
             setComStandbyFrequency(118_500);
-//        }
+        }
+
+        final float density = getResources().getDisplayMetrics().density;
+        framePaint = new Paint();
+        framePaint.setStrokeWidth(4 * density);
+        framePaint.setStyle(Style.STROKE);
+        framePaint.setColor(0xffCCCCCC);
 
         // build kids
         comSwap = new SwapButton(context);
@@ -183,6 +190,8 @@ public class NavComView extends ViewGroup {
 
         final int paddingLeft = getPaddingLeft();
         final int paddingTop = getPaddingTop();
+        final int paddingRight = getPaddingRight();
+        final int paddingBottom = getPaddingBottom();
 
         canvas.save();
         canvas.translate(paddingLeft, paddingTop);
@@ -192,6 +201,9 @@ public class NavComView extends ViewGroup {
         drawFrequency(canvas, comStandbyArtist);
 
         canvas.restore();
+
+        final float radius = 8 * getResources().getDisplayMetrics().density;
+        canvas.drawRoundRect(frameRect, radius, radius, framePaint);
     }
 
     private void drawFrequency(final Canvas canvas, final FrequencyArtist artist) {
@@ -250,6 +262,12 @@ public class NavComView extends ViewGroup {
         setMeasuredDimension(width, (int) (frequencyRect.height()
                 + comDial.getMeasuredHeight()
                 + paddingTop + paddingBottom));
+
+        frameRect.set(0, 0, getMeasuredWidth(), getMeasuredHeight());
+        frameRect.left += paddingLeft / 2;
+        frameRect.top += paddingTop / 2;
+        frameRect.right -= paddingRight / 2;
+        frameRect.bottom -= paddingBottom / 2;
     }
 
     @Override
