@@ -47,6 +47,7 @@ public class RadioStackTest {
         view = (RadioStackView) LayoutInflater
                 .from(context)
                 .inflate(R.layout.widget_radio_stack, null);
+        view.onAttachedToWindow();
 
         view.navCom1.setComStandbyFrequency(INITIAL_COM_STANDBY);
     }
