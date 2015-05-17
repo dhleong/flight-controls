@@ -49,9 +49,15 @@ public class RadioStackView
     protected void onFinishInflate() {
         // inject
         ButterKnife.inject(this);
-        App.provideComponent(this)
-           .newRadioStackComponent()
-           .inject(this);
+
+        if (!isInEditMode()) {
+            App.provideComponent(this)
+               .newRadioStackComponent()
+               .inject(this);
+        } else {
+            // dummy stuff
+            radioStatus = Observable.empty();
+        }
     }
 
     @Override

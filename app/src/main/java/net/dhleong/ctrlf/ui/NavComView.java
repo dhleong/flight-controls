@@ -247,12 +247,15 @@ public class NavComView extends ViewGroup {
         comFrequencyArtist.setDrawRect(frequencyRect);
         comStandbyArtist.setDrawRect(frequencyRect);
 
-        setMeasuredDimension(width, height + comDial.getMeasuredHeight());
+        setMeasuredDimension(width, (int) (frequencyRect.height()
+                + comDial.getMeasuredHeight()
+                + paddingTop + paddingBottom));
     }
 
     @Override
     protected void onLayout(final boolean changed, final int l, final int t, final int r, final int b) {
 
+        final int paddingLeft = getPaddingLeft();
         final int left = (int) (frequencyRect.width() + (frequencyRect.width() / 2f));
         final int top = (int) (frequencyRect.height() + getPaddingTop());
 
@@ -262,8 +265,11 @@ public class NavComView extends ViewGroup {
 
         comDial.layout(left - dialHalfWidth, top, left + dialHalfWidth, top + dialHeight);
 
-        comSwap.layout(l, top,
-                l + comSwap.getMeasuredWidth(),
-                top + comSwap.getMeasuredHeight());
+        // align vertically with the dial
+        final int swapTop = top + (dialHeight / 2) - (comSwap.getMeasuredHeight() / 2);
+        comSwap.layout(l + paddingLeft,
+                swapTop,
+                l + paddingLeft + comSwap.getMeasuredWidth(),
+                swapTop + comSwap.getMeasuredHeight());
     }
 }
