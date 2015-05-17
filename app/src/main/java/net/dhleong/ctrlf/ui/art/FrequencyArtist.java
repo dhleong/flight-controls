@@ -3,6 +3,7 @@ package net.dhleong.ctrlf.ui.art;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.RectF;
+import net.dhleong.ctrlf.ui.art.LedArtist.DigitLedArtist;
 
 /**
  * Composes some LedArtists to draw a Frequency display
@@ -50,12 +51,18 @@ public class FrequencyArtist {
     public void setFrequency(final int khz) {
         frequency = khz;
 
-        int divisor = 1;
-        for (int i=0; i < 6; i++) {
-            final int digit = (khz / divisor) % 10;
-            digits[5 - i].setDigit(digit);
+        if (khz < 0) {
+            for (final DigitLedArtist digit : digits) {
+                digit.setDigit(-1);
+            }
+        } else {
+            int divisor = 1;
+            for (int i = 0; i < 6; i++) {
+                final int digit = (khz / divisor) % 10;
+                digits[5 - i].setDigit(digit);
 
-            divisor *= 10;
+                divisor *= 10;
+            }
         }
 
         punctuation.setState(khz < 0 ? 0 : LedArtist.PunctuationLedArtist.DECIMAL);

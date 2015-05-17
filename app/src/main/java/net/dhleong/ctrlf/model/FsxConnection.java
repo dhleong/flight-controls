@@ -6,7 +6,9 @@ import flightsim.simconnect.SimConnectConstants;
 import flightsim.simconnect.SimConnectPeriod;
 import flightsim.simconnect.recv.DispatcherTask;
 import flightsim.simconnect.recv.ExceptionHandler;
+import flightsim.simconnect.recv.OpenHandler;
 import flightsim.simconnect.recv.RecvException;
+import flightsim.simconnect.recv.RecvOpen;
 import flightsim.simconnect.recv.RecvSimObjectData;
 import flightsim.simconnect.recv.SimObjectDataHandler;
 import net.dhleong.ctrlf.util.IOAction;
@@ -27,8 +29,13 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author dhleong
  */
-public class FsxConnection implements Connection, SimObjectDataHandler, ExceptionHandler {
+public class FsxConnection
+        implements Connection,
+                   SimObjectDataHandler,
+                   ExceptionHandler,
+                   OpenHandler {
 
+    private static final String TAG = "ctrlf:Fsx";
     private static final String APP_NAME = "net.dhleong.ctrlf";
 
     // 0 means the user's plane
@@ -75,8 +82,9 @@ public class FsxConnection implements Connection, SimObjectDataHandler, Exceptio
 
         // register listeners
         final DispatcherTask dt = new DispatcherTask(sc);
-        dt.addSimObjectDataHandler(this);
+        dt.addOpenHandler(this);
         dt.addExceptionHandler(this);
+        dt.addSimObjectDataHandler(this);
 
         // map events
         sc.mapClientEventToSimEvent(RadioEvent.COM1_STANDBY, "COM_STBY_RADIO_SET");
@@ -113,10 +121,17 @@ public class FsxConnection implements Connection, SimObjectDataHandler, Exceptio
         thread = new DispatchThread(sc, dt);
         thread.start();
 
-        // finally, request some initial data
-        // TODO we should probably not do this until the "sim start" event
+        // finally, request some data. We could perhaps rather use
+        //  the change events, but we need these anyway, and 1/s shouldn't
+        //  put that much strain on the network....
         // NB: just be lazy and reuse the data type as the request id
-        sc.requestDataOnSimObject(DataType.RADIO_STATUS, DataType.RADIO_STATUS, 0, SimConnectPeriod.SECOND);
+        simConnect.requestDataOnSimObject(DataType.RADIO_STATUS, DataType.RADIO_STATUS,
+                CLIENT_ID, SimConnectPeriod.SECOND);
+    }
+
+    @Override
+    public void handleOpen(final SimConnect simConnect, final RecvOpen recvOpen) {
+        Log.v(TAG, "opened! " + recvOpen);
     }
 
     @Override
@@ -134,7 +149,7 @@ public class FsxConnection implements Connection, SimObjectDataHandler, Exceptio
 
     @Override
     public void handleException(final SimConnect simConnect, final RecvException e) {
-        Log.w("FSX", "exception: " + e + ":" + e.getException());
+        Log.w(TAG, "exception: " + e + ":" + e.getException());
         // TODO ?
     }
 
@@ -197,7 +212,7 @@ public class FsxConnection implements Connection, SimObjectDataHandler, Exceptio
         private final SimConnect sc;
         private final DispatcherTask task;
 
-        boolean running;
+        boolean running = true;
 
         public DispatchThread(final SimConnect sc, DispatcherTask task) {
             this.sc = sc;
@@ -210,8 +225,10 @@ public class FsxConnection implements Connection, SimObjectDataHandler, Exceptio
                 try {
                     sc.callDispatch(task);
                 } catch (IOException e) {
-                    // TODO we should probably do something with this....
-                    e.printStackTrace();
+                    if (running) {
+                        // TODO we should probably do something with this....
+                        e.printStackTrace();
+                    }
                 }
             }
         }

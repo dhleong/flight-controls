@@ -15,24 +15,24 @@ public class RadioStatus {
     private static final String FREQ = "Frequency BCD16";
 
     /** Whether or not we have power to any radio */
-    public final boolean avionicsMaster;
+    public final boolean avionicsPower;
     public final int com1Active, com1Standby;
 
     public RadioStatus(final RecvSimObjectData data) {
-        avionicsMaster = readBool(data);
+        avionicsPower = readBool(data);
         com1Active = readFrequency(data);
         com1Standby = readFrequency(data);
     }
 
-    public RadioStatus(final boolean avionicsMaster,
+    public RadioStatus(final boolean avionicsPower,
             final int com1Active, final int com1Standby) {
-        this.avionicsMaster = avionicsMaster;
+        this.avionicsPower = avionicsPower;
         this.com1Active = com1Active;
         this.com1Standby = com1Standby;
     }
 
     public static void bindDataDefinition(SimConnect sc, Enum id) throws IOException {
-        sc.addToDataDefinition(id, "Avionics Master Switch", "Bool", SimConnectDataType.INT32);
+        sc.addToDataDefinition(id, "Circuit Avionics On", "Bool", SimConnectDataType.INT32);
         sc.addToDataDefinition(id, "Com Active Frequency:1", FREQ, SimConnectDataType.INT32);
         sc.addToDataDefinition(id, "Com Standby Frequency:1", FREQ, SimConnectDataType.INT32);
     }
