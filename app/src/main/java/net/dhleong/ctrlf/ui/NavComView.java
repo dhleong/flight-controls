@@ -259,8 +259,8 @@ public class NavComView extends ViewGroup {
 
         comDial.layout(left - dialHalfWidth, top, left + dialHalfWidth, top + dialHeight);
 
-        comSwap.layout(left, top,
-                left + comSwap.getMeasuredWidth(),
+        comSwap.layout(l, top,
+                l + comSwap.getMeasuredWidth(),
                 top + comSwap.getMeasuredHeight());
     }
 }

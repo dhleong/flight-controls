@@ -38,4 +38,13 @@ public class SwapButton extends Button {
         canvas.drawLine(x, y, x + w, y, paint);
         // TODO arrow heads
     }
+
+    @Override
+    protected void onMeasure(final int widthMeasureSpec, final int heightMeasureSpec) {
+        // TODO respect the spec
+        final float density = getResources().getDisplayMetrics().density;
+        final int width = (int) (60 * density);
+        final int height = (int) (48 * density);
+        setMeasuredDimension(width, height);
+    }
 }

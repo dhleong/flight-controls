@@ -1,9 +1,12 @@
 package net.dhleong.ctrlf.model;
 
+import android.util.Log;
 import flightsim.simconnect.SimConnect;
 import flightsim.simconnect.SimConnectConstants;
 import flightsim.simconnect.SimConnectPeriod;
 import flightsim.simconnect.recv.DispatcherTask;
+import flightsim.simconnect.recv.ExceptionHandler;
+import flightsim.simconnect.recv.RecvException;
 import flightsim.simconnect.recv.RecvSimObjectData;
 import flightsim.simconnect.recv.SimObjectDataHandler;
 import net.dhleong.ctrlf.util.IOAction;
@@ -24,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author dhleong
  */
-public class FsxConnection implements Connection, SimObjectDataHandler {
+public class FsxConnection implements Connection, SimObjectDataHandler, ExceptionHandler {
 
     private static final String APP_NAME = "net.dhleong.ctrlf";
 
@@ -70,6 +73,11 @@ public class FsxConnection implements Connection, SimObjectDataHandler {
     /** Called when the connection is established */
     void init(final SimConnect sc) throws IOException {
 
+        // register listeners
+        final DispatcherTask dt = new DispatcherTask(sc);
+        dt.addSimObjectDataHandler(this);
+        dt.addExceptionHandler(this);
+
         // map events
         sc.mapClientEventToSimEvent(RadioEvent.COM1_STANDBY, "COM_STBY_RADIO_SET");
         sc.mapClientEventToSimEvent(RadioEvent.COM1_SWAP, "COM_STBY_RADIO_SWAP");
@@ -101,11 +109,7 @@ public class FsxConnection implements Connection, SimObjectDataHandler {
                               }
                           });
 
-        // register listeners
-        final DispatcherTask dt = new DispatcherTask(sc);
-        dt.addSimObjectDataHandler(this);
-
-        // listener thread
+        // prepare listener thread
         thread = new DispatchThread(sc, dt);
         thread.start();
 
@@ -126,6 +130,12 @@ public class FsxConnection implements Connection, SimObjectDataHandler {
             radioStatusSubject.onNext(new RadioStatus(data));
             break;
         }
+    }
+
+    @Override
+    public void handleException(final SimConnect simConnect, final RecvException e) {
+        Log.w("FSX", "exception: " + e + ":" + e.getException());
+        // TODO ?
     }
 
     @Override
