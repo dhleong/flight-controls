@@ -32,7 +32,8 @@ import static org.mockito.Mockito.when;
 @Config(emulateSdk = 17)
 public class RadioStackTest {
 
-    private static final int INITIAL_COM_STANDBY = 127_500;
+    private static final int INITIAL_COM_ACTIVE = 127_500;
+    private static final int INITIAL_COM_STANDBY = 118_500;
 
     Application context;
     RadioTestModule module;
@@ -51,11 +52,12 @@ public class RadioStackTest {
                 .inflate(R.layout.widget_radio_stack, null);
         view.onAttachedToWindow();
 
+        view.navCom1.setComFrequency(INITIAL_COM_ACTIVE);
         view.navCom1.setComStandbyFrequency(INITIAL_COM_STANDBY);
     }
 
     @Test
-    public void testCom1() {
+    public void moveCom1() {
 
         // nothing published yet
         assertThat(module.com1).isEmpty();
@@ -64,16 +66,33 @@ public class RadioStackTest {
         view.navCom1.comDial.performDetentsMoved(FineDialView.STATE_OUTER, 1);
 
         // we now have our new frequency!
-        assertThat(module.com1).containsExactly(128_500);
+        assertThat(module.com1).containsExactly(INITIAL_COM_STANDBY + 1000);
     }
 
     @Test
-    public void testReceive() {
-        view.navCom1.setComFrequency(127_250);
-        assertThat(view.navCom1.getComFrequency()).isEqualTo(127_250);
+    public void receiveStatus() {
+        assertThat(view.navCom1.getComFrequency()).isEqualTo(INITIAL_COM_ACTIVE);
 
-        module.radioStatusSubject.onNext(new RadioStatus(118_000, 119_250));
+        module.radioStatusSubject.onNext(new RadioStatus(true, 118_000, 119_250));
         assertThat(view.navCom1.getComFrequency()).isEqualTo(118_000);
+        assertThat(view.navCom1.getComStandbyFrequency()).isEqualTo(119_250);
+    }
+
+    @Test
+    public void receiveNoPower() {
+        assertThat(view.navCom1.getComFrequency()).isEqualTo(INITIAL_COM_ACTIVE);
+
+        // with avionics disabled, we use a negative frequency
+        //  to draw the views as "off"
+        module.radioStatusSubject.onNext(new RadioStatus(false, 118_000, 119_250));
+        assertThat(view.navCom1.isEnabled()).isEqualTo(false);
+        assertThat(view.navCom1.getComFrequency()).isEqualTo(-1);
+        assertThat(view.navCom1.getComStandbyFrequency()).isEqualTo(-1);
+
+        // providing power should not lose the last frequency
+        view.navCom1.setEnabled(true);
+        assertThat(view.navCom1.getComFrequency()).isEqualTo(118_000);
+        assertThat(view.navCom1.getComStandbyFrequency()).isEqualTo(119_250);
     }
 
     private class RadioTestModule extends TestModule {

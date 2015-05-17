@@ -100,7 +100,7 @@ public class FsxConnection implements Connection, SimObjectDataHandler {
         // finally, request some initial data
         // TODO we should probably not do this until the "sim start" event
         // NB: just be lazy and reuse the data type as the request id
-        sc.requestDataOnSimObject(DataType.RADIO_STATUS, DataType.RADIO_STATUS, 0, SimConnectPeriod.ONCE);
+        sc.requestDataOnSimObject(DataType.RADIO_STATUS, DataType.RADIO_STATUS, 0, SimConnectPeriod.SECOND);
     }
 
     @Override

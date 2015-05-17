@@ -38,6 +38,8 @@ public class NavComView extends ViewGroup {
 
     private float fontSize;
 
+    private int comFrequency, comStandbyFrequency;
+
     private final BehaviorSubject<Integer> comStandbySubject = BehaviorSubject.create();
 
     @SuppressWarnings("FieldCanBeLocal")
@@ -105,6 +107,10 @@ public class NavComView extends ViewGroup {
         return comFrequencyArtist.getFrequency();
     }
 
+    public int getComStandbyFrequency() {
+        return comStandbyArtist.getFrequency();
+    }
+
     public Observable<Integer> comStandbyFrequencies() {
         return comStandbySubject;
     }
@@ -123,13 +129,28 @@ public class NavComView extends ViewGroup {
 
     public void setComFrequency(final int khz) {
         // NB: We could just invalidate the com area....
+        if (khz > 0) comFrequency = khz;
         comFrequencyArtist.setFrequency(khz);
         invalidate();
     }
     public void setComStandbyFrequency(final int khz) {
         // NB: We could just invalidate the standby area....
+        if (khz > 0) comStandbyFrequency = khz;
         comStandbyArtist.setFrequency(khz);
         invalidate();
+    }
+
+    @Override
+    public void setEnabled(final boolean enabled) {
+        super.setEnabled(enabled);
+
+        if (enabled) {
+            setComFrequency(comFrequency);
+            setComStandbyFrequency(comStandbyFrequency);
+        } else {
+            setComFrequency(-1);
+            setComStandbyFrequency(-1);
+        }
     }
 
     @Override

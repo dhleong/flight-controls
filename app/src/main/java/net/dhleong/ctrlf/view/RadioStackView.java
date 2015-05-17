@@ -75,5 +75,6 @@ public class RadioStackView
     public void call(final RadioStatus radioStatus) {
         navCom1.setComFrequency(radioStatus.com1Active);
         navCom1.setComStandbyFrequency(radioStatus.com1Standby);
+        navCom1.setEnabled(radioStatus.avionicsMaster);
     }
 }
