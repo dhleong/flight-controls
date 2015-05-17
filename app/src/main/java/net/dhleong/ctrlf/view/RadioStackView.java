@@ -33,6 +33,8 @@ public class RadioStackView
 
     private CompositeSubscription subscriptions = new CompositeSubscription();
 
+    private boolean isInitial = true;
+
     public RadioStackView(final Context context) {
         this(context, null);
     }
@@ -56,7 +58,7 @@ public class RadioStackView
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
 
-        // bind/init
+        // bind TO remote
         subscriptions.add(
                 navCom1.comStandbyFrequencies()
                        .subscribe(com1Observer)
@@ -65,6 +67,8 @@ public class RadioStackView
                 navCom1.comFrequencySwaps()
                        .subscribe(com1SwapObserver)
         );
+
+        // bind FROM remote
         subscriptions.add(
                 radioStatus.observeOn(AndroidSchedulers.mainThread())
                     .subscribe(this)
@@ -80,8 +84,19 @@ public class RadioStackView
 
     @Override
     public void call(final RadioStatus radioStatus) {
-        navCom1.setComFrequency(radioStatus.com1Active);
-        navCom1.setComStandbyFrequency(radioStatus.com1Standby);
+        if (isInitial) {
+            // minor hack to avoid a race condition where
+            //  our change doesn't reach the server before
+            //  the periodic update reaches us. Future work
+            //  could properly use events for these things,
+            //  but we like to be lazy ;)
+            isInitial = false;
+            navCom1.setComFrequency(radioStatus.com1Active);
+            navCom1.setComStandbyFrequency(radioStatus.com1Standby);
+        }
+
+        // we never influence avionics power, so it's safe to
+        //  set this every time
         navCom1.setEnabled(radioStatus.avionicsPower);
     }
 }
