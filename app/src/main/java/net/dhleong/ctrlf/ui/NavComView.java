@@ -8,6 +8,7 @@ import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.ViewGroup;
 import net.dhleong.ctrlf.ui.art.FrequencyArtist;
+import net.dhleong.ctrlf.util.RadioUtil;
 import net.dhleong.ctrlf.util.RxUtil;
 import rx.Observable;
 import rx.android.view.ViewObservable;
@@ -105,18 +106,20 @@ public class NavComView extends ViewGroup {
                 .map(new Func1<Integer, Integer>() {
                     @Override
                     public Integer call(final Integer detents) {
-                        return Math.max(0, comStandbyArtist.getFrequency() + detents * OUTER_DETENTS);
+                        return comStandbyArtist.getFrequency() + detents * OUTER_DETENTS;
                     }
                 })
+                .map(RadioUtil.COM_FREQ_LIMIT)
                 .doOnNext(notifyComStandbyFrequency)
                 .subscribe(setComStandbyFrequency);
         comDial.innerDetents()
                .map(new Func1<Integer, Integer>() {
                    @Override
                    public Integer call(final Integer detents) {
-                       return Math.max(0, comStandbyArtist.getFrequency() + detents * INNER_DETENTS);
+                       return comStandbyArtist.getFrequency() + detents * INNER_DETENTS;
                    }
                })
+               .map(RadioUtil.COM_FREQ_LIMIT)
                .doOnNext(notifyComStandbyFrequency)
                .subscribe(setComStandbyFrequency);
     }

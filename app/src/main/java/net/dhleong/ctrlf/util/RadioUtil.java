@@ -1,9 +1,23 @@
 package net.dhleong.ctrlf.util;
 
+import rx.functions.Func1;
+
 /**
  * @author dhleong
  */
 public class RadioUtil {
+
+    static final int MIN_COM_FREQ = 118_000;
+    static final int MAX_COM_FREQ = 136_000;
+
+    public static final Func1<? super Integer, Integer> COM_FREQ_LIMIT =
+            new Func1<Integer, Integer>() {
+                @Override
+                public Integer call(final Integer input) {
+                    return Math.min(MAX_COM_FREQ, Math.max(MIN_COM_FREQ, input));
+                }
+            };
+
     /**
      * See:
      * http://forum.avsim.net/topic/224152-setting-the-radio-frequencies/
