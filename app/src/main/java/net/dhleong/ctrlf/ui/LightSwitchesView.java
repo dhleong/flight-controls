@@ -20,6 +20,7 @@ import rx.android.view.OnClickEvent;
 import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.subjects.BehaviorSubject;
+import rx.subscriptions.CompositeSubscription;
 
 import javax.inject.Inject;
 
@@ -59,6 +60,8 @@ public class LightSwitchesView extends LinearLayout {
     private final String[] labels;
     private final Paint labelPaint;
 
+    private CompositeSubscription subscriptions = new CompositeSubscription();
+
     public LightSwitchesView(final Context context) {
         this(context, null);
     }
@@ -85,32 +88,47 @@ public class LightSwitchesView extends LinearLayout {
 
         final int len = LABELS.length;
         labels = new String[len];
-        for (int i=0; i < len; i++) {
+        for (int i = 0; i < len; i++) {
             labels[i] = context.getString(LABELS[i]);
         }
 
         switches = new ToggleSwitch[len];
-        for (int i=0; i < len; i++) {
+        for (int i = 0; i < len; i++) {
             final SimEvent ev = SWITCH_EVENTS[i];
             final ToggleSwitch toggle = new ToggleSwitch(context);
             SwitchToggleObservable.on(toggle)
-                          .map(toEvent(ev))
-                          .subscribe(lightSwitcher);
+                                  .map(toEvent(ev))
+                                  .subscribe(lightSwitcher);
             addView(toggle);
             switches[i] = toggle;
         }
+    }
 
-        lightsStatus.observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new Action1<LightsStatus>() {
-                        @Override
-                        public void call(final LightsStatus lightsStatus) {
-                            for (int i = 0; i < len; i++) {
-                                final SimEvent ev = SWITCH_EVENTS[i];
-                                final boolean status = lightsStatus.getStatus(ev);
-                                switches[i].setChecked(status);
-                            }
-                        }
-                    });
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+
+        subscriptions.add(
+                lightsStatus.observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new Action1<LightsStatus>() {
+                                @Override
+                                public void call(final LightsStatus lightsStatus) {
+                                    final int len = SWITCH_EVENTS.length;
+                                    for (int i = 0; i < len; i++) {
+                                        final SimEvent ev = SWITCH_EVENTS[i];
+                                        final boolean status = lightsStatus.getStatus(ev);
+                                        switches[i].setChecked(status);
+                                    }
+                                }
+                            })
+        );
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+
+        subscriptions.unsubscribe();
     }
 
     @Override
