@@ -5,6 +5,10 @@
         <!-- Customize your theme here. -->
     </style>
 
+    <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Customize your theme here. -->
+    </style>
+
     <style name="Radio" />
     <style name="Radio.Panel">
         <item name="android:padding">@dimen/activity_horizontal_margin</item>

@@ -25,7 +25,9 @@
 
         <activity
                 android:name=".ControlsActivity"
-                android:label="@string/controls" />
+                android:label="@string/controls"
+                android:theme="@style/AppTheme.NoActionBar"
+                />
     </application>
 
 </manifest>

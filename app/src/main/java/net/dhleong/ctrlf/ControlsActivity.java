@@ -16,7 +16,7 @@ public class ControlsActivity extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.widget_radio_stack);
+        setContentView(R.layout.activity_controls);
 
         App.provideComponent(this).inject(this);
     }
