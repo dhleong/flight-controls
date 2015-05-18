@@ -22,6 +22,8 @@ import rx.subjects.BehaviorSubject;
 import rx.subjects.ReplaySubject;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author dhleong
@@ -60,6 +62,8 @@ public class FsxConnection
     // this lets us (potentially) queue up events before we're ready
     final ReplaySubject<PendingEvent> eventQueue = ReplaySubject.createWithSize(16);
 
+    private final Set<SimEvent> mappedEvents = new HashSet<>();
+
     SimConnect simConnect;
     DispatchThread thread;
 
@@ -83,9 +87,17 @@ public class FsxConnection
         dt.addSimObjectDataHandler(this);
 
         // map events
-        sc.mapClientEventToSimEvent(SimEvent.COM1_STANDBY, "COM_STBY_RADIO_SET");
-        sc.mapClientEventToSimEvent(SimEvent.COM1_SWAP, "COM_STBY_RADIO_SWAP");
-        sc.mapClientEventToSimEvent(SimEvent.SET_TRANSPONDER, "XPNDR_SET");
+        // TODO maybe it wouldn't be terrible to put the SimConnect name into the enum?
+        mapEvent(sc, SimEvent.COM1_STANDBY, "COM_STBY_RADIO_SET");
+        mapEvent(sc, SimEvent.COM1_SWAP, "COM_STBY_RADIO_SWAP");
+        mapEvent(sc, SimEvent.SET_TRANSPONDER, "XPNDR_SET");
+
+        mapEvent(sc, SimEvent.STROBES_TOGGLE, "STROBES_TOGGLE");
+        mapEvent(sc, SimEvent.PANEL_LIGHTS_TOGGLE, "PANEL_LIGHTS_TOGGLE");
+        mapEvent(sc, SimEvent.LANDING_LIGHTS_TOGGLE, "LANDING_LIGHTS_TOGGLE");
+        mapEvent(sc, SimEvent.BEACON_LIGHTS_TOGGLE, "TOGGLE_BEACON_LIGHTS");
+        mapEvent(sc, SimEvent.TAXI_LIGHTS_TOGGLE, "TOGGLE_TAXI_LIGHTS");
+        mapEvent(sc, SimEvent.NAV_LIGHTS_TOGGLE, "TOGGLE_NAV_LIGHTS");
 
         // bind data types
         RadioStatus.bindDataDefinition(sc, DataType.RADIO_STATUS);
@@ -97,6 +109,12 @@ public class FsxConnection
                       @Override
                       protected void perform(final PendingEvent pendingEvent)
                               throws IOException {
+
+                          if (!mappedEvents.contains(pendingEvent.event)) {
+                              throw new IllegalArgumentException("SimEvent "
+                                      + pendingEvent.event + " was not mapped!");
+                          }
+
                           sc.transmitClientEvent(CLIENT_ID,
                                   pendingEvent.event,
                                   pendingEvent.param,
@@ -203,6 +221,12 @@ public class FsxConnection
             }
         }).subscribeOn(Schedulers.io())
           .subscribe(); // just do it (tm)
+    }
+
+    private void mapEvent(final SimConnect sc, final SimEvent simEvent,
+            final String simConnectEventId) throws IOException {
+        sc.mapClientEventToSimEvent(simEvent, simConnectEventId);
+        mappedEvents.add(simEvent);
     }
 
     private static class DispatchThread extends Thread {
