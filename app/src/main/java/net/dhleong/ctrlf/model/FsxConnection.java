@@ -12,19 +12,16 @@ import flightsim.simconnect.recv.RecvOpen;
 import flightsim.simconnect.recv.RecvSimObjectData;
 import flightsim.simconnect.recv.SimObjectDataHandler;
 import net.dhleong.ctrlf.util.IOAction;
-import net.dhleong.ctrlf.util.RadioUtil;
 import rx.Observable;
 import rx.Observable.OnSubscribe;
-import rx.Observer;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 import rx.subjects.BehaviorSubject;
-import rx.subjects.PublishSubject;
+import rx.subjects.ReplaySubject;
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author dhleong
@@ -45,12 +42,6 @@ public class FsxConnection
         GROUP_0
     }
 
-    enum RadioEvent {
-        COM1_SWAP,
-        COM1_STANDBY,
-        SET_TRANSPONDER,
-    }
-
     enum DataType {
         RADIO_STATUS;
 
@@ -62,10 +53,10 @@ public class FsxConnection
 
     final BehaviorSubject<IOException> ioexs = BehaviorSubject.create();
 
-    final PublishSubject<Void> com1SwapSubject = PublishSubject.create();
-    final BehaviorSubject<Integer> standbyCom1Subject = BehaviorSubject.create();
     final BehaviorSubject<RadioStatus> radioStatusSubject = BehaviorSubject.create();
-    final BehaviorSubject<Integer> transponderSubject = BehaviorSubject.create();
+
+    // this lets us (potentially) queue up events before we're ready
+    final ReplaySubject<PendingEvent> eventQueue = ReplaySubject.createWithSize(16);
 
     SimConnect simConnect;
     DispatchThread thread;
@@ -90,47 +81,26 @@ public class FsxConnection
         dt.addSimObjectDataHandler(this);
 
         // map events
-        sc.mapClientEventToSimEvent(RadioEvent.COM1_STANDBY, "COM_STBY_RADIO_SET");
-        sc.mapClientEventToSimEvent(RadioEvent.COM1_SWAP, "COM_STBY_RADIO_SWAP");
-        sc.mapClientEventToSimEvent(RadioEvent.SET_TRANSPONDER, "XPNDR_SET");
+        sc.mapClientEventToSimEvent(SimEvent.COM1_STANDBY, "COM_STBY_RADIO_SET");
+        sc.mapClientEventToSimEvent(SimEvent.COM1_SWAP, "COM_STBY_RADIO_SWAP");
+        sc.mapClientEventToSimEvent(SimEvent.SET_TRANSPONDER, "XPNDR_SET");
 
         // bind data types
         RadioStatus.bindDataDefinition(sc, DataType.RADIO_STATUS);
 
-        // rx subscriptions
-        com1SwapSubject.subscribeOn(Schedulers.io())
-                       .subscribe(new IOAction<Void>(ioexs) {
-                           @Override
-                           protected void perform(final Void aVoid) throws IOException {
-                               sc.transmitClientEvent(CLIENT_ID, RadioEvent.COM1_SWAP,
-                                       0, GroupId.GROUP_0,
-                                       SimConnectConstants.EVENT_FLAG_GROUPID_IS_PRIORITY);
-                           }
-                       });
-        standbyCom1Subject.subscribeOn(Schedulers.io())
-                          .debounce(250, TimeUnit.MILLISECONDS)
-                          .subscribe(new IOAction<Integer>(ioexs) {
-                              @Override
-                              protected void perform(final Integer frequency) throws
-                                      IOException {
-                                  final int param = RadioUtil.frequencyAsParam(frequency);
-                                  sc.transmitClientEvent(CLIENT_ID, RadioEvent.COM1_STANDBY,
-                                          param,
-                                          GroupId.GROUP_0,
-                                          SimConnectConstants.EVENT_FLAG_GROUPID_IS_PRIORITY);
-                              }
-                          });
-        transponderSubject.subscribeOn(Schedulers.io())
-                          .subscribe(new IOAction<Integer>(ioexs) {
-                              @Override
-                              protected void perform(final Integer code) throws
-                                      IOException {
-                                  sc.transmitClientEvent(CLIENT_ID, RadioEvent.SET_TRANSPONDER,
-                                          code,
-                                          GroupId.GROUP_0,
-                                          SimConnectConstants.EVENT_FLAG_GROUPID_IS_PRIORITY);
-                              }
-                          });
+        // rx subscription
+        eventQueue.subscribeOn(Schedulers.io())
+                  .subscribe(new IOAction<PendingEvent>(ioexs) {
+                      @Override
+                      protected void perform(final PendingEvent pendingEvent)
+                              throws IOException {
+                          sc.transmitClientEvent(CLIENT_ID,
+                                  pendingEvent.event,
+                                  pendingEvent.param,
+                                  GroupId.GROUP_0,
+                                  SimConnectConstants.EVENT_FLAG_GROUPID_IS_PRIORITY);
+                      }
+                  });
 
         // prepare listener thread
         thread = new DispatchThread(sc, dt);
@@ -142,6 +112,11 @@ public class FsxConnection
         // NB: just be lazy and reuse the data type as the request id
         simConnect.requestDataOnSimObject(DataType.RADIO_STATUS, DataType.RADIO_STATUS,
                 CLIENT_ID, SimConnectPeriod.SECOND);
+    }
+
+    @Override
+    public void sendEvent(final SimEvent event, final int param) {
+        eventQueue.onNext(new PendingEvent(event, param));
     }
 
     @Override
@@ -166,21 +141,6 @@ public class FsxConnection
     public void handleException(final SimConnect simConnect, final RecvException e) {
         Log.w(TAG, "exception: " + e + ":" + e.getException());
         // TODO ?
-    }
-
-    @Override
-    public Observer<Void> getCom1SwapObserver() {
-        return com1SwapSubject;
-    }
-
-    @Override
-    public Observer<Integer> getStandbyCom1Observer() {
-        return standbyCom1Subject;
-    }
-
-    @Override
-    public Observer<Integer> getTransponderObserver() {
-        return transponderSubject;
     }
 
     @Override
@@ -256,6 +216,16 @@ public class FsxConnection
 
         void cancel() {
             running = false;
+        }
+    }
+
+    static class PendingEvent {
+        final SimEvent event;
+        final int param;
+
+        public PendingEvent(final SimEvent event, final int param) {
+            this.event = event;
+            this.param = param;
         }
     }
 }

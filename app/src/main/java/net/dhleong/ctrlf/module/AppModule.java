@@ -5,6 +5,8 @@ import dagger.Provides;
 import net.dhleong.ctrlf.App;
 import net.dhleong.ctrlf.model.Connection;
 import net.dhleong.ctrlf.model.FsxConnection;
+import net.dhleong.ctrlf.model.RadioStatus;
+import rx.Observable;
 
 import javax.inject.Singleton;
 
@@ -29,4 +31,9 @@ public class AppModule {
     }
 
     @Provides @Singleton Connection provideConnection() { return new FsxConnection(); }
+
+    @Provides @Singleton Observable<RadioStatus> provideStatusObservable(Connection conn) {
+        return conn.radioStatus();
+    }
+
 }

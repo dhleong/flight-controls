@@ -7,22 +7,26 @@ import net.dhleong.ctrlf.R;
 import net.dhleong.ctrlf.TestProvider;
 import net.dhleong.ctrlf.model.Connection;
 import net.dhleong.ctrlf.model.RadioStatus;
+import net.dhleong.ctrlf.model.SimEvent;
 import net.dhleong.ctrlf.module.TestModule;
 import net.dhleong.ctrlf.ui.FineDialView;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
-import rx.functions.Action1;
 import rx.subjects.BehaviorSubject;
-import rx.subjects.ReplaySubject;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 
 /**
@@ -128,46 +132,32 @@ public class RadioStackTest {
 
     private class RadioTestModule extends TestModule {
 
-        private final ReplaySubject<Integer> com1Subject = ReplaySubject.create();
         List<Integer> com1 = new ArrayList<>();
-
-        private ReplaySubject<Void> com1SwapSubject = ReplaySubject.create();
-        List<Void> com1swaps = new ArrayList<>();
-
-        private final ReplaySubject<Integer> transponderSubject = ReplaySubject.create();
+        List<Integer> com1swaps = new ArrayList<>();
         List<Integer> transponder = new ArrayList<>();
 
         BehaviorSubject<RadioStatus> radioStatusSubject = BehaviorSubject.create();
 
-        RadioTestModule() {
-            com1Subject.subscribe(new Action1<Integer>() {
-                @Override
-                public void call(final Integer integer) {
-                    com1.add(integer);
-                }
-            });
-
-            com1SwapSubject.subscribe(new Action1<Void>() {
-                @Override
-                public void call(final Void aVoid) {
-                    com1swaps.add(aVoid);
-                }
-            });
-
-            transponderSubject.subscribe(new Action1<Integer>() {
-                @Override
-                public void call(final Integer integer) {
-                    transponder.add(integer);
-                }
-            });
-        }
-
         @Override
         protected void mockConnection(final Connection mock) {
             when(mock.radioStatus()).thenReturn(radioStatusSubject);
-            when(mock.getStandbyCom1Observer()).thenReturn(com1Subject);
-            when(mock.getCom1SwapObserver()).thenReturn(com1SwapSubject);
-            when(mock.getTransponderObserver()).thenReturn(transponderSubject);
+            doAnswer(storeParam(transponder))
+                    .when(mock).sendEvent(eq(SimEvent.SET_TRANSPONDER), anyInt());
+            doAnswer(storeParam(com1))
+                    .when(mock).sendEvent(eq(SimEvent.COM1_STANDBY), anyInt());
+            doAnswer(storeParam(com1swaps))
+                    .when(mock).sendEvent(eq(SimEvent.COM1_SWAP), anyInt());
+        }
+
+        private Answer storeParam(final List<Integer> destination) {
+            return new Answer() {
+                @Override
+                public Object answer(final InvocationOnMock invocation) throws Throwable {
+                    final Integer param = (Integer) invocation.getArguments()[1];
+                    destination.add(param);
+                    return null;
+                }
+            };
         }
     }
 }
