@@ -46,7 +46,9 @@ public class FsxConnection
     }
 
     enum RadioEvent {
-        COM1_SWAP, COM1_STANDBY
+        COM1_SWAP,
+        COM1_STANDBY,
+        SET_TRANSPONDER,
     }
 
     enum DataType {
@@ -63,6 +65,7 @@ public class FsxConnection
     final PublishSubject<Void> com1SwapSubject = PublishSubject.create();
     final BehaviorSubject<Integer> standbyCom1Subject = BehaviorSubject.create();
     final BehaviorSubject<RadioStatus> radioStatusSubject = BehaviorSubject.create();
+    final BehaviorSubject<Integer> transponderSubject = BehaviorSubject.create();
 
     SimConnect simConnect;
     DispatchThread thread;
@@ -89,6 +92,7 @@ public class FsxConnection
         // map events
         sc.mapClientEventToSimEvent(RadioEvent.COM1_STANDBY, "COM_STBY_RADIO_SET");
         sc.mapClientEventToSimEvent(RadioEvent.COM1_SWAP, "COM_STBY_RADIO_SWAP");
+        sc.mapClientEventToSimEvent(RadioEvent.SET_TRANSPONDER, "XPNDR_SET");
 
         // bind data types
         RadioStatus.bindDataDefinition(sc, DataType.RADIO_STATUS);
@@ -112,6 +116,17 @@ public class FsxConnection
                                   final int param = RadioUtil.frequencyAsParam(frequency);
                                   sc.transmitClientEvent(CLIENT_ID, RadioEvent.COM1_STANDBY,
                                           param,
+                                          GroupId.GROUP_0,
+                                          SimConnectConstants.EVENT_FLAG_GROUPID_IS_PRIORITY);
+                              }
+                          });
+        transponderSubject.subscribeOn(Schedulers.io())
+                          .subscribe(new IOAction<Integer>(ioexs) {
+                              @Override
+                              protected void perform(final Integer code) throws
+                                      IOException {
+                                  sc.transmitClientEvent(CLIENT_ID, RadioEvent.SET_TRANSPONDER,
+                                          code,
                                           GroupId.GROUP_0,
                                           SimConnectConstants.EVENT_FLAG_GROUPID_IS_PRIORITY);
                               }
@@ -157,9 +172,15 @@ public class FsxConnection
     public Observer<Void> getCom1SwapObserver() {
         return com1SwapSubject;
     }
+
     @Override
     public Observer<Integer> getStandbyCom1Observer() {
         return standbyCom1Subject;
+    }
+
+    @Override
+    public Observer<Integer> getTransponderObserver() {
+        return transponderSubject;
     }
 
     @Override

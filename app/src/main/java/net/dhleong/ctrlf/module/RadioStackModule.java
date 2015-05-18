@@ -27,4 +27,9 @@ public class RadioStackModule {
     @Provides @Named("COM1Standby") Observer<Integer> provideStandbyCom1Observer(Connection conn) {
         return conn.getStandbyCom1Observer();
     }
+
+    @Provides Observer<Integer> provideTransponder(Connection conn) {
+        return conn.getTransponderObserver();
+    }
+
 }

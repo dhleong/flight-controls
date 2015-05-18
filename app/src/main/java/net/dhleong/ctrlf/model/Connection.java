@@ -10,6 +10,8 @@ public interface Connection {
 
     void disconnect();
 
+    Observer<Integer> getTransponderObserver();
+
     Observable<RadioStatus> radioStatus();
 
     Observable<Connection> connect(final String host, final int port);

@@ -54,6 +54,7 @@ public class RadioStackTest {
 
         view.navCom1.setComFrequency(INITIAL_COM_ACTIVE);
         view.navCom1.setComStandbyFrequency(INITIAL_COM_STANDBY);
+        view.xpndr.setTransponderCode(1200);
     }
 
     @Test
@@ -104,6 +105,27 @@ public class RadioStackTest {
         assertThat(module.com1swaps).isNotEmpty();
     }
 
+    @Test
+    public void transponder() {
+        assertThat(module.transponder).isEmpty();
+
+        view.xpndr.numbers.get(3).performClick();
+        assertThat(module.transponder).contains(3200);
+
+        view.xpndr.numbers.get(4).performClick();
+        assertThat(module.transponder).contains(3400);
+
+        view.xpndr.numbers.get(5).performClick();
+        assertThat(module.transponder).contains(3450);
+
+        view.xpndr.numbers.get(6).performClick();
+        assertThat(module.transponder).contains(3456);
+
+        // aaaand wrap
+        view.xpndr.numbers.get(7).performClick();
+        assertThat(module.transponder).contains(7456);
+    }
+
     private class RadioTestModule extends TestModule {
 
         private final ReplaySubject<Integer> com1Subject = ReplaySubject.create();
@@ -111,6 +133,9 @@ public class RadioStackTest {
 
         private ReplaySubject<Void> com1SwapSubject = ReplaySubject.create();
         List<Void> com1swaps = new ArrayList<>();
+
+        private final ReplaySubject<Integer> transponderSubject = ReplaySubject.create();
+        List<Integer> transponder = new ArrayList<>();
 
         BehaviorSubject<RadioStatus> radioStatusSubject = BehaviorSubject.create();
 
@@ -128,13 +153,21 @@ public class RadioStackTest {
                     com1swaps.add(aVoid);
                 }
             });
+
+            transponderSubject.subscribe(new Action1<Integer>() {
+                @Override
+                public void call(final Integer integer) {
+                    transponder.add(integer);
+                }
+            });
         }
 
         @Override
         protected void mockConnection(final Connection mock) {
-            when(mock.getStandbyCom1Observer()).thenReturn(com1Subject);
             when(mock.radioStatus()).thenReturn(radioStatusSubject);
+            when(mock.getStandbyCom1Observer()).thenReturn(com1Subject);
             when(mock.getCom1SwapObserver()).thenReturn(com1SwapSubject);
+            when(mock.getTransponderObserver()).thenReturn(transponderSubject);
         }
     }
 }

@@ -32,6 +32,7 @@ public class RadioStackView
     @Inject Observable<RadioStatus> radioStatus;
     @Inject @Named("COM1Swap") Observer<Void> com1SwapObserver;
     @Inject @Named("COM1Standby") Observer<Integer> com1Observer;
+    @Inject Observer<Integer> transponderObserver;
 
     private CompositeSubscription subscriptions = new CompositeSubscription();
 
@@ -74,6 +75,10 @@ public class RadioStackView
         subscriptions.add(
                 navCom1.comFrequencySwaps()
                        .subscribe(com1SwapObserver)
+        );
+        subscriptions.add(
+                xpndr.transponderChanges()
+                     .subscribe(transponderObserver)
         );
 
         // bind FROM remote

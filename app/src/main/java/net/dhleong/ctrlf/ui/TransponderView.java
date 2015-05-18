@@ -33,8 +33,9 @@ public class TransponderView extends ViewGroup {
     private FrameArtist frameArtist = new FrameArtist();
     private final RectF digitsRect = new RectF();
 
-    final List<Button> numbers;
-    final Button ident;
+    // public for testing
+    public final List<Button> numbers;
+    public final Button ident;
 
     private int ledBgColor;
 

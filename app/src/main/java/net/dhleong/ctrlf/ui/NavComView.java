@@ -280,4 +280,5 @@ public class NavComView extends ViewGroup {
                 l + paddingLeft + comSwap.getMeasuredWidth(),
                 swapTop + comSwap.getMeasuredHeight());
     }
+
 }
