@@ -11,4 +11,12 @@
         style="@style/Radio.Panel"
         />
 
+    <net.dhleong.ctrlf.ui.TransponderView
+        android:id="@+id/xpndr"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/Radio.Panel"
+        />
+
+
 </net.dhleong.ctrlf.view.RadioStackView>

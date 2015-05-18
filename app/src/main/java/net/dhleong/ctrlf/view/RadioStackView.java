@@ -9,6 +9,7 @@ import net.dhleong.ctrlf.App;
 import net.dhleong.ctrlf.R;
 import net.dhleong.ctrlf.model.RadioStatus;
 import net.dhleong.ctrlf.ui.NavComView;
+import net.dhleong.ctrlf.ui.TransponderView;
 import net.dhleong.ctrlf.util.Named;
 import rx.Observable;
 import rx.Observer;
@@ -26,6 +27,7 @@ public class RadioStackView
         implements Action1<RadioStatus> {
 
     @InjectView(R.id.navcom1) NavComView navCom1;
+    @InjectView(R.id.xpndr) TransponderView xpndr;
 
     @Inject Observable<RadioStatus> radioStatus;
     @Inject @Named("COM1Swap") Observer<Void> com1SwapObserver;
@@ -104,5 +106,6 @@ public class RadioStackView
         // we never influence avionics power, so it's safe to
         //  set this every time
         navCom1.setEnabled(radioStatus.avionicsPower);
+        xpndr.setEnabled(radioStatus.avionicsPower);
     }
 }

@@ -70,6 +70,8 @@ public abstract class LedArtist {
         private static final int LOW       = 0x20;
         private static final int LOW_LEFT  = 0x40;
 
+        private int myDigit;
+
         @Override
         void drawBit(final Canvas canvas, final Paint paint, final int bit) {
             final float angleOffset = SLANT;
@@ -126,6 +128,7 @@ public abstract class LedArtist {
          *              Any other value is illegal
          */
         public void setDigit(final int digit) {
+            myDigit = digit;
             switch (digit) {
             case 0: setState(0x77); break;
             case 1: setState(0x11); break;
@@ -141,6 +144,10 @@ public abstract class LedArtist {
             default:
                 throw new IllegalArgumentException("Invalid digit: " + digit + "; [0, 9] only");
             }
+        }
+
+        public int getDigit() {
+            return myDigit;
         }
     }
 
