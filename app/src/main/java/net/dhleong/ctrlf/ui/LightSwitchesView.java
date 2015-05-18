@@ -12,11 +12,11 @@ import net.dhleong.ctrlf.App;
 import net.dhleong.ctrlf.R;
 import net.dhleong.ctrlf.model.LightsStatus;
 import net.dhleong.ctrlf.model.SimEvent;
+import net.dhleong.ctrlf.util.SwitchToggleObservable;
 import rx.Observable;
 import rx.Observer;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.android.view.OnClickEvent;
-import rx.android.view.ViewObservable;
 import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.subjects.BehaviorSubject;
@@ -93,7 +93,7 @@ public class LightSwitchesView extends LinearLayout {
         for (int i=0; i < len; i++) {
             final SimEvent ev = SWITCH_EVENTS[i];
             final ToggleSwitch toggle = new ToggleSwitch(context);
-            ViewObservable.clicks(toggle)
+            SwitchToggleObservable.on(toggle)
                           .map(toEvent(ev))
                           .subscribe(lightSwitcher);
             addView(toggle);
@@ -104,7 +104,7 @@ public class LightSwitchesView extends LinearLayout {
                     .subscribe(new Action1<LightsStatus>() {
                         @Override
                         public void call(final LightsStatus lightsStatus) {
-                            for (int i=0; i < len; i++) {
+                            for (int i = 0; i < len; i++) {
                                 final SimEvent ev = SWITCH_EVENTS[i];
                                 final boolean status = lightsStatus.getStatus(ev);
                                 switches[i].setChecked(status);
