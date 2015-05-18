@@ -142,5 +142,6 @@ public class RadioStackView
         //  set this every time
         navCom1.setEnabled(radioStatus.avionicsPower);
         xpndr.setEnabled(radioStatus.avionicsPower);
+        ap.setEnabled(radioStatus.avionicsPower);
     }
 }
