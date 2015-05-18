@@ -9,6 +9,7 @@ import net.dhleong.ctrlf.App;
 import net.dhleong.ctrlf.R;
 import net.dhleong.ctrlf.model.RadioStatus;
 import net.dhleong.ctrlf.ui.NavComView;
+import net.dhleong.ctrlf.ui.SimpleAutoPilotView;
 import net.dhleong.ctrlf.ui.TransponderView;
 import net.dhleong.ctrlf.util.Named;
 import rx.Observable;
@@ -28,11 +29,13 @@ public class RadioStackView
 
     @InjectView(R.id.navcom1) NavComView navCom1;
     @InjectView(R.id.xpndr) TransponderView xpndr;
+    @InjectView(R.id.autopilot) SimpleAutoPilotView ap;
 
     @Inject Observable<RadioStatus> radioStatus;
     @Inject @Named("COM1Swap") Observer<Void> com1SwapObserver;
     @Inject @Named("COM1Standby") Observer<Integer> com1Observer;
     @Inject @Named("XPNDR") Observer<Integer> transponderObserver;
+    @Inject @Named("APAltitude") Observer<Integer> apAltitudeObserver;
 
     private CompositeSubscription subscriptions = new CompositeSubscription();
 
@@ -79,6 +82,10 @@ public class RadioStackView
         subscriptions.add(
                 xpndr.transponderChanges()
                      .subscribe(transponderObserver)
+        );
+        subscriptions.add(
+                ap.targetAltitudes()
+                  .subscribe(apAltitudeObserver)
         );
 
         // bind FROM remote

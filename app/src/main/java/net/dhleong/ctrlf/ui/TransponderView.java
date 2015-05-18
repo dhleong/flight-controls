@@ -4,14 +4,11 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.RectF;
 import android.util.AttributeSet;
-import android.util.DisplayMetrics;
-import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import net.dhleong.ctrlf.R;
-import net.dhleong.ctrlf.ui.art.FrameArtist;
 import net.dhleong.ctrlf.ui.art.IntegerArtist;
+import net.dhleong.ctrlf.ui.base.BaseLedView;
 import rx.Observable;
 import rx.android.view.OnClickEvent;
 import rx.android.view.ViewObservable;
@@ -24,23 +21,19 @@ import java.util.List;
 /**
  * @author dhleong
  */
-public class TransponderView extends ViewGroup {
+public class TransponderView extends BaseLedView {
 
     static final int DEFAULT_FONT_SIZE = 80;
     static final int VFR_CODE = 1200;
 
     private IntegerArtist digits = new IntegerArtist(4);
-    private FrameArtist frameArtist = new FrameArtist();
     private final RectF digitsRect = new RectF();
 
     // public for testing
     public final List<Button> numbers;
     public final Button ident;
 
-    private int ledBgColor;
-
     private int cursor;
-    private float fontSize;
 
     final PublishSubject<Integer> transponderChangesSubject =
             PublishSubject.create();
@@ -51,15 +44,6 @@ public class TransponderView extends ViewGroup {
 
     public TransponderView(final Context context, final AttributeSet attrs) {
         super(context, attrs);
-
-        setWillNotDraw(false);
-
-        // TODO do we need to bother attrs?
-        setFontSize(TypedValue.COMPLEX_UNIT_SP, DEFAULT_FONT_SIZE);
-        ledBgColor = getResources().getColor(R.color.led_bg);
-
-        // assume disabled
-        setEnabled(false);
 
         numbers = new ArrayList<>();
         for (int i=0; i < 8; i++) {
@@ -78,16 +62,9 @@ public class TransponderView extends ViewGroup {
         addView(ident);
     }
 
-    public void setFontSize(final int unit, final int size) {
-        final DisplayMetrics metrics = getResources().getDisplayMetrics();
-        setFontSize(TypedValue.applyDimension(unit, size, metrics));
-    }
-
-    public void setFontSize(final float px) {
-        if (Math.abs(fontSize - px) > 0.01f) {
-            fontSize = px;
-            requestLayout();
-        }
+    @Override
+    public int getDefaultFontSize() {
+        return DEFAULT_FONT_SIZE;
     }
 
     public Observable<Integer> transponderChanges() {
@@ -95,15 +72,7 @@ public class TransponderView extends ViewGroup {
     }
 
     public void setTransponderCode(int code) {
-
-        int divisor = 1;
-        for (int i=3; i >= 0; i--) {
-            int digit = (code / divisor) % 10;
-            digits.setDigit(i, digit);
-
-            divisor *= 10;
-        }
-
+        digits.setNumber(code);
         invalidate();
     }
 
@@ -137,8 +106,6 @@ public class TransponderView extends ViewGroup {
         canvas.drawColor(ledBgColor);
         digits.draw(canvas);
         canvas.restore();
-
-        frameArtist.onDraw(canvas);
     }
 
     @Override
@@ -219,8 +186,7 @@ public class TransponderView extends ViewGroup {
         digits.setDrawRect(digitsRect);
 
         setMeasuredDimension(width, height);
-
-        frameArtist.onMeasured(this);
+        onMeasured();
     }
 
     private class AddDigitAction implements Func1<OnClickEvent, Integer> {

@@ -72,4 +72,14 @@ public class IntegerArtist {
             artist.setDigit(-1);
         }
     }
+
+    public void setNumber(final int code) {
+        int divisor = 1;
+        for (int i=digits.length-1; i >= 0; i--) {
+            int digit = (code / divisor) % 10;
+            setDigit(i, digit);
+
+            divisor *= 10;
+        }
+    }
 }

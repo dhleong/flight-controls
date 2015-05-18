@@ -99,6 +99,8 @@ public class FsxConnection
         mapEvent(sc, SimEvent.TAXI_LIGHTS_TOGGLE, "TOGGLE_TAXI_LIGHTS");
         mapEvent(sc, SimEvent.NAV_LIGHTS_TOGGLE, "TOGGLE_NAV_LIGHTS");
 
+        mapEvent(sc, SimEvent.SET_AP_ALTITUDE, "AP_ALT_VAR_SET_ENGLISH");
+
         // bind data types
         RadioStatus.bindDataDefinition(sc, DataType.RADIO_STATUS);
         LightsStatus.bindDataDefinition(sc, DataType.LIGHT_STATUS);

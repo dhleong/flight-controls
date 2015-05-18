@@ -77,6 +77,7 @@ public class ConnectActivity
         final int portNo;
         try {
             portNo = Integer.parseInt(String.valueOf(port.getText()));
+            port.setError(null); // ensure cleared
         } catch (NumberFormatException e) {
             port.setError(getString(R.string.illegal_port));
             return;

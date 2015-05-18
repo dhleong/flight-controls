@@ -39,4 +39,13 @@ public class RxUtil {
             }
         };
     }
+
+    public static Func1<Integer, Integer> times(final int multiplicand) {
+        return new Func1<Integer, Integer>() {
+            @Override
+            public Integer call(final Integer input) {
+                return input * multiplicand;
+            }
+        };
+    }
 }

@@ -10,13 +10,20 @@ public class RadioUtil {
     static final int MIN_COM_FREQ = 118_000;
     static final int MAX_COM_FREQ = 136_000;
 
-    public static final Func1<? super Integer, Integer> COM_FREQ_LIMIT =
-            new Func1<Integer, Integer>() {
-                @Override
-                public Integer call(final Integer input) {
-                    return Math.min(MAX_COM_FREQ, Math.max(MIN_COM_FREQ, input));
-                }
-            };
+    public static final Func1<? super Integer, Integer> COM_FREQ_LIMIT = limitRange(MIN_COM_FREQ, MAX_COM_FREQ);
+
+    /**
+     * Create a mapping function that pins the input to be within the
+     *  provided bounds, inclusive
+     */
+    public static Func1<Integer, Integer> limitRange(final int lowerBound, final int upperBound) {
+        return new Func1<Integer, Integer>() {
+            @Override
+            public Integer call(final Integer input) {
+                return Math.min(upperBound, Math.max(lowerBound, input));
+            }
+        };
+    }
 
     /**
      * See:

@@ -27,4 +27,7 @@ public class RadioStackModule {
         return RxUtil.doSend(conn, SimEvent.SET_TRANSPONDER);
     }
 
+    @Provides @Named("APAltitude") Observer<Integer> provideAutopilotAltitude(Connection conn) {
+        return RxUtil.doSend(conn, SimEvent.SET_AP_ALTITUDE);
+    }
 }

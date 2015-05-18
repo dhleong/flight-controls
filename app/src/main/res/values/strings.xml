@@ -15,4 +15,8 @@
     <string name="panel_lights">PANEL</string>
     <string name="nav_lights">NAV</string>
     <string name="strobes">STROBE</string>
+    <string name="btn_autopilot">AP</string>
+    <string name="btn_ap_heading">HDG</string>
+    <string name="btn_ap_nav">NAV</string>
+    <string name="btn_ap_altitude">ALT</string>
 </resources>

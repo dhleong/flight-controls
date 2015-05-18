@@ -11,7 +11,9 @@ import android.os.Vibrator;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import net.dhleong.ctrlf.R;
+import net.dhleong.ctrlf.util.RxUtil;
 import rx.Observable;
 import rx.subjects.PublishSubject;
 
@@ -118,6 +120,17 @@ public class FineDialView extends View {
         return detentSubjects[STATE_OUTER];
     }
 
+    /**
+     * The most convenient way to get events from this view; The inner
+     *  and outer detents are merged into a single Observable, mutliplied
+     *  by the appropriate multiplicand
+     */
+    public Observable<Integer> detents(int innerMultiplicand, int outerMultiplicand) {
+        return Observable.merge(
+                innerDetents().map(RxUtil.times(innerMultiplicand)),
+                outerDetents().map(RxUtil.times(outerMultiplicand)));
+    }
+
     @Override
     protected void onDraw(final Canvas canvas) {
         super.onDraw(canvas);
@@ -189,7 +202,12 @@ public class FineDialView extends View {
     }
 
     public void performDetentsMoved(final int state, final int newDetents) {
-        detentSubjects[state].onNext(newDetents);
+        // always vibrate if enabled, but don't send events if disabled
+        if (isEnabled()
+                && getParent() instanceof ViewGroup
+                && ((ViewGroup) getParent()).isEnabled()) {
+            detentSubjects[state].onNext(newDetents);
+        }
 
         if (isHapticFeedbackEnabled()) {
             vibrator.vibrate(VIBRATION_MS);

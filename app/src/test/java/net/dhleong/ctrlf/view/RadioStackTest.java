@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import net.dhleong.ctrlf.BaseViewModuleTest;
 import net.dhleong.ctrlf.R;
 import net.dhleong.ctrlf.model.Connection;
+import net.dhleong.ctrlf.model.LightsStatus;
 import net.dhleong.ctrlf.model.RadioStatus;
 import net.dhleong.ctrlf.model.SimEvent;
 import net.dhleong.ctrlf.module.TestModule;
@@ -64,6 +65,13 @@ public class RadioStackTest extends BaseViewModuleTest<RadioStackView, RadioTest
         assertThat(module.com1).isEmpty();
 
         // simulate a drag
+        view.navCom1.comDial.performDetentsMoved(FineDialView.STATE_OUTER, 1);
+
+        // we start disabled (no power) so nothing should happen
+        assertThat(module.com1).isEmpty();
+
+        // okay, now enable
+        view.navCom1.setEnabled(true);
         view.navCom1.comDial.performDetentsMoved(FineDialView.STATE_OUTER, 1);
 
         // we now have our new frequency!
@@ -126,23 +134,44 @@ public class RadioStackTest extends BaseViewModuleTest<RadioStackView, RadioTest
         assertThat(module.transponder).contains(7456);
     }
 
+    @Test
+    public void autopilotAltitude() {
+        assertThat(module.apAltitudes).isEmpty();
+
+        // as above, we start out disabled
+        view.ap.dial.performDetentsMoved(FineDialView.STATE_OUTER, 1);
+        assertThat(module.apAltitudes).isEmpty();
+
+        view.ap.setEnabled(true);
+        view.ap.dial.performDetentsMoved(FineDialView.STATE_OUTER, 1);
+        assertThat(module.apAltitudes).containsExactly(1000);
+
+        view.ap.dial.performDetentsMoved(FineDialView.STATE_INNER, 1);
+        assertThat(module.apAltitudes).containsExactly(1000, 1100);
+    }
+
     static class RadioTestModule extends TestModule {
 
-        List<Integer> com1 = new ArrayList<>();
-        List<Integer> com1swaps = new ArrayList<>();
-        List<Integer> transponder = new ArrayList<>();
+        final List<Integer> com1 = new ArrayList<>();
+        final List<Integer> com1swaps = new ArrayList<>();
+        final List<Integer> transponder = new ArrayList<>();
+        final List<Integer> apAltitudes = new ArrayList<>();
 
-        BehaviorSubject<RadioStatus> radioStatusSubject = BehaviorSubject.create();
+        final BehaviorSubject<RadioStatus> radioStatusSubject = BehaviorSubject.create();
 
         @Override
         protected void mockConnection(final Connection mock) {
             when(mock.radioStatus()).thenReturn(radioStatusSubject);
+            when(mock.lightsStatus()).thenReturn(BehaviorSubject.<LightsStatus>create());
+
             doAnswer(storeParam(transponder))
                     .when(mock).sendEvent(eq(SimEvent.SET_TRANSPONDER), anyInt());
             doAnswer(storeParam(com1))
                     .when(mock).sendEvent(eq(SimEvent.COM1_STANDBY), anyInt());
             doAnswer(storeParam(com1swaps))
                     .when(mock).sendEvent(eq(SimEvent.COM1_SWAP), anyInt());
+            doAnswer(storeParam(apAltitudes))
+                    .when(mock).sendEvent(eq(SimEvent.SET_AP_ALTITUDE), anyInt());
         }
 
     }

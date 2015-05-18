@@ -15,4 +15,6 @@ public enum SimEvent {
     BEACON_LIGHTS_TOGGLE,
     TAXI_LIGHTS_TOGGLE,
     NAV_LIGHTS_TOGGLE,
+
+    SET_AP_ALTITUDE,
 }

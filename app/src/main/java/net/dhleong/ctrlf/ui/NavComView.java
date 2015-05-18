@@ -4,12 +4,8 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.RectF;
 import android.util.AttributeSet;
-import android.util.DisplayMetrics;
-import android.util.TypedValue;
-import android.view.ViewGroup;
-import net.dhleong.ctrlf.R;
-import net.dhleong.ctrlf.ui.art.FrameArtist;
 import net.dhleong.ctrlf.ui.art.FrequencyArtist;
+import net.dhleong.ctrlf.ui.base.BaseLedView;
 import net.dhleong.ctrlf.util.RadioUtil;
 import net.dhleong.ctrlf.util.RxUtil;
 import rx.Observable;
@@ -23,7 +19,7 @@ import rx.subjects.BehaviorSubject;
  *
  * @author dhleong
  */
-public class NavComView extends ViewGroup {
+public class NavComView extends BaseLedView {
 
     static final int DEFAULT_FONT_SIZE = 70;
 
@@ -38,14 +34,9 @@ public class NavComView extends ViewGroup {
     private final FrequencyArtist comStandbyArtist = new FrequencyArtist();
     private final RectF frequencyRect = new RectF();
 
-    private FrameArtist frameArtist = new FrameArtist();
-    private int ledBgColor;
-
     // public for easy functional testing
     public final SwapButton comSwap;
     public final FineDialView comDial;
-
-    private float fontSize;
 
     private int comFrequency, comStandbyFrequency;
 
@@ -67,17 +58,10 @@ public class NavComView extends ViewGroup {
     public NavComView(final Context context, final AttributeSet attrs) {
         super(context, attrs);
 
-        setWillNotDraw(false);
-
-        // TODO do we need to bother attrs?
-        setFontSize(TypedValue.COMPLEX_UNIT_SP, DEFAULT_FONT_SIZE);
-
         if (isInEditMode()) {
             setComFrequency(128_500);
             setComStandbyFrequency(118_500);
         }
-
-        ledBgColor = getResources().getColor(R.color.led_bg);
 
         // build kids
         comSwap = new SwapButton(context);
@@ -98,26 +82,21 @@ public class NavComView extends ViewGroup {
         });
 
         // connect events
-        comDial.outerDetents()
+        comDial.detents(INNER_DETENTS, OUTER_DETENTS)
                 .map(new Func1<Integer, Integer>() {
                     @Override
                     public Integer call(final Integer detents) {
-                        return comStandbyArtist.getFrequency() + detents * OUTER_DETENTS;
+                        return comStandbyArtist.getFrequency() + detents;
                     }
                 })
                 .map(RadioUtil.COM_FREQ_LIMIT)
                 .doOnNext(setComStandbyFrequency)
                 .subscribe(comStandbySubject);
-        comDial.innerDetents()
-               .map(new Func1<Integer, Integer>() {
-                   @Override
-                   public Integer call(final Integer detents) {
-                       return comStandbyArtist.getFrequency() + detents * INNER_DETENTS;
-                   }
-               })
-               .map(RadioUtil.COM_FREQ_LIMIT)
-               .doOnNext(setComStandbyFrequency)
-               .subscribe(comStandbySubject);
+    }
+
+    @Override
+    public int getDefaultFontSize() {
+        return DEFAULT_FONT_SIZE;
     }
 
     public int getComFrequency() {
@@ -133,18 +112,6 @@ public class NavComView extends ViewGroup {
     }
     public Observable<Void> comFrequencySwaps() {
         return comSwaps;
-    }
-
-    public void setFontSize(final int unit, final int size) {
-        final DisplayMetrics metrics = getResources().getDisplayMetrics();
-        setFontSize(TypedValue.applyDimension(unit, size, metrics));
-    }
-
-    public void setFontSize(final float px) {
-        if (Math.abs(fontSize - px) > 0.01f) {
-            fontSize = px;
-            requestLayout();
-        }
     }
 
     public void setComFrequency(final int khz) {
@@ -188,8 +155,6 @@ public class NavComView extends ViewGroup {
         drawFrequency(canvas, comStandbyArtist);
 
         canvas.restore();
-
-        frameArtist.onDraw(canvas);
     }
 
     private void drawFrequency(final Canvas canvas, final FrequencyArtist artist) {
@@ -249,7 +214,7 @@ public class NavComView extends ViewGroup {
                 + comDial.getMeasuredHeight()
                 + paddingTop + paddingBottom));
 
-        frameArtist.onMeasured(this);
+        onMeasured();
     }
 
     @Override
