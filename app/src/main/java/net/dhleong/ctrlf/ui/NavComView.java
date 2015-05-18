@@ -5,6 +5,8 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.util.AttributeSet;
+import android.view.HapticFeedbackConstants;
+import android.view.View;
 import net.dhleong.ctrlf.ui.art.FrequencyArtist;
 import net.dhleong.ctrlf.ui.base.BaseLedView;
 import net.dhleong.ctrlf.util.RadioUtil;
@@ -12,8 +14,11 @@ import net.dhleong.ctrlf.util.RxUtil;
 import rx.Observable;
 import rx.android.view.ViewObservable;
 import rx.functions.Action1;
+import rx.functions.Func0;
 import rx.functions.Func1;
 import rx.subjects.BehaviorSubject;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * One piece of NavCom equipment
@@ -28,7 +33,8 @@ public class NavComView extends BaseLedView {
      * How many khz to move the frequency per outer detent
      */
     static final Integer OUTER_DETENTS = 1000;
-    static final Integer INNER_DETENTS = 50; // TODO "pull" for 25
+    static final Integer INNER_DETENTS = 50;
+    static final Integer INNER_DETENTS_PULLED = 25;
 
     // TODO: Actually, we have several of these
     private final FrequencyArtist comFrequencyArtist = new FrequencyArtist();
@@ -45,6 +51,9 @@ public class NavComView extends BaseLedView {
 
     private int comFrequency, comStandbyFrequency;
     private int navFrequency, navStandbyFrequency;
+
+    private AtomicBoolean comPulled = new AtomicBoolean(false);
+    private AtomicBoolean navPulled = new AtomicBoolean(false);
 
     private final BehaviorSubject<Integer> comStandbySubject = BehaviorSubject.create();
     private final Observable<Void> comSwaps;
@@ -116,7 +125,7 @@ public class NavComView extends BaseLedView {
         });
 
         // connect events
-        comDial.detents(INNER_DETENTS, OUTER_DETENTS)
+        comDial.detents(switchPulled(comPulled), OUTER_DETENTS)
                 .map(new Func1<Integer, Integer>() {
                     @Override
                     public Integer call(final Integer detents) {
@@ -126,7 +135,7 @@ public class NavComView extends BaseLedView {
                 .map(RadioUtil.COM_FREQ_LIMIT)
                 .doOnNext(setComStandbyFrequency)
                 .subscribe(comStandbySubject);
-        navDial.detents(INNER_DETENTS, OUTER_DETENTS)
+        navDial.detents(switchPulled(navPulled), OUTER_DETENTS)
                .map(new Func1<Integer, Integer>() {
                    @Override
                    public Integer call(final Integer detents) {
@@ -136,6 +145,21 @@ public class NavComView extends BaseLedView {
                .map(RadioUtil.NAV_FREQ_LIMIT)
                .doOnNext(setNavStandbyFrequency)
                .subscribe(navStandbySubject);
+
+        comDial.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(final View v) {
+                comPulled.set(!comPulled.get());
+                v.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
+            }
+        });
+        navDial.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(final View v) {
+                navPulled.set(!navPulled.get());
+                v.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
+            }
+        });
     }
 
     @Override
@@ -320,12 +344,12 @@ public class NavComView extends BaseLedView {
         final int comSwapLeft = paddingLeft;
         final int navSwapLeft = paddingLeft + (int) (2 * frequencyRect.width());
 
-        layoutDialAndSwap(comDial, comSwap, paddingLeft, comDialLeft, comSwapLeft);
-        layoutDialAndSwap(navDial, navSwap, paddingLeft, navDialLeft, navSwapLeft);
+        layoutDialAndSwap(comDial, comSwap, comDialLeft, comSwapLeft);
+        layoutDialAndSwap(navDial, navSwap, navDialLeft, navSwapLeft);
     }
 
     private void layoutDialAndSwap(final FineDialView dial, final SwapButton swap,
-            final int paddingLeft, final int dialLeft, final int swapLeft) {
+            final int dialLeft, final int swapLeft) {
 
         final int top = (int) (frequencyRect.height() + getPaddingTop());
 
@@ -341,6 +365,15 @@ public class NavComView extends BaseLedView {
                 swapTop,
                 swapLeft + swap.getMeasuredWidth(),
                 swapTop + swap.getMeasuredHeight());
+    }
+
+    private static Func0<Integer> switchPulled(final AtomicBoolean isPulled) {
+        return new Func0<Integer>() {
+            @Override
+            public Integer call() {
+                return isPulled.get() ? INNER_DETENTS_PULLED : INNER_DETENTS;
+            }
+        };
     }
 
 }

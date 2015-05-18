@@ -84,6 +84,44 @@ public class RadioStackTest extends BaseViewModuleTest<RadioStackView, RadioTest
     }
 
     @Test
+    public void moveCom1Slightly() {
+
+        // nothing published yet
+        assertThat(module.com1).isEmpty();
+
+        view.navCom1.setEnabled(true);
+        view.navCom1.comDial.performDetentsMoved(FineDialView.STATE_INNER, 1);
+        assertThat(module.com1).containsExactly(INITIAL_COM_STANDBY + 50);
+
+        view.navCom1.comDial.performClick();
+        view.navCom1.comDial.performDetentsMoved(FineDialView.STATE_INNER, 1);
+        assertThat(module.com1).endsWith(INITIAL_COM_STANDBY + 75);
+
+        view.navCom1.comDial.performClick();
+        view.navCom1.comDial.performDetentsMoved(FineDialView.STATE_INNER, 1);
+        assertThat(module.com1).endsWith(INITIAL_COM_STANDBY + 125);
+    }
+
+    @Test
+    public void moveNav1Slightly() {
+
+        // nothing published yet
+        assertThat(module.nav1).isEmpty();
+
+        view.navCom1.setEnabled(true);
+        view.navCom1.navDial.performDetentsMoved(FineDialView.STATE_INNER, 1);
+        assertThat(module.nav1).containsExactly(INITIAL_NAV_STANDBY + 50);
+
+        view.navCom1.navDial.performClick();
+        view.navCom1.navDial.performDetentsMoved(FineDialView.STATE_INNER, 1);
+        assertThat(module.nav1).endsWith(INITIAL_NAV_STANDBY + 75);
+
+        view.navCom1.navDial.performClick();
+        view.navCom1.navDial.performDetentsMoved(FineDialView.STATE_INNER, 1);
+        assertThat(module.nav1).endsWith(INITIAL_NAV_STANDBY + 125);
+    }
+
+    @Test
     public void moveNav1() {
 
         // nothing published yet

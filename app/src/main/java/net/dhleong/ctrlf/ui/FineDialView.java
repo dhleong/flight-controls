@@ -15,6 +15,7 @@ import android.view.ViewGroup;
 import net.dhleong.ctrlf.R;
 import net.dhleong.ctrlf.util.RxUtil;
 import rx.Observable;
+import rx.functions.Func0;
 import rx.subjects.PublishSubject;
 
 /**
@@ -131,6 +132,19 @@ public class FineDialView extends View {
                 outerDetents().map(RxUtil.times(outerMultiplicand)));
     }
 
+    /**
+     * It is common for the inner detents to change based on a "pulled" state.
+     *  This version lets you provide a Func0 that resolves to the multiplicand
+     *  for the inner detent for just such an occasion
+     *
+     * @see #detents(int, int)
+     */
+    public Observable<Integer> detents(Func0<Integer> innerMultiplicand, int outerMultiplicand) {
+        return Observable.merge(
+                innerDetents().map(RxUtil.times(innerMultiplicand)),
+                outerDetents().map(RxUtil.times(outerMultiplicand)));
+    }
+
     @Override
     protected void onDraw(final Canvas canvas) {
         super.onDraw(canvas);
@@ -176,7 +190,7 @@ public class FineDialView extends View {
             downAngle = lastAngle = angle(dcY, dcX);
             downRotation = rotations[state];
             lastDetents = 0; // reset!
-            break;
+            return true;
 
         case MotionEvent.ACTION_MOVE:
             final double angle = angle(dcY, dcX);
@@ -191,14 +205,14 @@ public class FineDialView extends View {
                 lastDetents = totalDetents;
                 performDetentsMoved(state, newDetents);
             }
-            break;
+            return true;
 
         case MotionEvent.ACTION_UP:
             state = STATE_EMPTY;
-            break;
+            return true;
         }
 
-        return true;
+        return super.onTouchEvent(event);
     }
 
     public void performDetentsMoved(final int state, final int newDetents) {

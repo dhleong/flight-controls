@@ -6,6 +6,7 @@ import rx.Observable;
 import rx.Observer;
 import rx.Subscriber;
 import rx.android.view.OnClickEvent;
+import rx.functions.Func0;
 import rx.functions.Func1;
 
 /**
@@ -57,6 +58,15 @@ public class RxUtil {
         };
     }
 
+    public static Func1<Integer, Integer> times(final Func0<Integer> multiplicand) {
+        return new Func1<Integer, Integer>() {
+            @Override
+            public Integer call(final Integer input) {
+                return input * multiplicand.call();
+            }
+        };
+    }
+
     /** @return a Func that returns True for instances of the provided class */
     public static Func1<? super Object,Boolean> isInstanceOf(final Class<?> klass) {
         return new Func1<Object, Boolean>() {
@@ -97,4 +107,5 @@ public class RxUtil {
             }
         };
     }
+
 }
