@@ -11,7 +11,7 @@ import static net.dhleong.ctrlf.util.SimConnectDataUtil.readBool;
 /**
  * @author dhleong
  */
-public class LightsStatus {
+public class LightsStatus implements SimData {
 
     static final int firstOrdinal = SimEvent.STROBES_TOGGLE.ordinal();
     static final int lastOrdinal = SimEvent.NAV_LIGHTS_TOGGLE.ordinal();

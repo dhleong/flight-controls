@@ -9,9 +9,7 @@ public interface Connection {
 
     void disconnect();
 
-    Observable<RadioStatus> radioStatus();
-
-    Observable<LightsStatus> lightsStatus();
+    Observable<SimData> dataObjects();
 
     Observable<Connection> connect(final String host, final int port);
 

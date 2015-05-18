@@ -10,6 +10,8 @@ import rx.Observable;
 
 import javax.inject.Singleton;
 
+import static net.dhleong.ctrlf.util.RxUtil.pickInstancesOf;
+
 /**
  * @author dhleong
  */
@@ -33,7 +35,7 @@ public class AppModule {
     @Provides @Singleton Connection provideConnection() { return new FsxConnection(); }
 
     @Provides @Singleton Observable<RadioStatus> provideStatusObservable(Connection conn) {
-        return conn.radioStatus();
+        return conn.dataObjects().lift(pickInstancesOf(RadioStatus.class));
     }
 
 }

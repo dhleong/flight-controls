@@ -12,7 +12,7 @@ import static net.dhleong.ctrlf.util.SimConnectDataUtil.readBool;
 /**
  * @author dhleong
  */
-public class RadioStatus {
+public class RadioStatus implements SimData {
 
     private static final String FREQ = "Frequency BCD16";
 

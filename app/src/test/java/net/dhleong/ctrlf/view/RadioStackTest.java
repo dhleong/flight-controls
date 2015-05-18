@@ -5,8 +5,8 @@ import android.view.LayoutInflater;
 import net.dhleong.ctrlf.BaseViewModuleTest;
 import net.dhleong.ctrlf.R;
 import net.dhleong.ctrlf.model.Connection;
-import net.dhleong.ctrlf.model.LightsStatus;
 import net.dhleong.ctrlf.model.RadioStatus;
+import net.dhleong.ctrlf.model.SimData;
 import net.dhleong.ctrlf.model.SimEvent;
 import net.dhleong.ctrlf.module.TestModule;
 import net.dhleong.ctrlf.ui.FineDialView;
@@ -82,7 +82,7 @@ public class RadioStackTest extends BaseViewModuleTest<RadioStackView, RadioTest
     public void receiveStatus() {
         assertThat(view.navCom1.getComFrequency()).isEqualTo(INITIAL_COM_ACTIVE);
 
-        module.radioStatusSubject.onNext(new RadioStatus(true, 118_000, 119_250));
+        module.dataObjectsSubject.onNext(new RadioStatus(true, 118_000, 119_250));
         assertThat(view.navCom1.getComFrequency()).isEqualTo(118_000);
         assertThat(view.navCom1.getComStandbyFrequency()).isEqualTo(119_250);
     }
@@ -93,7 +93,7 @@ public class RadioStackTest extends BaseViewModuleTest<RadioStackView, RadioTest
 
         // with avionics disabled, we use a negative frequency
         //  to draw the views as "off"
-        module.radioStatusSubject.onNext(new RadioStatus(false, 118_000, 119_250));
+        module.dataObjectsSubject.onNext(new RadioStatus(false, 118_000, 119_250));
         assertThat(view.navCom1.isEnabled()).isEqualTo(false);
         assertThat(view.navCom1.getComFrequency()).isEqualTo(-1);
         assertThat(view.navCom1.getComStandbyFrequency()).isEqualTo(-1);
@@ -157,12 +157,11 @@ public class RadioStackTest extends BaseViewModuleTest<RadioStackView, RadioTest
         final List<Integer> transponder = new ArrayList<>();
         final List<Integer> apAltitudes = new ArrayList<>();
 
-        final BehaviorSubject<RadioStatus> radioStatusSubject = BehaviorSubject.create();
+        final BehaviorSubject<SimData> dataObjectsSubject = BehaviorSubject.create();
 
         @Override
         protected void mockConnection(final Connection mock) {
-            when(mock.radioStatus()).thenReturn(radioStatusSubject);
-            when(mock.lightsStatus()).thenReturn(BehaviorSubject.<LightsStatus>create());
+            when(mock.dataObjects()).thenReturn(dataObjectsSubject);
 
             doAnswer(storeParam(transponder))
                     .when(mock).sendEvent(eq(SimEvent.SET_TRANSPONDER), anyInt());

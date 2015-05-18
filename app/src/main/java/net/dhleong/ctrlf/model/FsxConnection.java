@@ -54,10 +54,8 @@ public class FsxConnection
 
     final BehaviorSubject<IOException> ioexs = BehaviorSubject.create();
 
-    final BehaviorSubject<RadioStatus> radioStatusSubject = BehaviorSubject.create();
-    final BehaviorSubject<LightsStatus> lightsStatusSubject = BehaviorSubject.create();
-
-    // this lets us (potentially) queue up events before we're ready
+    // these let us (potentially) queue up events before we're ready
+    final ReplaySubject<SimData> dataObjectsSubject = ReplaySubject.createWithSize(16);
     final ReplaySubject<PendingEvent> eventQueue = ReplaySubject.createWithSize(16);
 
     SimConnect simConnect;
@@ -136,16 +134,7 @@ public class FsxConnection
             final RecvSimObjectData data) {
 
         final DataType request = DataType.fromInt(data.getRequestID());
-        switch (request) {
-        case RADIO_STATUS:
-            // parse and dispatch
-            radioStatusSubject.onNext(new RadioStatus(data));
-            break;
-        case LIGHT_STATUS:
-            // parse and dispatch
-            lightsStatusSubject.onNext(new LightsStatus(data));
-            break;
-        }
+        dataObjectsSubject.onNext(parseSimObject(data, request));
     }
 
     @Override
@@ -155,13 +144,8 @@ public class FsxConnection
     }
 
     @Override
-    public Observable<RadioStatus> radioStatus() {
-        return radioStatusSubject;
-    }
-
-    @Override
-    public Observable<LightsStatus> lightsStatus() {
-        return lightsStatusSubject;
+    public Observable<SimData> dataObjects() {
+        return dataObjectsSubject;
     }
 
     @Override
@@ -204,6 +188,22 @@ public class FsxConnection
         }).subscribeOn(Schedulers.io())
           .subscribe(); // just do it (tm)
     }
+
+    private static SimData parseSimObject(final RecvSimObjectData data, final DataType request) {
+        final SimData parsed;
+        switch (request) {
+        case RADIO_STATUS:
+            parsed = new RadioStatus(data);
+            break;
+        case LIGHT_STATUS:
+            parsed = new LightsStatus(data);
+            break;
+        default:
+            throw new IllegalStateException("Unhandled request data type " + request);
+        }
+        return parsed;
+    }
+
 
     private static class DispatchThread extends Thread {
         private final SimConnect sc;
