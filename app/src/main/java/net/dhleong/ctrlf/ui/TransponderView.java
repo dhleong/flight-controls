@@ -74,6 +74,7 @@ public class TransponderView extends ViewGroup {
         }
 
         ident = new TinyButtonView(context, "ID");
+        ident.setEnabled(false);
         addView(ident);
     }
 

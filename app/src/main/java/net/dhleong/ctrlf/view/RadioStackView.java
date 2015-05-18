@@ -32,7 +32,7 @@ public class RadioStackView
     @Inject Observable<RadioStatus> radioStatus;
     @Inject @Named("COM1Swap") Observer<Void> com1SwapObserver;
     @Inject @Named("COM1Standby") Observer<Integer> com1Observer;
-    @Inject Observer<Integer> transponderObserver;
+    @Inject @Named("XPNDR") Observer<Integer> transponderObserver;
 
     private CompositeSubscription subscriptions = new CompositeSubscription();
 
