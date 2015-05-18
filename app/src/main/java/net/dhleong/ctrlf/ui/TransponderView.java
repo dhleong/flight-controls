@@ -6,7 +6,6 @@ import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
-import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -30,18 +29,20 @@ public class TransponderView extends ViewGroup {
     static final int DEFAULT_FONT_SIZE = 80;
     static final int VFR_CODE = 1200;
 
-    final List<Button> numbers;
-    final PublishSubject<Integer> transponderChangesSubject =
-            PublishSubject.create();
-
     private IntegerArtist digits = new IntegerArtist(4);
     private FrameArtist frameArtist = new FrameArtist();
     private final RectF digitsRect = new RectF();
+
+    final List<Button> numbers;
+    final Button ident;
 
     private int ledBgColor;
 
     private int cursor;
     private float fontSize;
+
+    final PublishSubject<Integer> transponderChangesSubject =
+            PublishSubject.create();
 
     public TransponderView(final Context context) {
         this(context, null);
@@ -61,10 +62,8 @@ public class TransponderView extends ViewGroup {
 
         numbers = new ArrayList<>();
         for (int i=0; i < 8; i++) {
-            final Button button = new Button(context);
-            button.setText(String.valueOf(i));
+            final Button button = new TinyButtonView(context, String.valueOf(i));
             button.setMaxEms(1);
-            button.setGravity(Gravity.CENTER);
             numbers.add(button);
             ViewObservable.clicks(button)
                     .map(new AddDigitAction(i))
@@ -72,6 +71,9 @@ public class TransponderView extends ViewGroup {
             addView(button, new ViewGroup.LayoutParams(
                     LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
         }
+
+        ident = new TinyButtonView(context, "ID");
+        addView(ident);
     }
 
     public void setFontSize(final int unit, final int size) {
@@ -128,7 +130,7 @@ public class TransponderView extends ViewGroup {
         final int paddingTop = getPaddingTop();
 
         canvas.save();
-        canvas.translate(paddingLeft, paddingTop);
+        canvas.translate(ident.getRight(), paddingTop);
         canvas.clipRect(digitsRect);
         canvas.drawColor(ledBgColor);
         digits.draw(canvas);
@@ -141,6 +143,9 @@ public class TransponderView extends ViewGroup {
     protected void onLayout(final boolean changed,
             final int l, final int t, final int r, final int b) {
 
+        final int paddingLeft = getPaddingLeft();
+        final int paddingTop = getPaddingTop();
+
         final Button example = numbers.get(0);
         final int buttonHeight = example.getMeasuredHeight();
         final int buttonTop = (b - t)
@@ -148,13 +153,17 @@ public class TransponderView extends ViewGroup {
                 - getPaddingBottom();
         final int buttonBottom = buttonTop + buttonHeight;
         final int width = (r - l) / 10; // TODO remove magic number
-        int buttonLeft = getPaddingLeft();
+        int buttonLeft = paddingLeft;
         for (final View number : numbers) {
             number.layout(buttonLeft, buttonTop,
                     buttonLeft + width,
                     buttonBottom);
             buttonLeft += width;
         }
+
+        ident.layout(paddingLeft, paddingTop,
+                width * 2,
+                paddingTop + ident.getMeasuredHeight());
     }
 
     @Override
@@ -175,6 +184,7 @@ public class TransponderView extends ViewGroup {
         for (final Button button : numbers) {
             button.measure(buttonWidthSpec, heightMeasureSpec);
         }
+        ident.measure(buttonWidthSpec, heightMeasureSpec);
 
         int width, height;
         if (widthMode == MeasureSpec.EXACTLY
