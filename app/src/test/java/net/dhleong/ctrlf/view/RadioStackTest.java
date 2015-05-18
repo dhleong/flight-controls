@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
@@ -106,11 +107,11 @@ public class RadioStackTest extends BaseViewModuleTest<RadioStackView, RadioTest
 
     @Test
     public void swapCom1() {
-        assertThat(module.com1swaps).isEmpty();
+        assertThat(module.clickEvents).isEmpty();
 
         view.navCom1.comSwap.performClick();
 
-        assertThat(module.com1swaps).isNotEmpty();
+        assertThat(module.clickEvents).containsExactly(SimEvent.COM1_SWAP);
     }
 
     @Test
@@ -150,12 +151,30 @@ public class RadioStackTest extends BaseViewModuleTest<RadioStackView, RadioTest
         assertThat(module.apAltitudes).containsExactly(1000, 1100);
     }
 
+    @Test
+    public void autopilotButtons() {
+        assertThat(module.clickEvents).isEmpty();
+
+        view.ap.allButtons.get(0).performClick();
+        assertThat(module.clickEvents).containsExactly(SimEvent.AP_MASTER_TOGGLE);
+
+        view.ap.allButtons.get(1).performClick();
+        assertThat(module.clickEvents).endsWith(SimEvent.AP_HEADING_TOGGLE);
+
+        view.ap.allButtons.get(2).performClick();
+        assertThat(module.clickEvents).endsWith(SimEvent.AP_NAV_TOGGLE);
+
+        view.ap.allButtons.get(5).performClick();
+        assertThat(module.clickEvents).endsWith(SimEvent.AP_ALTITUDE_TOGGLE);
+    }
+
     static class RadioTestModule extends TestModule {
 
         final List<Integer> com1 = new ArrayList<>();
-        final List<Integer> com1swaps = new ArrayList<>();
         final List<Integer> transponder = new ArrayList<>();
         final List<Integer> apAltitudes = new ArrayList<>();
+
+        final List<SimEvent> clickEvents = new ArrayList<>();
 
         final BehaviorSubject<SimData> dataObjectsSubject = BehaviorSubject.create();
 
@@ -167,10 +186,11 @@ public class RadioStackTest extends BaseViewModuleTest<RadioStackView, RadioTest
                     .when(mock).sendEvent(eq(SimEvent.SET_TRANSPONDER), anyInt());
             doAnswer(storeParam(com1))
                     .when(mock).sendEvent(eq(SimEvent.COM1_STANDBY), anyInt());
-            doAnswer(storeParam(com1swaps))
-                    .when(mock).sendEvent(eq(SimEvent.COM1_SWAP), anyInt());
             doAnswer(storeParam(apAltitudes))
                     .when(mock).sendEvent(eq(SimEvent.SET_AP_ALTITUDE), anyInt());
+
+            doAnswer(storeEvent(clickEvents))
+                    .when(mock).sendEvent(any(SimEvent.class), eq(0));
         }
 
     }

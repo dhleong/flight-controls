@@ -9,10 +9,14 @@ import android.widget.Button;
 import net.dhleong.ctrlf.R;
 import net.dhleong.ctrlf.ui.art.IntegerArtist;
 import net.dhleong.ctrlf.ui.base.BaseLedView;
+import net.dhleong.ctrlf.util.RxUtil;
 import rx.Observable;
+import rx.Observer;
+import rx.android.view.ViewObservable;
 import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.subjects.BehaviorSubject;
+import rx.subjects.PublishSubject;
 
 import java.util.Arrays;
 import java.util.List;
@@ -42,6 +46,10 @@ public class SimpleAutoPilotView extends BaseLedView {
     public final List<TinyButtonView> allButtons;
 
     private final BehaviorSubject<Integer> altitudeSubject = BehaviorSubject.create();
+    private final PublishSubject<Void> apMasterSubject = PublishSubject.create();
+    private final PublishSubject<Void> apNavSubject = PublishSubject.create();
+    private final PublishSubject<Void> apAltitudeSubject = PublishSubject.create();
+    private final PublishSubject<Void> apHeadingSubject = PublishSubject.create();
 
     @SuppressWarnings("FieldCanBeLocal")
     private final Action1<? super Integer> setTargetAltitude = new Action1<Integer>() {
@@ -64,8 +72,8 @@ public class SimpleAutoPilotView extends BaseLedView {
         final TinyButtonView apMaster = new TinyButtonView(context, context.getString(R.string.btn_autopilot));
         final TinyButtonView heading = new TinyButtonView(context, context.getString(R.string.btn_ap_heading));
         final TinyButtonView nav = new TinyButtonView(context, context.getString(R.string.btn_ap_nav));
-        final TinyButtonView apr = new TinyButtonView(context, context.getString(R.string.btn_ap_nav)); // FIXME what?
-        final TinyButtonView rev = new TinyButtonView(context, context.getString(R.string.btn_ap_nav)); // FIXME what?
+        final TinyButtonView apr = new TinyButtonView(context, context.getString(R.string.btn_ap_apr)); // FIXME what?
+        final TinyButtonView rev = new TinyButtonView(context, context.getString(R.string.btn_ap_rev)); // FIXME what?
         final TinyButtonView altitude = new TinyButtonView(context, context.getString(R.string.btn_ap_altitude));
 
         allButtons = Arrays.asList(apMaster, heading, nav, apr, rev, altitude);
@@ -84,10 +92,31 @@ public class SimpleAutoPilotView extends BaseLedView {
             .map(limitRange(0, 99999))
             .doOnNext(setTargetAltitude)
             .subscribe(altitudeSubject);
+
+        bindTo(apMaster, apMasterSubject);
+        bindTo(nav, apNavSubject);
+        bindTo(altitude, apAltitudeSubject);
+        bindTo(heading, apHeadingSubject);
     }
 
     public Observable<Integer> targetAltitudes() {
         return altitudeSubject;
+    }
+
+    public Observable<Void> apMasterClicks() {
+        return apMasterSubject;
+    }
+
+    public Observable<Void> apNavClicks() {
+        return apNavSubject;
+    }
+
+    public Observable<Void> apAltitudeClicks() {
+        return apAltitudeSubject;
+    }
+
+    public Observable<Void> apHeadingClicks() {
+        return apHeadingSubject;
     }
 
     @Override
@@ -222,5 +251,11 @@ public class SimpleAutoPilotView extends BaseLedView {
 
         setMeasuredDimension(width, height);
         onMeasured();
+    }
+
+    static void bindTo(final View view, final Observer<Void> observer) {
+        ViewObservable.clicks(view)
+                .map(RxUtil.CLICK_TO_VOID)
+                .subscribe(observer);
     }
 }

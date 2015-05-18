@@ -27,7 +27,20 @@ public class RadioStackModule {
         return RxUtil.doSend(conn, SimEvent.SET_TRANSPONDER);
     }
 
-    @Provides @Named("APAltitude") Observer<Integer> provideAutopilotAltitude(Connection conn) {
+    @Provides @Named("APSetAltitude") Observer<Integer> provideAutopilotAltitude(Connection conn) {
         return RxUtil.doSend(conn, SimEvent.SET_AP_ALTITUDE);
+    }
+
+    @Provides @Named("APMaster") Observer<Void> provideAutopilotMaster(Connection conn) {
+        return RxUtil.doSend(conn, SimEvent.AP_MASTER_TOGGLE);
+    }
+    @Provides @Named("APNav") Observer<Void> provideAutopilotNav(Connection conn) {
+        return RxUtil.doSend(conn, SimEvent.AP_NAV_TOGGLE);
+    }
+    @Provides @Named("APAltitude") Observer<Void> provideApAltitudeHold(Connection conn) {
+        return RxUtil.doSend(conn, SimEvent.AP_ALTITUDE_TOGGLE);
+    }
+    @Provides @Named("APHeading") Observer<Void> provideApHeadingHold(Connection conn) {
+        return RxUtil.doSend(conn, SimEvent.AP_HEADING_TOGGLE);
     }
 }

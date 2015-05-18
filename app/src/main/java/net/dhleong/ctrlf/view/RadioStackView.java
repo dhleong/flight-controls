@@ -35,7 +35,12 @@ public class RadioStackView
     @Inject @Named("COM1Swap") Observer<Void> com1SwapObserver;
     @Inject @Named("COM1Standby") Observer<Integer> com1Observer;
     @Inject @Named("XPNDR") Observer<Integer> transponderObserver;
-    @Inject @Named("APAltitude") Observer<Integer> apAltitudeObserver;
+
+    @Inject @Named("APSetAltitude") Observer<Integer> apSetAltitudeObserver;
+    @Inject @Named("APMaster") Observer<Void> apMasterObserver;
+    @Inject @Named("APNav") Observer<Void> apNavObserver;
+    @Inject @Named("APAltitude") Observer<Void> apAltitudeObserver;
+    @Inject @Named("APHeading") Observer<Void> apHeadingObserver;
 
     private CompositeSubscription subscriptions = new CompositeSubscription();
 
@@ -83,9 +88,27 @@ public class RadioStackView
                 xpndr.transponderChanges()
                      .subscribe(transponderObserver)
         );
+
+        // FIXME okay, this is getting ridiculous
         subscriptions.add(
                 ap.targetAltitudes()
+                  .subscribe(apSetAltitudeObserver)
+        );
+        subscriptions.add(
+                ap.apMasterClicks()
+                  .subscribe(apMasterObserver)
+        );
+        subscriptions.add(
+                ap.apNavClicks()
+                  .subscribe(apNavObserver)
+        );
+        subscriptions.add(
+                ap.apAltitudeClicks()
                   .subscribe(apAltitudeObserver)
+        );
+        subscriptions.add(
+                ap.apHeadingClicks()
+                  .subscribe(apHeadingObserver)
         );
 
         // bind FROM remote

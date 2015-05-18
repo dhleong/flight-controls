@@ -18,5 +18,7 @@
     <string name="btn_autopilot">AP</string>
     <string name="btn_ap_heading">HDG</string>
     <string name="btn_ap_nav">NAV</string>
+    <string name="btn_ap_apr">APR</string>
+    <string name="btn_ap_rev">REV</string>
     <string name="btn_ap_altitude">ALT</string>
 </resources>
