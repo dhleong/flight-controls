@@ -21,5 +21,6 @@ public interface AppComponent {
     void inject(ControlsActivity activity);
 
     RadioStackComponent newRadioStackComponent();
+    LightsComponent newLightsComponent();
 
 }

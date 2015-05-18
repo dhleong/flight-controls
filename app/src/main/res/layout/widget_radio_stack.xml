@@ -18,5 +18,13 @@
         style="@style/Radio.Panel"
         />
 
+    <net.dhleong.ctrlf.ui.LightSwitchesView
+            android:id="@+id/lights"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="@style/Radio.Panel"
+            />
+
+
 
 </net.dhleong.ctrlf.view.RadioStackView>

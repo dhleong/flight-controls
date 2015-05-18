@@ -2,20 +2,17 @@ package net.dhleong.ctrlf.view;
 
 import android.app.Application;
 import android.view.LayoutInflater;
-import net.dhleong.ctrlf.App;
+import net.dhleong.ctrlf.BaseViewModuleTest;
 import net.dhleong.ctrlf.R;
-import net.dhleong.ctrlf.TestProvider;
 import net.dhleong.ctrlf.model.Connection;
 import net.dhleong.ctrlf.model.RadioStatus;
 import net.dhleong.ctrlf.model.SimEvent;
 import net.dhleong.ctrlf.module.TestModule;
 import net.dhleong.ctrlf.ui.FineDialView;
+import net.dhleong.ctrlf.view.RadioStackTest.RadioTestModule;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import rx.subjects.BehaviorSubject;
@@ -34,27 +31,26 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(emulateSdk = 17)
-public class RadioStackTest {
+public class RadioStackTest extends BaseViewModuleTest<RadioStackView, RadioTestModule> {
 
     private static final int INITIAL_COM_ACTIVE = 127_500;
     private static final int INITIAL_COM_STANDBY = 118_500;
 
-    Application context;
-    RadioTestModule module;
+    @Override
+    protected RadioStackView inflateView(final Application context) {
+        return view = (RadioStackView) LayoutInflater
+                .from(context)
+                .inflate(R.layout.widget_radio_stack, null);
+    }
 
-    RadioStackView view;
+    @Override
+    protected RadioTestModule createModule() {
+        return new RadioTestModule();
+    }
 
     @Before
     public void setUp() {
-
-        module = new RadioTestModule();
-        App.provider = TestProvider.from(module);
-
-        context = Robolectric.application;
-        view = (RadioStackView) LayoutInflater
-                .from(context)
-                .inflate(R.layout.widget_radio_stack, null);
-        view.onAttachedToWindow();
+        super.setUp();
 
         view.navCom1.setComFrequency(INITIAL_COM_ACTIVE);
         view.navCom1.setComStandbyFrequency(INITIAL_COM_STANDBY);
@@ -130,7 +126,7 @@ public class RadioStackTest {
         assertThat(module.transponder).contains(7456);
     }
 
-    private class RadioTestModule extends TestModule {
+    static class RadioTestModule extends TestModule {
 
         List<Integer> com1 = new ArrayList<>();
         List<Integer> com1swaps = new ArrayList<>();
@@ -149,15 +145,5 @@ public class RadioStackTest {
                     .when(mock).sendEvent(eq(SimEvent.COM1_SWAP), anyInt());
         }
 
-        private Answer storeParam(final List<Integer> destination) {
-            return new Answer() {
-                @Override
-                public Object answer(final InvocationOnMock invocation) throws Throwable {
-                    final Integer param = (Integer) invocation.getArguments()[1];
-                    destination.add(param);
-                    return null;
-                }
-            };
-        }
     }
 }

@@ -8,4 +8,11 @@
     <string name="ip_address">IP Address</string>
     <string name="port">Port</string>
     <string name="connect">Connect</string>
+
+    <string name="beacon_lights">BCN</string>
+    <string name="landing_lights">LAND</string>
+    <string name="taxi_lights">TAXI</string>
+    <string name="panel_lights">PANEL</string>
+    <string name="nav_lights">NAV</string>
+    <string name="strobes">STROBE</string>
 </resources>
