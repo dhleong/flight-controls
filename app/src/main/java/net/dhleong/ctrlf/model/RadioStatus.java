@@ -7,6 +7,8 @@ import net.dhleong.ctrlf.util.RadioUtil;
 
 import java.io.IOException;
 
+import static net.dhleong.ctrlf.util.SimConnectDataUtil.readBool;
+
 /**
  * @author dhleong
  */
@@ -35,10 +37,6 @@ public class RadioStatus {
         sc.addToDataDefinition(id, "Circuit Avionics On", "Bool", SimConnectDataType.INT32);
         sc.addToDataDefinition(id, "Com Active Frequency:1", FREQ, SimConnectDataType.INT32);
         sc.addToDataDefinition(id, "Com Standby Frequency:1", FREQ, SimConnectDataType.INT32);
-    }
-
-    static boolean readBool(final RecvSimObjectData data) {
-        return 0 != data.getDataInt32();
     }
 
     static int readFrequency(final RecvSimObjectData data) {

@@ -43,7 +43,8 @@ public class FsxConnection
     }
 
     enum DataType {
-        RADIO_STATUS;
+        RADIO_STATUS,
+        LIGHT_STATUS;
 
         static final DataType[] types = values();
         static DataType fromInt(final int input) {
@@ -54,6 +55,7 @@ public class FsxConnection
     final BehaviorSubject<IOException> ioexs = BehaviorSubject.create();
 
     final BehaviorSubject<RadioStatus> radioStatusSubject = BehaviorSubject.create();
+    final BehaviorSubject<LightsStatus> lightsStatusSubject = BehaviorSubject.create();
 
     // this lets us (potentially) queue up events before we're ready
     final ReplaySubject<PendingEvent> eventQueue = ReplaySubject.createWithSize(16);
@@ -87,6 +89,7 @@ public class FsxConnection
 
         // bind data types
         RadioStatus.bindDataDefinition(sc, DataType.RADIO_STATUS);
+        LightsStatus.bindDataDefinition(sc, DataType.LIGHT_STATUS);
 
         // rx subscription
         eventQueue.subscribeOn(Schedulers.io())
@@ -112,6 +115,10 @@ public class FsxConnection
         // NB: just be lazy and reuse the data type as the request id
         simConnect.requestDataOnSimObject(DataType.RADIO_STATUS, DataType.RADIO_STATUS,
                 CLIENT_ID, SimConnectPeriod.SECOND);
+
+        // we only need the initial state for this
+        simConnect.requestDataOnSimObject(DataType.LIGHT_STATUS, DataType.LIGHT_STATUS,
+                CLIENT_ID, SimConnectPeriod.ONCE);
     }
 
     @Override
@@ -134,6 +141,10 @@ public class FsxConnection
             // parse and dispatch
             radioStatusSubject.onNext(new RadioStatus(data));
             break;
+        case LIGHT_STATUS:
+            // parse and dispatch
+            lightsStatusSubject.onNext(new LightsStatus(data));
+            break;
         }
     }
 
@@ -146,6 +157,11 @@ public class FsxConnection
     @Override
     public Observable<RadioStatus> radioStatus() {
         return radioStatusSubject;
+    }
+
+    @Override
+    public Observable<LightsStatus> lightsStatus() {
+        return lightsStatusSubject;
     }
 
     @Override

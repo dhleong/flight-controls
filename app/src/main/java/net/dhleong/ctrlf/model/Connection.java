@@ -11,6 +11,8 @@ public interface Connection {
 
     Observable<RadioStatus> radioStatus();
 
+    Observable<LightsStatus> lightsStatus();
+
     Observable<Connection> connect(final String host, final int port);
 
     void sendEvent(final SimEvent event, final int param);

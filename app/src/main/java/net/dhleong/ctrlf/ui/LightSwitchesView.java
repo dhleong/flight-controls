@@ -10,10 +10,14 @@ import android.view.View;
 import android.widget.LinearLayout;
 import net.dhleong.ctrlf.App;
 import net.dhleong.ctrlf.R;
+import net.dhleong.ctrlf.model.LightsStatus;
 import net.dhleong.ctrlf.model.SimEvent;
+import rx.Observable;
 import rx.Observer;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.android.view.OnClickEvent;
 import rx.android.view.ViewObservable;
+import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.subjects.BehaviorSubject;
 
@@ -49,7 +53,9 @@ public class LightSwitchesView extends LinearLayout {
     };
 
     @Inject Observer<SimEvent> lightSwitcher;
+    @Inject Observable<LightsStatus> lightsStatus;
 
+    private final ToggleSwitch[] switches;
     private final String[] labels;
     private final Paint labelPaint;
 
@@ -70,24 +76,41 @@ public class LightSwitchesView extends LinearLayout {
                .inject(this);
         } else {
             lightSwitcher = BehaviorSubject.create();
+            lightsStatus = BehaviorSubject.create();
         }
 
         labelPaint = new Paint();
         labelPaint.setColor(0xff000000);
         labelPaint.setTextAlign(Align.CENTER);
 
-        labels = new String[LABELS.length];
-        for (int i=0; i < LABELS.length; i++) {
+        final int len = LABELS.length;
+        labels = new String[len];
+        for (int i=0; i < len; i++) {
             labels[i] = context.getString(LABELS[i]);
         }
 
-        for (final SimEvent ev : SWITCH_EVENTS) {
+        switches = new ToggleSwitch[len];
+        for (int i=0; i < len; i++) {
+            final SimEvent ev = SWITCH_EVENTS[i];
             final ToggleSwitch toggle = new ToggleSwitch(context);
             ViewObservable.clicks(toggle)
                           .map(toEvent(ev))
                           .subscribe(lightSwitcher);
             addView(toggle);
+            switches[i] = toggle;
         }
+
+        lightsStatus.observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new Action1<LightsStatus>() {
+                        @Override
+                        public void call(final LightsStatus lightsStatus) {
+                            for (int i=0; i < len; i++) {
+                                final SimEvent ev = SWITCH_EVENTS[i];
+                                final boolean status = lightsStatus.getStatus(ev);
+                                switches[i].setChecked(status);
+                            }
+                        }
+                    });
     }
 
     @Override
