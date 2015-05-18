@@ -78,7 +78,6 @@ public class SimpleAutoPilotView extends BaseLedView {
             .map(new Func1<Integer, Integer>() {
                 @Override
                 public Integer call(final Integer integer) {
-                    System.out.println("SPIN " + altitudeArtist.toNumber() + " + " + integer);
                     return altitudeArtist.toNumber() + integer;
                 }
             })
