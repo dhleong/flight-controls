@@ -3,6 +3,7 @@ package net.dhleong.ctrlf.ui;
 import android.app.Application;
 import net.dhleong.ctrlf.BaseViewModuleTest;
 import net.dhleong.ctrlf.model.Connection;
+import net.dhleong.ctrlf.model.SimData;
 import net.dhleong.ctrlf.model.SimEvent;
 import net.dhleong.ctrlf.module.TestModule;
 import net.dhleong.ctrlf.ui.LightSwitchesTest.LightsTestModule;
@@ -10,6 +11,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+import rx.subjects.BehaviorSubject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.when;
 
 /**
  * @author dhleong
@@ -52,8 +55,12 @@ public class LightSwitchesTest extends BaseViewModuleTest<LightSwitchesView, Lig
 
         List<SimEvent> toggledLights = new ArrayList<>();
 
+        final BehaviorSubject<SimData> dataObjectsSubject = BehaviorSubject.create();
+
         @Override
         protected void mockConnection(final Connection mock) {
+            when(mock.dataObjects()).thenReturn(dataObjectsSubject);
+
             doAnswer(storeEvent(toggledLights))
                     .when(mock).sendEvent(any(SimEvent.class), anyInt());
         }
