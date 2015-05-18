@@ -59,13 +59,6 @@ public class NavComView extends ViewGroup {
             setComStandbyFrequency(khz);
         }
     };
-    @SuppressWarnings("FieldCanBeLocal")
-    private final Action1<? super Integer> notifyComStandbyFrequency = new Action1<Integer>() {
-        @Override
-        public void call(final Integer integer) {
-            comStandbySubject.onNext(integer);
-        }
-    };
 
     public NavComView(final Context context) {
         this(context, null);
@@ -84,7 +77,6 @@ public class NavComView extends ViewGroup {
             setComStandbyFrequency(118_500);
         }
 
-        final float density = getResources().getDisplayMetrics().density;
         ledBgColor = getResources().getColor(R.color.led_bg);
 
         // build kids
@@ -114,8 +106,8 @@ public class NavComView extends ViewGroup {
                     }
                 })
                 .map(RadioUtil.COM_FREQ_LIMIT)
-                .doOnNext(notifyComStandbyFrequency)
-                .subscribe(setComStandbyFrequency);
+                .doOnNext(setComStandbyFrequency)
+                .subscribe(comStandbySubject);
         comDial.innerDetents()
                .map(new Func1<Integer, Integer>() {
                    @Override
@@ -124,8 +116,8 @@ public class NavComView extends ViewGroup {
                    }
                })
                .map(RadioUtil.COM_FREQ_LIMIT)
-               .doOnNext(notifyComStandbyFrequency)
-               .subscribe(setComStandbyFrequency);
+               .doOnNext(setComStandbyFrequency)
+               .subscribe(comStandbySubject);
     }
 
     public int getComFrequency() {
