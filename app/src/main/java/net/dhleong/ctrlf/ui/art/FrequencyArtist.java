@@ -2,6 +2,7 @@ package net.dhleong.ctrlf.ui.art;
 
 import android.graphics.Canvas;
 import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.graphics.RectF;
 import net.dhleong.ctrlf.ui.art.LedArtist.DigitLedArtist;
 
@@ -26,6 +27,10 @@ public class FrequencyArtist {
         for (int i=0; i < 6; i++) {
             digits[i] = new LedArtist.DigitLedArtist();
         }
+    }
+
+    public Paint getPaint() {
+        return digits[0].getPaint();
     }
 
     public void setDrawRect(final RectF targetRect) {

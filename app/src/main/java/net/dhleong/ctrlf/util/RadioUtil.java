@@ -10,7 +10,12 @@ public class RadioUtil {
     static final int MIN_COM_FREQ = 118_000;
     static final int MAX_COM_FREQ = 136_000;
 
+    // TODO confirm that these are correct in sim
+    static final int MIN_NAV_FREQ = 108_000;
+    static final int MAX_NAV_FREQ = 117_950;
+
     public static final Func1<? super Integer, Integer> COM_FREQ_LIMIT = limitRange(MIN_COM_FREQ, MAX_COM_FREQ);
+    public static final Func1<? super Integer, Integer> NAV_FREQ_LIMIT = limitRange(MIN_NAV_FREQ, MAX_NAV_FREQ);
 
     /**
      * Create a mapping function that pins the input to be within the
@@ -75,4 +80,5 @@ public class RadioUtil {
 
         return frequency;
     }
+
 }

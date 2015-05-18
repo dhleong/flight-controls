@@ -23,6 +23,14 @@ public class RadioStackModule {
         return RxUtil.doSend(conn, SimEvent.COM1_STANDBY);
     }
 
+    @Provides @Named("NAV1Swap") Observer<Void> provideNav1Swap(Connection conn) {
+        return RxUtil.doSend(conn, SimEvent.NAV1_SWAP);
+    }
+
+    @Provides @Named("NAV1Standby") Observer<Integer> provideStandbyNav1Observer(Connection conn) {
+        return RxUtil.doSend(conn, SimEvent.NAV1_STANDBY);
+    }
+
     @Provides @Named("XPNDR") Observer<Integer> provideTransponder(Connection conn) {
         return RxUtil.doSend(conn, SimEvent.SET_TRANSPONDER);
     }

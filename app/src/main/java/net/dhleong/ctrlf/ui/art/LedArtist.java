@@ -25,6 +25,10 @@ public abstract class LedArtist {
         inactivePaint.setColor(0xFF4E0011);
     }
 
+    public Paint getPaint() {
+        return currentState == 0 ? inactivePaint : activePaint;
+    }
+
     public void setState(int stateMask) {
         currentState = stateMask;
     }

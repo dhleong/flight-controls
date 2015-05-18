@@ -2,6 +2,7 @@ package net.dhleong.ctrlf.ui;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.RectF;
 import android.util.AttributeSet;
 import net.dhleong.ctrlf.ui.art.FrequencyArtist;
@@ -32,22 +33,38 @@ public class NavComView extends BaseLedView {
     // TODO: Actually, we have several of these
     private final FrequencyArtist comFrequencyArtist = new FrequencyArtist();
     private final FrequencyArtist comStandbyArtist = new FrequencyArtist();
+    private final FrequencyArtist navFrequencyArtist = new FrequencyArtist();
+    private final FrequencyArtist navStandbyArtist = new FrequencyArtist();
     private final RectF frequencyRect = new RectF();
 
     // public for easy functional testing
     public final SwapButton comSwap;
     public final FineDialView comDial;
+    public final SwapButton navSwap;
+    public final FineDialView navDial;
 
     private int comFrequency, comStandbyFrequency;
+    private int navFrequency, navStandbyFrequency;
 
     private final BehaviorSubject<Integer> comStandbySubject = BehaviorSubject.create();
     private final Observable<Void> comSwaps;
+
+    private final BehaviorSubject<Integer> navStandbySubject = BehaviorSubject.create();
+    private final Observable<Void> navSwaps;
 
     @SuppressWarnings("FieldCanBeLocal")
     private final Action1<Integer> setComStandbyFrequency = new Action1<Integer>() {
         @Override
         public void call(final Integer khz) {
             setComStandbyFrequency(khz);
+        }
+    };
+
+    @SuppressWarnings("FieldCanBeLocal")
+    private final Action1<Integer> setNavStandbyFrequency = new Action1<Integer>() {
+        @Override
+        public void call(final Integer khz) {
+            setNavStandbyFrequency(khz);
         }
     };
 
@@ -69,6 +86,11 @@ public class NavComView extends BaseLedView {
         addView(comSwap);
         addView(comDial);
 
+        navSwap = new SwapButton(context);
+        navDial = new FineDialView(context);
+        addView(navSwap);
+        addView(navDial);
+
         comSwaps = ViewObservable.clicks(comSwap)
                 .map(RxUtil.CLICK_TO_VOID);
         comSwaps.subscribe(new Action1<Void>() {
@@ -78,6 +100,18 @@ public class NavComView extends BaseLedView {
                 final int oldStandby = comStandbyFrequency;
                 setComFrequency(oldStandby);
                 setComStandbyFrequency(oldActive);
+            }
+        });
+
+        navSwaps = ViewObservable.clicks(navSwap)
+                                 .map(RxUtil.CLICK_TO_VOID);
+        navSwaps.subscribe(new Action1<Void>() {
+            @Override
+            public void call(final Void aVoid) {
+                final int oldActive = navFrequency;
+                final int oldStandby = navStandbyFrequency;
+                setNavFrequency(oldStandby);
+                setNavStandbyFrequency(oldActive);
             }
         });
 
@@ -92,6 +126,16 @@ public class NavComView extends BaseLedView {
                 .map(RadioUtil.COM_FREQ_LIMIT)
                 .doOnNext(setComStandbyFrequency)
                 .subscribe(comStandbySubject);
+        navDial.detents(INNER_DETENTS, OUTER_DETENTS)
+               .map(new Func1<Integer, Integer>() {
+                   @Override
+                   public Integer call(final Integer detents) {
+                       return navStandbyArtist.getFrequency() + detents;
+                   }
+               })
+               .map(RadioUtil.NAV_FREQ_LIMIT)
+               .doOnNext(setNavStandbyFrequency)
+               .subscribe(navStandbySubject);
     }
 
     @Override
@@ -107,11 +151,26 @@ public class NavComView extends BaseLedView {
         return comStandbyArtist.getFrequency();
     }
 
+    public int getNavFrequency() {
+        return navFrequencyArtist.getFrequency();
+    }
+
+    public int getNavStandbyFrequency() {
+        return navStandbyArtist.getFrequency();
+    }
+
     public Observable<Integer> comStandbyFrequencies() {
         return comStandbySubject;
     }
     public Observable<Void> comFrequencySwaps() {
         return comSwaps;
+    }
+
+    public Observable<Integer> navStandbyFrequencies() {
+        return navStandbySubject;
+    }
+    public Observable<Void> navFrequencySwaps() {
+        return navSwaps;
     }
 
     public void setComFrequency(final int khz) {
@@ -127,6 +186,19 @@ public class NavComView extends BaseLedView {
         invalidate();
     }
 
+    public void setNavFrequency(final int khz) {
+        // NB: We could just invalidate the Nav area....
+        if (khz > 0) navFrequency = khz;
+        navFrequencyArtist.setFrequency(khz);
+        invalidate();
+    }
+    public void setNavStandbyFrequency(final int khz) {
+        // NB: We could just invalidate the standby area....
+        if (khz > 0) navStandbyFrequency = khz;
+        navStandbyArtist.setFrequency(khz);
+        invalidate();
+    }
+
     @Override
     public void setEnabled(final boolean enabled) {
         super.setEnabled(enabled);
@@ -134,9 +206,13 @@ public class NavComView extends BaseLedView {
         if (enabled) {
             setComFrequency(comFrequency);
             setComStandbyFrequency(comStandbyFrequency);
+            setNavFrequency(navFrequency);
+            setNavStandbyFrequency(navStandbyFrequency);
         } else {
             setComFrequency(-1);
             setComStandbyFrequency(-1);
+            setNavFrequency(-1);
+            setNavStandbyFrequency(-1);
         }
     }
 
@@ -153,6 +229,20 @@ public class NavComView extends BaseLedView {
 
         canvas.translate(frequencyRect.width(), 0);
         drawFrequency(canvas, comStandbyArtist);
+
+        canvas.translate(frequencyRect.width(), 0);
+        drawFrequency(canvas, navFrequencyArtist);
+
+        // after the third since our X will be nice
+        //  and aligned ono the center
+        final Paint paint = comFrequencyArtist.getPaint();
+        final float oldStrokeWidth = paint.getStrokeWidth();
+        paint.setStrokeWidth(1);
+        canvas.drawLine(0, 0, 0, frequencyRect.height(), paint);
+        paint.setStrokeWidth(oldStrokeWidth);
+
+        canvas.translate(frequencyRect.width(), 0);
+        drawFrequency(canvas, navStandbyArtist);
 
         canvas.restore();
     }
@@ -181,6 +271,8 @@ public class NavComView extends BaseLedView {
         // TODO build proper specs?
         comDial.measure(widthMeasureSpec, heightMeasureSpec);
         comSwap.measure(widthMeasureSpec, heightMeasureSpec);
+        navDial.measure(widthMeasureSpec, heightMeasureSpec);
+        navSwap.measure(widthMeasureSpec, heightMeasureSpec);
 
         int width, height;
         if (widthMode == MeasureSpec.EXACTLY
@@ -209,6 +301,8 @@ public class NavComView extends BaseLedView {
         frequencyRect.set(0, 0, unpaddedWidth / 4, height / 2);
         comFrequencyArtist.setDrawRect(frequencyRect);
         comStandbyArtist.setDrawRect(frequencyRect);
+        navFrequencyArtist.setDrawRect(frequencyRect);
+        navStandbyArtist.setDrawRect(frequencyRect);
 
         setMeasuredDimension(width, (int) (frequencyRect.height()
                 + comDial.getMeasuredHeight()
@@ -221,21 +315,32 @@ public class NavComView extends BaseLedView {
     protected void onLayout(final boolean changed, final int l, final int t, final int r, final int b) {
 
         final int paddingLeft = getPaddingLeft();
-        final int left = (int) (frequencyRect.width() + (frequencyRect.width() / 2f));
+        final int comDialLeft = (int) (frequencyRect.width() + (frequencyRect.width() / 2f));
+        final int navDialLeft = (int) (3 * frequencyRect.width() + (frequencyRect.width() / 2f));
+        final int comSwapLeft = paddingLeft;
+        final int navSwapLeft = paddingLeft + (int) (2 * frequencyRect.width());
+
+        layoutDialAndSwap(comDial, comSwap, paddingLeft, comDialLeft, comSwapLeft);
+        layoutDialAndSwap(navDial, navSwap, paddingLeft, navDialLeft, navSwapLeft);
+    }
+
+    private void layoutDialAndSwap(final FineDialView dial, final SwapButton swap,
+            final int paddingLeft, final int dialLeft, final int swapLeft) {
+
         final int top = (int) (frequencyRect.height() + getPaddingTop());
 
-        final int dialWidth = comDial.getMeasuredWidth();
-        final int dialHeight = comDial.getMeasuredHeight();
+        final int dialWidth = dial.getMeasuredWidth();
+        final int dialHeight = dial.getMeasuredHeight();
         final int dialHalfWidth = (int) (dialWidth / 2f);
 
-        comDial.layout(left - dialHalfWidth, top, left + dialHalfWidth, top + dialHeight);
+        dial.layout(dialLeft - dialHalfWidth, top, dialLeft + dialHalfWidth, top + dialHeight);
 
         // align vertically with the dial
-        final int swapTop = top + (dialHeight / 2) - (comSwap.getMeasuredHeight() / 2);
-        comSwap.layout(l + paddingLeft,
+        final int swapTop = top + (dialHeight / 2) - (swap.getMeasuredHeight() / 2);
+        swap.layout(swapLeft,
                 swapTop,
-                l + paddingLeft + comSwap.getMeasuredWidth(),
-                swapTop + comSwap.getMeasuredHeight());
+                swapLeft + swap.getMeasuredWidth(),
+                swapTop + swap.getMeasuredHeight());
     }
 
 }

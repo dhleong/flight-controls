@@ -37,6 +37,8 @@ public class RadioStackTest extends BaseViewModuleTest<RadioStackView, RadioTest
 
     private static final int INITIAL_COM_ACTIVE = 127_500;
     private static final int INITIAL_COM_STANDBY = 118_500;
+    private static final int INITIAL_NAV_ACTIVE = 111_250;
+    private static final int INITIAL_NAV_STANDBY = 111_000;
 
     @Override
     protected RadioStackView inflateView(final Application context) {
@@ -56,6 +58,8 @@ public class RadioStackTest extends BaseViewModuleTest<RadioStackView, RadioTest
 
         view.navCom1.setComFrequency(INITIAL_COM_ACTIVE);
         view.navCom1.setComStandbyFrequency(INITIAL_COM_STANDBY);
+        view.navCom1.setNavFrequency(INITIAL_NAV_ACTIVE);
+        view.navCom1.setNavStandbyFrequency(INITIAL_NAV_STANDBY);
         view.xpndr.setTransponderCode(1200);
     }
 
@@ -80,29 +84,57 @@ public class RadioStackTest extends BaseViewModuleTest<RadioStackView, RadioTest
     }
 
     @Test
+    public void moveNav1() {
+
+        // nothing published yet
+        assertThat(module.nav1).isEmpty();
+
+        // simulate a drag
+        view.navCom1.navDial.performDetentsMoved(FineDialView.STATE_OUTER, 1);
+
+        // we start disabled (no power) so nothing should happen
+        assertThat(module.nav1).isEmpty();
+
+        // okay, now enable
+        view.navCom1.setEnabled(true);
+        view.navCom1.navDial.performDetentsMoved(FineDialView.STATE_OUTER, 1);
+
+        // we now have our new frequency!
+        assertThat(module.nav1).containsExactly(INITIAL_NAV_STANDBY + 1000);
+    }
+
+    @Test
     public void receiveStatus() {
         assertThat(view.navCom1.getComFrequency()).isEqualTo(INITIAL_COM_ACTIVE);
+        assertThat(view.navCom1.getNavFrequency()).isEqualTo(INITIAL_NAV_ACTIVE);
 
-        module.dataObjectsSubject.onNext(new RadioStatus(true, 118_000, 119_250));
+        module.dataObjectsSubject.onNext(new RadioStatus(true, 118_000, 119_250, 112_000, 114_250));
         assertThat(view.navCom1.getComFrequency()).isEqualTo(118_000);
         assertThat(view.navCom1.getComStandbyFrequency()).isEqualTo(119_250);
+        assertThat(view.navCom1.getNavFrequency()).isEqualTo(112_000);
+        assertThat(view.navCom1.getNavStandbyFrequency()).isEqualTo(114_250);
     }
 
     @Test
     public void receiveNoPower() {
         assertThat(view.navCom1.getComFrequency()).isEqualTo(INITIAL_COM_ACTIVE);
+        assertThat(view.navCom1.getNavFrequency()).isEqualTo(INITIAL_NAV_ACTIVE);
 
         // with avionics disabled, we use a negative frequency
         //  to draw the views as "off"
-        module.dataObjectsSubject.onNext(new RadioStatus(false, 118_000, 119_250));
+        module.dataObjectsSubject.onNext(new RadioStatus(false, 118_000, 119_250, 112_000, 114_250));
         assertThat(view.navCom1.isEnabled()).isEqualTo(false);
         assertThat(view.navCom1.getComFrequency()).isEqualTo(-1);
         assertThat(view.navCom1.getComStandbyFrequency()).isEqualTo(-1);
+        assertThat(view.navCom1.getNavFrequency()).isEqualTo(-1);
+        assertThat(view.navCom1.getNavStandbyFrequency()).isEqualTo(-1);
 
         // providing power should not lose the last frequency
         view.navCom1.setEnabled(true);
         assertThat(view.navCom1.getComFrequency()).isEqualTo(118_000);
         assertThat(view.navCom1.getComStandbyFrequency()).isEqualTo(119_250);
+        assertThat(view.navCom1.getNavFrequency()).isEqualTo(112_000);
+        assertThat(view.navCom1.getNavStandbyFrequency()).isEqualTo(114_250);
     }
 
     @Test
@@ -112,6 +144,15 @@ public class RadioStackTest extends BaseViewModuleTest<RadioStackView, RadioTest
         view.navCom1.comSwap.performClick();
 
         assertThat(module.clickEvents).containsExactly(SimEvent.COM1_SWAP);
+    }
+
+    @Test
+    public void swapNav1() {
+        assertThat(module.clickEvents).isEmpty();
+
+        view.navCom1.navSwap.performClick();
+
+        assertThat(module.clickEvents).containsExactly(SimEvent.NAV1_SWAP);
     }
 
     @Test
@@ -171,6 +212,7 @@ public class RadioStackTest extends BaseViewModuleTest<RadioStackView, RadioTest
     static class RadioTestModule extends TestModule {
 
         final List<Integer> com1 = new ArrayList<>();
+        final List<Integer> nav1 = new ArrayList<>();
         final List<Integer> transponder = new ArrayList<>();
         final List<Integer> apAltitudes = new ArrayList<>();
 
@@ -186,6 +228,8 @@ public class RadioStackTest extends BaseViewModuleTest<RadioStackView, RadioTest
                     .when(mock).sendEvent(eq(SimEvent.SET_TRANSPONDER), anyInt());
             doAnswer(storeParam(com1))
                     .when(mock).sendEvent(eq(SimEvent.COM1_STANDBY), anyInt());
+            doAnswer(storeParam(nav1))
+                    .when(mock).sendEvent(eq(SimEvent.NAV1_STANDBY), anyInt());
             doAnswer(storeParam(apAltitudes))
                     .when(mock).sendEvent(eq(SimEvent.SET_AP_ALTITUDE), anyInt());
 

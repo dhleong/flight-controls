@@ -7,6 +7,8 @@ package net.dhleong.ctrlf.model;
 public enum SimEvent {
     COM1_STANDBY("COM_STBY_RADIO_SET"),
     COM1_SWAP("COM_STBY_RADIO_SWAP"),
+    NAV1_STANDBY("NAV1_STBY_SET"),
+    NAV1_SWAP("NAV1_RADIO_SWAP"),
     SET_TRANSPONDER("XPNDR_SET"),
 
     STROBES_TOGGLE("STROBES_TOGGLE"),

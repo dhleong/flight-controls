@@ -34,6 +34,8 @@ public class RadioStackView
     @Inject Observable<RadioStatus> radioStatus;
     @Inject @Named("COM1Swap") Observer<Void> com1SwapObserver;
     @Inject @Named("COM1Standby") Observer<Integer> com1Observer;
+    @Inject @Named("NAV1Swap") Observer<Void> nav1SwapObserver;
+    @Inject @Named("NAV1Standby") Observer<Integer> nav1Observer;
     @Inject @Named("XPNDR") Observer<Integer> transponderObserver;
 
     @Inject @Named("APSetAltitude") Observer<Integer> apSetAltitudeObserver;
@@ -83,6 +85,14 @@ public class RadioStackView
         subscriptions.add(
                 navCom1.comFrequencySwaps()
                        .subscribe(com1SwapObserver)
+        );
+        subscriptions.add(
+                navCom1.navStandbyFrequencies()
+                       .subscribe(nav1Observer)
+        );
+        subscriptions.add(
+                navCom1.navFrequencySwaps()
+                       .subscribe(nav1SwapObserver)
         );
         subscriptions.add(
                 xpndr.transponderChanges()
@@ -136,6 +146,8 @@ public class RadioStackView
             isInitial = false;
             navCom1.setComFrequency(radioStatus.com1Active);
             navCom1.setComStandbyFrequency(radioStatus.com1Standby);
+            navCom1.setNavFrequency(radioStatus.nav1Active);
+            navCom1.setNavStandbyFrequency(radioStatus.nav1Standby);
         }
 
         // we never influence avionics power, so it's safe to
