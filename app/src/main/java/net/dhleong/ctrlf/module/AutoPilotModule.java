@@ -2,11 +2,15 @@ package net.dhleong.ctrlf.module;
 
 import dagger.Module;
 import dagger.Provides;
+import net.dhleong.ctrlf.model.AutoPilotStatus;
 import net.dhleong.ctrlf.model.Connection;
 import net.dhleong.ctrlf.model.SimEvent;
 import net.dhleong.ctrlf.util.Named;
 import net.dhleong.ctrlf.util.RxUtil;
+import rx.Observable;
 import rx.Observer;
+
+import static net.dhleong.ctrlf.util.RxUtil.pickInstancesOf;
 
 /**
  * AutoPilot gets its own module because it has so many things
@@ -15,6 +19,10 @@ import rx.Observer;
  */
 @Module
 public class AutoPilotModule {
+
+    @Provides Observable<AutoPilotStatus> provideStatus(Connection conn) {
+        return conn.dataObjects().lift(pickInstancesOf(AutoPilotStatus.class));
+    }
 
     @Provides @Named("APSetAltitude") Observer<Integer> provideAltitude(Connection conn) {
         return RxUtil.doSend(conn, SimEvent.SET_AP_ALTITUDE);

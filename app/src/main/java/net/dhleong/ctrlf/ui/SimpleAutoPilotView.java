@@ -8,10 +8,12 @@ import android.view.View;
 import android.widget.Button;
 import net.dhleong.ctrlf.App;
 import net.dhleong.ctrlf.R;
+import net.dhleong.ctrlf.model.AutoPilotStatus;
 import net.dhleong.ctrlf.ui.art.IntegerArtist;
 import net.dhleong.ctrlf.ui.base.BaseLedView;
 import net.dhleong.ctrlf.util.Named;
 import net.dhleong.ctrlf.util.RxUtil;
+import rx.Observable;
 import rx.Observer;
 import rx.android.view.ViewObservable;
 import rx.functions.Action1;
@@ -48,6 +50,7 @@ public class SimpleAutoPilotView extends BaseLedView {
 
     private final TinyButtonView apMaster, heading, nav, apr, backCourse, altitude;
 
+    @Inject Observable<AutoPilotStatus> status;
     @Inject @Named("APSetAltitude") Observer<Integer> apSetAltitudeObserver;
     @Inject @Named("APMaster") Observer<Void> apMasterObserver;
     @Inject @Named("APNav") Observer<Void> apNavObserver;
@@ -112,6 +115,15 @@ public class SimpleAutoPilotView extends BaseLedView {
                 .subscribe(apSetAltitudeObserver)
         );
 
+        subscriptions.add(
+            status.subscribe(new Action1<AutoPilotStatus>() {
+                @Override
+                public void call(final AutoPilotStatus autoPilotStatus) {
+                    setTargetAltitude(autoPilotStatus.altitude);
+                }
+            })
+        );
+
         bindTo(apMaster, apMasterObserver);
         bindTo(nav, apNavObserver);
         bindTo(apr, apApproachObserver);
@@ -145,6 +157,10 @@ public class SimpleAutoPilotView extends BaseLedView {
         } else {
             altitudeArtist.clear();
         }
+    }
+
+    public int getTargetAltitude() {
+        return altitudeArtist.toNumber();
     }
 
     public void setTargetAltitude(final int altitude) {
@@ -268,4 +284,5 @@ public class SimpleAutoPilotView extends BaseLedView {
                               .subscribe(observer)
         );
     }
+
 }

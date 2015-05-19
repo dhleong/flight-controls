@@ -8,8 +8,10 @@ package net.dhleong.ctrlf.model;
  * @author dhleong
  */
 enum DataType {
+    AUTOPILOT_STATUS(AutoPilotStatus.class),
     RADIO_STATUS(RadioStatus.class),
-    LIGHT_STATUS(LightsStatus.class);
+    LIGHT_STATUS(LightsStatus.class),
+    ;
 
     final Class<? extends SimData> implementationType;
 

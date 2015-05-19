@@ -4,6 +4,7 @@ import android.app.Application;
 import android.view.LayoutInflater;
 import net.dhleong.ctrlf.BaseViewModuleTest;
 import net.dhleong.ctrlf.R;
+import net.dhleong.ctrlf.model.AutoPilotStatus;
 import net.dhleong.ctrlf.model.Connection;
 import net.dhleong.ctrlf.model.RadioStatus;
 import net.dhleong.ctrlf.model.SimData;
@@ -245,6 +246,17 @@ public class RadioStackTest extends BaseViewModuleTest<RadioStackView, RadioTest
 
         view.ap.allButtons.get(5).performClick();
         assertThat(module.clickEvents).endsWith(SimEvent.AP_ALTITUDE_TOGGLE);
+    }
+
+    @Test
+    public void autopilotStatus() {
+        // just provide power
+        view.ap.setEnabled(true);
+
+        assertThat(view.ap.getTargetAltitude()).isEqualTo(0);
+
+        module.dataObjectsSubject.onNext(new AutoPilotStatus(3500));
+        assertThat(view.ap.getTargetAltitude()).isEqualTo(3500);
     }
 
     static class RadioTestModule extends TestModule {

@@ -131,7 +131,6 @@ public class FsxConnection
                       protected void perform(final PendingEvent pendingEvent)
                               throws IOException {
 
-                          Log.d(TAG, "SEND: " + pendingEvent.event + " @ " + pendingEvent.param);
                           sc.transmitClientEvent(CLIENT_ID,
                                   pendingEvent.event,
                                   pendingEvent.param,
@@ -147,13 +146,13 @@ public class FsxConnection
         // finally, request some data. We could perhaps rather use
         //  the change events, but we need these anyway, and 1/s shouldn't
         //  put that much strain on the network....
-        // NB: just be lazy and reuse the data type as the request id
-        simConnect.requestDataOnSimObject(DataType.RADIO_STATUS, DataType.RADIO_STATUS,
-                CLIENT_ID, SimConnectPeriod.SECOND);
+        requestData(DataType.RADIO_STATUS, SimConnectPeriod.SECOND);
+
+        // when we add more to this, we'll want SECOND period, probably
+        requestData(DataType.AUTOPILOT_STATUS, SimConnectPeriod.ONCE);
 
         // we only need the initial state for this
-        simConnect.requestDataOnSimObject(DataType.LIGHT_STATUS, DataType.LIGHT_STATUS,
-                CLIENT_ID, SimConnectPeriod.ONCE);
+        requestData(DataType.LIGHT_STATUS, SimConnectPeriod.ONCE);
     }
 
     @Override
@@ -224,6 +223,11 @@ public class FsxConnection
             }
         }).subscribeOn(Schedulers.io())
           .subscribe(); // just do it (tm)
+    }
+
+    private void requestData(final DataType type, final SimConnectPeriod period) throws IOException {
+        // NB: just be lazy and reuse the data type as the request id
+        simConnect.requestDataOnSimObject(type, type, CLIENT_ID, period);
     }
 
     private static SimData parseSimObject(final RecvSimObjectData data, final DataType request) {
