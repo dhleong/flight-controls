@@ -190,6 +190,9 @@ public class FineDialView extends View {
             downAngle = lastAngle = angle(dcY, dcX);
             downRotation = rotations[state];
             lastDetents = 0; // reset!
+
+            // we will ALWAYS steal touch events
+            getParent().requestDisallowInterceptTouchEvent(true);
             return true;
 
         case MotionEvent.ACTION_MOVE:
