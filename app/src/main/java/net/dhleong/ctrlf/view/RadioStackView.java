@@ -39,14 +39,6 @@ public class RadioStackView
     @Inject @Named("NAV1Standby") Observer<Integer> nav1Observer;
     @Inject @Named("XPNDR") Observer<Integer> transponderObserver;
 
-    @Inject @Named("APSetAltitude") Observer<Integer> apSetAltitudeObserver;
-    @Inject @Named("APMaster") Observer<Void> apMasterObserver;
-    @Inject @Named("APNav") Observer<Void> apNavObserver;
-    @Inject @Named("APApproach") Observer<Void> apApproachObserver;
-    @Inject @Named("APBackCourse") Observer<Void> apBackCourseObserver;
-    @Inject @Named("APAltitude") Observer<Void> apAltitudeObserver;
-    @Inject @Named("APHeading") Observer<Void> apHeadingObserver;
-
     private CompositeSubscription subscriptions = new CompositeSubscription();
 
     private boolean isInitial = true;
@@ -103,36 +95,6 @@ public class RadioStackView
                 xpndr.transponderChanges()
                      .map(RadioUtil.XPNDR_AS_PARAM)
                      .subscribe(transponderObserver)
-        );
-
-        // FIXME okay, this is getting ridiculous
-        subscriptions.add(
-                ap.targetAltitudes()
-                  .subscribe(apSetAltitudeObserver)
-        );
-        subscriptions.add(
-                ap.apMasterClicks()
-                  .subscribe(apMasterObserver)
-        );
-        subscriptions.add(
-                ap.apNavClicks()
-                  .subscribe(apNavObserver)
-        );
-        subscriptions.add(
-                ap.apApproachClicks()
-                  .subscribe(apApproachObserver)
-        );
-        subscriptions.add(
-                ap.apBackCourseClicks()
-                  .subscribe(apBackCourseObserver)
-        );
-        subscriptions.add(
-                ap.apAltitudeClicks()
-                  .subscribe(apAltitudeObserver)
-        );
-        subscriptions.add(
-                ap.apHeadingClicks()
-                  .subscribe(apHeadingObserver)
         );
 
         // bind FROM remote

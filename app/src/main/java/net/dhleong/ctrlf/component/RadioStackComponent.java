@@ -2,6 +2,7 @@ package net.dhleong.ctrlf.component;
 
 import dagger.Subcomponent;
 import net.dhleong.ctrlf.module.RadioStackModule;
+import net.dhleong.ctrlf.ui.SimpleAutoPilotView;
 import net.dhleong.ctrlf.view.RadioStackView;
 
 import javax.inject.Singleton;
@@ -14,5 +15,7 @@ import javax.inject.Singleton;
 public interface RadioStackComponent {
 
     void inject(RadioStackView view);
+
+    void inject(SimpleAutoPilotView view);
 
 }

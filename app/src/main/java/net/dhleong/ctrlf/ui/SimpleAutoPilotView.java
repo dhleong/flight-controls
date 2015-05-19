@@ -6,18 +6,19 @@ import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.Button;
+import net.dhleong.ctrlf.App;
 import net.dhleong.ctrlf.R;
 import net.dhleong.ctrlf.ui.art.IntegerArtist;
 import net.dhleong.ctrlf.ui.base.BaseLedView;
+import net.dhleong.ctrlf.util.Named;
 import net.dhleong.ctrlf.util.RxUtil;
-import rx.Observable;
 import rx.Observer;
 import rx.android.view.ViewObservable;
 import rx.functions.Action1;
 import rx.functions.Func1;
-import rx.subjects.BehaviorSubject;
-import rx.subjects.PublishSubject;
+import rx.subscriptions.CompositeSubscription;
 
+import javax.inject.Inject;
 import java.util.Arrays;
 import java.util.List;
 
@@ -45,13 +46,17 @@ public class SimpleAutoPilotView extends BaseLedView {
     public final FineDialView dial;
     public final List<TinyButtonView> allButtons;
 
-    private final BehaviorSubject<Integer> altitudeSubject = BehaviorSubject.create();
-    private final PublishSubject<Void> apMasterSubject = PublishSubject.create();
-    private final PublishSubject<Void> apNavSubject = PublishSubject.create();
-    private final PublishSubject<Void> apApproachSubject = PublishSubject.create();
-    private final PublishSubject<Void> apBackCourseSubject = PublishSubject.create();
-    private final PublishSubject<Void> apAltitudeSubject = PublishSubject.create();
-    private final PublishSubject<Void> apHeadingSubject = PublishSubject.create();
+    private final TinyButtonView apMaster, heading, nav, apr, backCourse, altitude;
+
+    @Inject @Named("APSetAltitude") Observer<Integer> apSetAltitudeObserver;
+    @Inject @Named("APMaster") Observer<Void> apMasterObserver;
+    @Inject @Named("APNav") Observer<Void> apNavObserver;
+    @Inject @Named("APApproach") Observer<Void> apApproachObserver;
+    @Inject @Named("APBackCourse") Observer<Void> apBackCourseObserver;
+    @Inject @Named("APAltitude") Observer<Void> apAltitudeObserver;
+    @Inject @Named("APHeading") Observer<Void> apHeadingObserver;
+
+    private CompositeSubscription subscriptions = new CompositeSubscription();
 
     @SuppressWarnings("FieldCanBeLocal")
     private final Action1<? super Integer> setTargetAltitude = new Action1<Integer>() {
@@ -71,64 +76,55 @@ public class SimpleAutoPilotView extends BaseLedView {
         dial = new FineDialView(context);
         addView(dial);
 
-        final TinyButtonView apMaster = new TinyButtonView(context, context.getString(R.string.btn_autopilot));
-        final TinyButtonView heading = new TinyButtonView(context, context.getString(R.string.btn_ap_heading));
-        final TinyButtonView nav = new TinyButtonView(context, context.getString(R.string.btn_ap_nav));
-        final TinyButtonView apr = new TinyButtonView(context, context.getString(R.string.btn_ap_apr));
-        final TinyButtonView backCourse = new TinyButtonView(context, context.getString(R.string.btn_ap_rev));
-        final TinyButtonView altitude = new TinyButtonView(context, context.getString(R.string.btn_ap_altitude));
+        apMaster = new TinyButtonView(context, context.getString(R.string.btn_autopilot));
+        heading = new TinyButtonView(context, context.getString(R.string.btn_ap_heading));
+        nav = new TinyButtonView(context, context.getString(R.string.btn_ap_nav));
+        apr = new TinyButtonView(context, context.getString(R.string.btn_ap_apr));
+        backCourse = new TinyButtonView(context, context.getString(R.string.btn_ap_rev));
+        altitude = new TinyButtonView(context, context.getString(R.string.btn_ap_altitude));
 
         allButtons = Arrays.asList(apMaster, heading, nav, apr, backCourse, altitude);
         for (final View v : allButtons) {
             addView(v);
         }
 
+        // inject
+        App.provideComponent(this)
+           .newRadioStackComponent()
+           .inject(this);
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+
         // connect events
-        dial.detents(INNER_DETENTS, OUTER_DETENTS)
-            .map(new Func1<Integer, Integer>() {
-                @Override
-                public Integer call(final Integer integer) {
-                    return altitudeArtist.toNumber() + integer;
-                }
-            })
-            .map(limitRange(0, 99999))
-            .doOnNext(setTargetAltitude)
-            .subscribe(altitudeSubject);
+        subscriptions.add(
+            dial.detents(INNER_DETENTS, OUTER_DETENTS)
+                .map(new Func1<Integer, Integer>() {
+                    @Override
+                    public Integer call(final Integer integer) {
+                        return altitudeArtist.toNumber() + integer;
+                    }
+                })
+                .map(limitRange(0, 99999))
+                .doOnNext(setTargetAltitude)
+                .subscribe(apSetAltitudeObserver)
+        );
 
-        bindTo(apMaster, apMasterSubject);
-        bindTo(nav, apNavSubject);
-        bindTo(apr, apApproachSubject);
-        bindTo(backCourse, apBackCourseSubject);
-        bindTo(altitude, apAltitudeSubject);
-        bindTo(heading, apHeadingSubject);
+        bindTo(apMaster, apMasterObserver);
+        bindTo(nav, apNavObserver);
+        bindTo(apr, apApproachObserver);
+        bindTo(backCourse, apBackCourseObserver);
+        bindTo(altitude, apAltitudeObserver);
+        bindTo(heading, apHeadingObserver);
     }
 
-    public Observable<Integer> targetAltitudes() {
-        return altitudeSubject;
-    }
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
 
-    public Observable<Void> apMasterClicks() {
-        return apMasterSubject;
-    }
-
-    public Observable<Void> apNavClicks() {
-        return apNavSubject;
-    }
-
-    public Observable<Void> apApproachClicks() {
-        return apApproachSubject;
-    }
-
-    public Observable<Void> apBackCourseClicks() {
-        return apBackCourseSubject;
-    }
-
-    public Observable<Void> apAltitudeClicks() {
-        return apAltitudeSubject;
-    }
-
-    public Observable<Void> apHeadingClicks() {
-        return apHeadingSubject;
+        subscriptions.unsubscribe();
     }
 
     @Override
@@ -265,9 +261,11 @@ public class SimpleAutoPilotView extends BaseLedView {
         onMeasured();
     }
 
-    static void bindTo(final View view, final Observer<Void> observer) {
-        ViewObservable.clicks(view)
-                .map(RxUtil.CLICK_TO_VOID)
-                .subscribe(observer);
+    void bindTo(final View view, final Observer<Void> observer) {
+        subscriptions.add(
+                ViewObservable.clicks(view)
+                              .map(RxUtil.CLICK_TO_VOID)
+                              .subscribe(observer)
+        );
     }
 }

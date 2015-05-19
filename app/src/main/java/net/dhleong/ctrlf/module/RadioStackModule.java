@@ -12,7 +12,7 @@ import rx.Observer;
  *
  * @author dhleong
  */
-@Module
+@Module(includes = AutoPilotModule.class)
 public class RadioStackModule {
 
     @Provides @Named("COM1Swap") Observer<Void> provideCom1Swap(Connection conn) {
@@ -33,28 +33,5 @@ public class RadioStackModule {
 
     @Provides @Named("XPNDR") Observer<Integer> provideTransponder(Connection conn) {
         return RxUtil.doSend(conn, SimEvent.SET_TRANSPONDER);
-    }
-
-    @Provides @Named("APSetAltitude") Observer<Integer> provideAutopilotAltitude(Connection conn) {
-        return RxUtil.doSend(conn, SimEvent.SET_AP_ALTITUDE);
-    }
-
-    @Provides @Named("APMaster") Observer<Void> provideAutopilotMaster(Connection conn) {
-        return RxUtil.doSend(conn, SimEvent.AP_MASTER_TOGGLE);
-    }
-    @Provides @Named("APNav") Observer<Void> provideAutopilotNav(Connection conn) {
-        return RxUtil.doSend(conn, SimEvent.AP_NAV_TOGGLE);
-    }
-    @Provides @Named("APApproach") Observer<Void> provideAutopilotApr(Connection conn) {
-        return RxUtil.doSend(conn, SimEvent.AP_APR_TOGGLE);
-    }
-    @Provides @Named("APBackCourse") Observer<Void> provideAutopilotBackCourse(Connection conn) {
-        return RxUtil.doSend(conn, SimEvent.AP_BACKCOURSE_TOGGLE);
-    }
-    @Provides @Named("APAltitude") Observer<Void> provideApAltitudeHold(Connection conn) {
-        return RxUtil.doSend(conn, SimEvent.AP_ALTITUDE_TOGGLE);
-    }
-    @Provides @Named("APHeading") Observer<Void> provideApHeadingHold(Connection conn) {
-        return RxUtil.doSend(conn, SimEvent.AP_HEADING_TOGGLE);
     }
 }
