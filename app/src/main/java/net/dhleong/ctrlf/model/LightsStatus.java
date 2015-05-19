@@ -25,6 +25,11 @@ public class LightsStatus implements SimData {
         }
     }
 
+    @Override
+    public DataType getType() {
+        return DataType.LIGHT_STATUS;
+    }
+
     public boolean getStatus(final SimEvent ev) {
         final int number = ev.ordinal();
         if (number < firstOrdinal || number > lastOrdinal) {
@@ -34,6 +39,7 @@ public class LightsStatus implements SimData {
         return states[number - firstOrdinal];
     }
 
+    @SuppressWarnings("unused")
     public static void bindDataDefinition(SimConnect sc, Enum id) throws IOException {
         sc.addToDataDefinition(id, "Light Strobe", "Bool", SimConnectDataType.INT32);
         sc.addToDataDefinition(id, "Light Panel", "Bool", SimConnectDataType.INT32);

@@ -39,6 +39,12 @@ public class RadioStatus implements SimData {
         this.nav1Standby = nav1Standby;
     }
 
+    @Override
+    public DataType getType() {
+        return DataType.RADIO_STATUS;
+    }
+
+    @SuppressWarnings("unused")
     public static void bindDataDefinition(SimConnect sc, Enum id) throws IOException {
         sc.addToDataDefinition(id, "Circuit Avionics On", "Bool", SimConnectDataType.INT32);
         sc.addToDataDefinition(id, "Com Active Frequency:1", FREQ, SimConnectDataType.INT32);

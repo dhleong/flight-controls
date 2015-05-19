@@ -22,6 +22,10 @@ import rx.subjects.BehaviorSubject;
 import rx.subjects.ReplaySubject;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author dhleong
@@ -42,15 +46,46 @@ public class FsxConnection
         GROUP_0
     }
 
-    enum DataType {
-        RADIO_STATUS,
-        LIGHT_STATUS;
+    private static class SimConnectDataTypes {
+        final Map<DataType, Method> binders = new HashMap<>();
+        final Map<DataType, Constructor<? extends SimData>> constructors = new HashMap<>();
 
-        static final DataType[] types = values();
-        static DataType fromInt(final int input) {
-            return types[input];
+        SimConnectDataTypes() {
+            for (final DataType type : DataType.VALUES) {
+                final Class<? extends SimData> impl = type.implementationType;
+                try {
+                    final Method binder = impl
+                            .getDeclaredMethod("bindDataDefinition", SimConnect.class, Enum.class);
+                    binder.setAccessible(true);
+                    binders.put(type, binder);
+
+                    final Constructor<? extends SimData> ctor = impl
+                            .getDeclaredConstructor(RecvSimObjectData.class);
+                    ctor.setAccessible(true);
+                    constructors.put(type, ctor);
+                } catch (NoSuchMethodException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        public void bindDataDefinition(final DataType type, final SimConnect connect) {
+            try {
+                binders.get(type).invoke(null, connect, type);
+            } catch (final Exception e) {
+                throw new RuntimeException("Could not construct " + type, e);
+            }
+        }
+
+        public SimData construct(final DataType type, final RecvSimObjectData data) {
+            try {
+                return constructors.get(type).newInstance(data);
+            } catch (final Exception e) {
+                throw new RuntimeException("Could not construct " + type, e);
+            }
         }
     }
+    static final SimConnectDataTypes dataTypes = new SimConnectDataTypes();
 
     final BehaviorSubject<IOException> ioexs = BehaviorSubject.create();
 
@@ -84,9 +119,10 @@ public class FsxConnection
             sc.mapClientEventToSimEvent(ev, ev.getSimConnectEventName());
         }
 
-        // bind data types
-        RadioStatus.bindDataDefinition(sc, DataType.RADIO_STATUS);
-        LightsStatus.bindDataDefinition(sc, DataType.LIGHT_STATUS);
+        // bind data VALUES
+        for (final DataType type : DataType.VALUES) {
+            dataTypes.bindDataDefinition(type, sc);
+        }
 
         // rx subscription
         eventQueue.subscribeOn(Schedulers.io())
@@ -191,18 +227,8 @@ public class FsxConnection
     }
 
     private static SimData parseSimObject(final RecvSimObjectData data, final DataType request) {
-        final SimData parsed;
-        switch (request) {
-        case RADIO_STATUS:
-            parsed = new RadioStatus(data);
-            break;
-        case LIGHT_STATUS:
-            parsed = new LightsStatus(data);
-            break;
-        default:
-            throw new IllegalStateException("Unhandled request data type " + request);
-        }
-        return parsed;
+        // we'll leave this method intact in case we need to special case anything
+        return dataTypes.construct(request, data);
     }
 
 
