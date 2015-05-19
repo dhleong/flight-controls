@@ -56,13 +56,26 @@ android {
             }
         }
     }
+
+    packagingOptions {
+        // dear lord
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/NOTICE'
+        exclude 'LICENSE.txt'
+        exclude 'LICENSE'
+        exclude 'NOTICE'
+        exclude 'asm-license.txt'
+    }
+
 }
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
 
     compile 'io.reactivex:rxandroid:0.24.0'
-    compile 'com.android.support:appcompat-v7:22.1.0'
+    compile 'com.android.support:appcompat-v7:22.1.1'
     compile 'com.google.dagger:dagger:2.0'
     compile 'com.jakewharton:butterknife:6.1.0'
     compile 'org.glassfish:javax.annotation:10.0-b28' // for dagger-generated classes

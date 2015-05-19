@@ -12,6 +12,7 @@ import net.dhleong.ctrlf.ui.NavComView;
 import net.dhleong.ctrlf.ui.SimpleAutoPilotView;
 import net.dhleong.ctrlf.ui.TransponderView;
 import net.dhleong.ctrlf.util.Named;
+import net.dhleong.ctrlf.util.RadioUtil;
 import rx.Observable;
 import rx.Observer;
 import rx.android.schedulers.AndroidSchedulers;
@@ -80,6 +81,7 @@ public class RadioStackView
         // bind TO remote
         subscriptions.add(
                 navCom1.comStandbyFrequencies()
+                       .map(RadioUtil.FREQ_AS_PARAM)
                        .subscribe(com1Observer)
         );
         subscriptions.add(
@@ -88,6 +90,7 @@ public class RadioStackView
         );
         subscriptions.add(
                 navCom1.navStandbyFrequencies()
+                       .map(RadioUtil.FREQ_AS_PARAM)
                        .subscribe(nav1Observer)
         );
         subscriptions.add(
@@ -96,6 +99,7 @@ public class RadioStackView
         );
         subscriptions.add(
                 xpndr.transponderChanges()
+                     .map(RadioUtil.XPNDR_AS_PARAM)
                      .subscribe(transponderObserver)
         );
 

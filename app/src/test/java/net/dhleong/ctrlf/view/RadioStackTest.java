@@ -262,11 +262,11 @@ public class RadioStackTest extends BaseViewModuleTest<RadioStackView, RadioTest
         protected void mockConnection(final Connection mock) {
             when(mock.dataObjects()).thenReturn(dataObjectsSubject);
 
-            doAnswer(storeParam(transponder))
+            doAnswer(storeTransponderParam(transponder))
                     .when(mock).sendEvent(eq(SimEvent.SET_TRANSPONDER), anyInt());
-            doAnswer(storeParam(com1))
+            doAnswer(storeFrequencyParam(com1))
                     .when(mock).sendEvent(eq(SimEvent.COM1_STANDBY), anyInt());
-            doAnswer(storeParam(nav1))
+            doAnswer(storeFrequencyParam(nav1))
                     .when(mock).sendEvent(eq(SimEvent.NAV1_STANDBY), anyInt());
             doAnswer(storeParam(apAltitudes))
                     .when(mock).sendEvent(eq(SimEvent.SET_AP_ALTITUDE), anyInt());

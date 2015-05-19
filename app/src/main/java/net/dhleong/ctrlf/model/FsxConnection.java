@@ -95,6 +95,7 @@ public class FsxConnection
                       protected void perform(final PendingEvent pendingEvent)
                               throws IOException {
 
+                          Log.d(TAG, "SEND: " + pendingEvent.event + " @ " + pendingEvent.param);
                           sc.transmitClientEvent(CLIENT_ID,
                                   pendingEvent.event,
                                   pendingEvent.param,

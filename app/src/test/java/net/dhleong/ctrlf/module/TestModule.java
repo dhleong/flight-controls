@@ -7,6 +7,8 @@ import org.mockito.stubbing.Answer;
 
 import java.util.List;
 
+import static net.dhleong.ctrlf.util.RadioUtil.paramAsFrequency;
+import static net.dhleong.ctrlf.util.RadioUtil.paramAsTransponder;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -68,4 +70,27 @@ public abstract class TestModule extends AppModule {
         };
     }
 
+    public static Answer storeFrequencyParam(
+            final List<Integer> destination) {
+        return new Answer() {
+            @Override
+            public Object answer(final InvocationOnMock invocation) throws Throwable {
+                final Integer param = (Integer) invocation.getArguments()[1];
+                destination.add(paramAsFrequency(param));
+                return null;
+            }
+        };
+    }
+
+    public static Answer storeTransponderParam(
+            final List<Integer> destination) {
+        return new Answer() {
+            @Override
+            public Object answer(final InvocationOnMock invocation) throws Throwable {
+                final Integer param = (Integer) invocation.getArguments()[1];
+                destination.add(paramAsTransponder(param));
+                return null;
+            }
+        };
+    }
 }

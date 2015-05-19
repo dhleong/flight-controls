@@ -2,6 +2,10 @@ package net.dhleong.ctrlf.util;
 
 import org.junit.Test;
 
+import static net.dhleong.ctrlf.util.RadioUtil.frequencyAsParam;
+import static net.dhleong.ctrlf.util.RadioUtil.paramAsFrequency;
+import static net.dhleong.ctrlf.util.RadioUtil.paramAsTransponder;
+import static net.dhleong.ctrlf.util.RadioUtil.transponderAsParam;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -11,23 +15,25 @@ public class RadioUtilTest {
 
     @Test
     public void convertToParam() {
-        assertThat(asParam(127_975)).isEqualTo(0x2797);
-        assertThat(asParam(128_975)).isEqualTo(0x2897);
-        assertThat(asParam(122_450)).isEqualTo(0x2245);
+        assertThat(frequencyAsParam(127_975)).isEqualTo(0x2797);
+        assertThat(frequencyAsParam(128_975)).isEqualTo(0x2897);
+        assertThat(frequencyAsParam(122_450)).isEqualTo(0x2245);
     }
 
     @Test
     public void convertToFrequency() {
-        assertThat(asFrequency(0x2797)).isEqualTo(127_975);
-        assertThat(asFrequency(0x2897)).isEqualTo(128_975);
-        assertThat(asFrequency(0x2245)).isEqualTo(122_450);
+        assertThat(paramAsFrequency(0x2797)).isEqualTo(127_975);
+        assertThat(paramAsFrequency(0x2897)).isEqualTo(128_975);
+        assertThat(paramAsFrequency(0x2245)).isEqualTo(122_450);
     }
 
-    static int asFrequency(final int input) {
-        return RadioUtil.paramAsFrequency(input);
+    @Test
+    public void convertXpndrToParam() {
+        assertThat(transponderAsParam(2797)).isEqualTo(0x2797);
     }
 
-    static int asParam(final int input) {
-        return RadioUtil.frequencyAsParam(input);
+    @Test
+    public void convertParamToXpndr() {
+        assertThat(paramAsTransponder(0x2797)).isEqualTo(2797);
     }
 }

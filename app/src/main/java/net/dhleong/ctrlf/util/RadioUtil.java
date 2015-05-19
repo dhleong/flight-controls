@@ -17,6 +17,21 @@ public class RadioUtil {
     public static final Func1<? super Integer, Integer> COM_FREQ_LIMIT = limitRange(MIN_COM_FREQ, MAX_COM_FREQ);
     public static final Func1<? super Integer, Integer> NAV_FREQ_LIMIT = limitRange(MIN_NAV_FREQ, MAX_NAV_FREQ);
 
+    public static final Func1<? super Integer, Integer> FREQ_AS_PARAM =
+            new Func1<Integer, Integer>() {
+                @Override
+                public Integer call(final Integer freq) {
+                    return frequencyAsParam(freq);
+                }
+            };
+    public static final Func1<? super Integer, Integer> XPNDR_AS_PARAM =
+            new Func1<Integer, Integer>() {
+                @Override
+                public Integer call(final Integer integer) {
+                    return transponderAsParam(integer);
+                }
+            };
+
     /**
      * Create a mapping function that pins the input to be within the
      *  provided bounds, inclusive
@@ -43,34 +58,13 @@ public class RadioUtil {
         final int lastDropped = khz / 10; // -> 12797
         final int firstDropped = lastDropped - 10000; // -> 2797
 
-        int param = 0;
-        int divisor = 1;
-        for (int i=0; i < 4; i++) {
-            // pick off the digit, then re-interpret as hex
-            final int digit = (firstDropped / divisor) % 10;
-            param += digit * Math.pow(16, i);
-
-            divisor *= 10;
-        }
-
         // then it becomes hex: 0x2797
-        return param;
+        return transponderAsParam(firstDropped);
     }
 
     public static int paramAsFrequency(final int param) {
         // the 100000 is assumed
-        int frequency = 100000;
-
-        // inspired by Integer.toHexString
-        int power = 10;
-        int index = 7;
-        int number = param;
-        do {
-            final int digit = number & 0xf;
-            frequency += digit * power;
-
-            power *= 10;
-        } while ((number >>>= 4) != 0 || (--index < 0));
+        int frequency = 100000 + paramAsTransponder(param, 10);
 
         final int lastDigit = param & 0xf;
         if (lastDigit == 2 || lastDigit == 7) {
@@ -81,4 +75,39 @@ public class RadioUtil {
         return frequency;
     }
 
+    public static int transponderAsParam(final int code) {
+        int param = 0;
+        int divisor = 1;
+        for (int i=0; i < 4; i++) {
+            // pick off the digit, then re-interpret as hex
+            final int digit = (code / divisor) % 10;
+            param += digit * Math.pow(16, i);
+
+            divisor *= 10;
+        }
+
+        return param;
+    }
+
+    public static int paramAsTransponder(final int param) {
+        return paramAsTransponder(param, 1);
+    }
+
+    private static int paramAsTransponder(final int param, 
+            final int initialPower) {
+
+        // inspired by Integer.toHexString
+        int frequency = 0;
+        int power = initialPower;
+        int index = 7;
+        int number = param;
+        do {
+            final int digit = number & 0xf;
+            frequency += digit * power;
+
+            power *= 10;
+        } while ((number >>>= 4) != 0 || (--index < 0));
+
+        return frequency;
+    }
 }
