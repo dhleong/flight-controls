@@ -45,6 +45,12 @@ public class RadioStackModule {
     @Provides @Named("APNav") Observer<Void> provideAutopilotNav(Connection conn) {
         return RxUtil.doSend(conn, SimEvent.AP_NAV_TOGGLE);
     }
+    @Provides @Named("APApproach") Observer<Void> provideAutopilotApr(Connection conn) {
+        return RxUtil.doSend(conn, SimEvent.AP_APR_TOGGLE);
+    }
+    @Provides @Named("APBackCourse") Observer<Void> provideAutopilotBackCourse(Connection conn) {
+        return RxUtil.doSend(conn, SimEvent.AP_BACKCOURSE_TOGGLE);
+    }
     @Provides @Named("APAltitude") Observer<Void> provideApAltitudeHold(Connection conn) {
         return RxUtil.doSend(conn, SimEvent.AP_ALTITUDE_TOGGLE);
     }

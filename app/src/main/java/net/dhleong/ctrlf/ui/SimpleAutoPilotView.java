@@ -48,6 +48,8 @@ public class SimpleAutoPilotView extends BaseLedView {
     private final BehaviorSubject<Integer> altitudeSubject = BehaviorSubject.create();
     private final PublishSubject<Void> apMasterSubject = PublishSubject.create();
     private final PublishSubject<Void> apNavSubject = PublishSubject.create();
+    private final PublishSubject<Void> apApproachSubject = PublishSubject.create();
+    private final PublishSubject<Void> apBackCourseSubject = PublishSubject.create();
     private final PublishSubject<Void> apAltitudeSubject = PublishSubject.create();
     private final PublishSubject<Void> apHeadingSubject = PublishSubject.create();
 
@@ -72,11 +74,11 @@ public class SimpleAutoPilotView extends BaseLedView {
         final TinyButtonView apMaster = new TinyButtonView(context, context.getString(R.string.btn_autopilot));
         final TinyButtonView heading = new TinyButtonView(context, context.getString(R.string.btn_ap_heading));
         final TinyButtonView nav = new TinyButtonView(context, context.getString(R.string.btn_ap_nav));
-        final TinyButtonView apr = new TinyButtonView(context, context.getString(R.string.btn_ap_apr)); // FIXME what?
-        final TinyButtonView rev = new TinyButtonView(context, context.getString(R.string.btn_ap_rev)); // FIXME what?
+        final TinyButtonView apr = new TinyButtonView(context, context.getString(R.string.btn_ap_apr));
+        final TinyButtonView backCourse = new TinyButtonView(context, context.getString(R.string.btn_ap_rev));
         final TinyButtonView altitude = new TinyButtonView(context, context.getString(R.string.btn_ap_altitude));
 
-        allButtons = Arrays.asList(apMaster, heading, nav, apr, rev, altitude);
+        allButtons = Arrays.asList(apMaster, heading, nav, apr, backCourse, altitude);
         for (final View v : allButtons) {
             addView(v);
         }
@@ -95,6 +97,8 @@ public class SimpleAutoPilotView extends BaseLedView {
 
         bindTo(apMaster, apMasterSubject);
         bindTo(nav, apNavSubject);
+        bindTo(apr, apApproachSubject);
+        bindTo(backCourse, apBackCourseSubject);
         bindTo(altitude, apAltitudeSubject);
         bindTo(heading, apHeadingSubject);
     }
@@ -109,6 +113,14 @@ public class SimpleAutoPilotView extends BaseLedView {
 
     public Observable<Void> apNavClicks() {
         return apNavSubject;
+    }
+
+    public Observable<Void> apApproachClicks() {
+        return apApproachSubject;
+    }
+
+    public Observable<Void> apBackCourseClicks() {
+        return apBackCourseSubject;
     }
 
     public Observable<Void> apAltitudeClicks() {

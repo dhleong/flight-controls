@@ -42,6 +42,8 @@ public class RadioStackView
     @Inject @Named("APSetAltitude") Observer<Integer> apSetAltitudeObserver;
     @Inject @Named("APMaster") Observer<Void> apMasterObserver;
     @Inject @Named("APNav") Observer<Void> apNavObserver;
+    @Inject @Named("APApproach") Observer<Void> apApproachObserver;
+    @Inject @Named("APBackCourse") Observer<Void> apBackCourseObserver;
     @Inject @Named("APAltitude") Observer<Void> apAltitudeObserver;
     @Inject @Named("APHeading") Observer<Void> apHeadingObserver;
 
@@ -115,6 +117,14 @@ public class RadioStackView
         subscriptions.add(
                 ap.apNavClicks()
                   .subscribe(apNavObserver)
+        );
+        subscriptions.add(
+                ap.apApproachClicks()
+                  .subscribe(apApproachObserver)
+        );
+        subscriptions.add(
+                ap.apBackCourseClicks()
+                  .subscribe(apBackCourseObserver)
         );
         subscriptions.add(
                 ap.apAltitudeClicks()
