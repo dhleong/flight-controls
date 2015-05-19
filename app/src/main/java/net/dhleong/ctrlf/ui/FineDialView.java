@@ -56,7 +56,7 @@ public class FineDialView extends View {
     private float downX, downY;
     private float lastX, lastY;
     private double downAngle, lastAngle;
-    private int lastDetents;
+    private int lastDetents, totalDetents;
 
     private float[] rotations = {0, 0, 0};
     private float downRotation;
@@ -190,10 +190,11 @@ public class FineDialView extends View {
             downAngle = lastAngle = angle(dcY, dcX);
             downRotation = rotations[state];
             lastDetents = 0; // reset!
+            totalDetents = 0;
 
             // we will ALWAYS steal touch events
             getParent().requestDisallowInterceptTouchEvent(true);
-            return true;
+            break;
 
         case MotionEvent.ACTION_MOVE:
             final double angle = angle(dcY, dcX);
@@ -205,17 +206,22 @@ public class FineDialView extends View {
             final int totalDetents = (int) (totalDelta / DETENT_ANGLE);
             final int newDetents = totalDetents - lastDetents;
             if (newDetents != 0) {
+                this.totalDetents += Math.abs(newDetents);
                 lastDetents = totalDetents;
                 performDetentsMoved(state, newDetents);
             }
-            return true;
+            break;
 
         case MotionEvent.ACTION_UP:
             state = STATE_EMPTY;
-            return true;
+
+            if (this.totalDetents == 0) {
+                performClick();
+            }
+            break;
         }
 
-        return super.onTouchEvent(event);
+        return true;
     }
 
     public void performDetentsMoved(final int state, final int newDetents) {
