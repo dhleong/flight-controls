@@ -2,7 +2,7 @@ package net.dhleong.ctrlf;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -21,7 +21,7 @@ import java.util.List;
 
 
 public class ConnectActivity
-        extends ActionBarActivity {
+        extends AppCompatActivity {
 
     static final Setter<? super View, Boolean> ENABLED = new Setter<View, Boolean>() {
         @Override
@@ -67,6 +67,7 @@ public class ConnectActivity
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            startActivity(new Intent(this, PrefsActivity.class));
             return true;
         }
 

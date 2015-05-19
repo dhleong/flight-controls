@@ -28,6 +28,12 @@
                 android:label="@string/controls"
                 android:theme="@style/AppTheme.NoActionBar"
                 />
+
+        <activity
+                android:name=".PrefsActivity"
+                android:label="@string/action_settings"
+                android:parentActivityName=".ConnectActivity"
+                />
     </application>
 
 </manifest>
