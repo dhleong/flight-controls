@@ -36,7 +36,6 @@ public class NavComView extends BaseLedView {
     static final Integer INNER_DETENTS = 50;
     static final Integer INNER_DETENTS_PULLED = 25;
 
-    // TODO: Actually, we have several of these
     private final FrequencyArtist comFrequencyArtist = new FrequencyArtist();
     private final FrequencyArtist comStandbyArtist = new FrequencyArtist();
     private final FrequencyArtist navFrequencyArtist = new FrequencyArtist();

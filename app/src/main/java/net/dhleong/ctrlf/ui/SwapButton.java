@@ -49,7 +49,6 @@ public class SwapButton extends Button {
 
         canvas.drawLine(rx, y, rx - arrowSize, y - arrowSize, paint);
         canvas.drawLine(rx, y, rx - arrowSize, y + arrowSize, paint);
-        // TODO arrow heads
     }
 
     @Override

@@ -15,7 +15,6 @@ public class FrequencyArtist {
     static final float OFFSET = 0.2f;
     static final RectF INPUT_RECT = new RectF(0, 0, 6 + (6 * OFFSET), 1f);
 
-    // TODO add the decimal
     private final LedArtist.DigitLedArtist[] digits = new LedArtist.DigitLedArtist[6];
     private final LedArtist.PunctuationLedArtist punctuation = new LedArtist.PunctuationLedArtist();
 

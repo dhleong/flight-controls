@@ -26,6 +26,12 @@ public class TransponderView extends BaseLedView {
     static final int DEFAULT_FONT_SIZE = 80;
     static final int VFR_CODE = 1200;
 
+    /**
+     * Scale used to determine width of buttons.
+     *  IE: this many buttons should fit on screen
+     */
+    public static final int PER_BUTTON_SCALE = 10;
+
     private IntegerArtist digits = new IntegerArtist(4);
     private final RectF digitsRect = new RectF();
 
@@ -121,7 +127,7 @@ public class TransponderView extends BaseLedView {
                 - buttonHeight
                 - getPaddingBottom();
         final int buttonBottom = buttonTop + buttonHeight;
-        final int width = (r - l) / 10; // TODO remove magic number
+        final int width = (r - l) / PER_BUTTON_SCALE;
         int buttonLeft = paddingLeft;
         for (final View number : numbers) {
             number.layout(buttonLeft, buttonTop,

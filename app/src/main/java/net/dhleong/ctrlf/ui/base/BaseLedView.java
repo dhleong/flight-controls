@@ -30,7 +30,6 @@ public abstract class BaseLedView extends ViewGroup {
 
         setWillNotDraw(false);
 
-        // TODO do we need to bother with attrs?
         setFontSize(TypedValue.COMPLEX_UNIT_SP, getDefaultFontSize());
         ledBgColor = getResources().getColor(R.color.led_bg);
 

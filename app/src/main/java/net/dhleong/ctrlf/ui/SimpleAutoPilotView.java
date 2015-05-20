@@ -40,6 +40,12 @@ public class SimpleAutoPilotView extends BaseLedView {
     private static final int INNER_DETENTS = 100;
     private static final int OUTER_DETENTS = 1000;
 
+    /**
+     * Scale used to determine width of buttons.
+     *  IE: this many buttons should fit on screen
+     */
+    public static final int PER_BUTTON_SCALE = 9;
+
     final IntegerArtist altitudeArtist = new IntegerArtist(5);
     final RectF altitudeRect = new RectF();
     final RectF ledRect = new RectF();
@@ -204,7 +210,7 @@ public class SimpleAutoPilotView extends BaseLedView {
                 - buttonHeight
                 - getPaddingBottom();
         final int buttonBottom = buttonTop + buttonHeight;
-        final int width = (r - l) / 9; // TODO remove magic number
+        final int width = (r - l) / PER_BUTTON_SCALE;
         int buttonLeft = paddingLeft;
         for (final View number : allButtons) {
             number.layout(buttonLeft, buttonTop,
