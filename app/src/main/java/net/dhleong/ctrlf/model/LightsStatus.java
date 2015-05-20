@@ -25,6 +25,16 @@ public class LightsStatus implements SimData {
         }
     }
 
+    public LightsStatus(final boolean strobe, final boolean panel, final boolean landing,
+            final boolean beacon, final boolean taxi, final boolean nav) {
+        states[0] = strobe;
+        states[1] = panel;
+        states[2] = landing;
+        states[3] = beacon;
+        states[4] = taxi;
+        states[5] = nav;
+    }
+
     @Override
     public DataType getType() {
         return DataType.LIGHT_STATUS;

@@ -60,6 +60,8 @@ public class LightSwitchesView extends LinearLayout {
     private final String[] labels;
     private final Paint labelPaint;
 
+    private boolean receivingStatus;
+
     private CompositeSubscription subscriptions = new CompositeSubscription();
 
     public LightSwitchesView(final Context context) {
@@ -97,6 +99,15 @@ public class LightSwitchesView extends LinearLayout {
             final SimEvent ev = SWITCH_EVENTS[i];
             final ToggleSwitch toggle = new ToggleSwitch(context);
             SwitchToggleObservable.on(toggle)
+                                  .filter(new Func1<OnClickEvent, Boolean>() {
+                                      @Override
+                                      public Boolean call(
+                                              final OnClickEvent onClickEvent) {
+                                          // drop events caused by receiving
+                                          //  a status from the server
+                                          return !receivingStatus;
+                                      }
+                                  })
                                   .map(toEvent(ev))
                                   .subscribe(lightSwitcher);
             addView(toggle);
@@ -113,12 +124,14 @@ public class LightSwitchesView extends LinearLayout {
                             .subscribe(new Action1<LightsStatus>() {
                                 @Override
                                 public void call(final LightsStatus lightsStatus) {
+                                    receivingStatus = true;
                                     final int len = SWITCH_EVENTS.length;
                                     for (int i = 0; i < len; i++) {
                                         final SimEvent ev = SWITCH_EVENTS[i];
                                         final boolean status = lightsStatus.getStatus(ev);
                                         switches[i].setChecked(status);
                                     }
+                                    receivingStatus = false;
                                 }
                             })
         );

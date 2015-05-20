@@ -3,6 +3,7 @@ package net.dhleong.ctrlf.ui;
 import android.app.Application;
 import net.dhleong.ctrlf.BaseViewModuleTest;
 import net.dhleong.ctrlf.model.Connection;
+import net.dhleong.ctrlf.model.LightsStatus;
 import net.dhleong.ctrlf.model.SimData;
 import net.dhleong.ctrlf.model.SimEvent;
 import net.dhleong.ctrlf.module.TestModule;
@@ -49,6 +50,16 @@ public class LightSwitchesTest extends BaseViewModuleTest<LightSwitchesView, Lig
         }
 
         assertThat(module.toggledLights).containsExactly(LightSwitchesView.SWITCH_EVENTS);
+    }
+
+    @Test
+    public void receivingDoesntTriggerSend() {
+        assertThat(module.toggledLights).isEmpty();
+
+        module.dataObjectsSubject.onNext(new LightsStatus(
+                true, true, true, true, true, true));
+
+        assertThat(module.toggledLights).isEmpty();
     }
 
     static class LightsTestModule extends TestModule {
