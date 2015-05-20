@@ -6,6 +6,7 @@ import net.dhleong.ctrlf.App;
 import net.dhleong.ctrlf.model.Connection;
 import net.dhleong.ctrlf.model.FsxConnection;
 import net.dhleong.ctrlf.model.RadioStatus;
+import net.dhleong.ctrlf.util.scopes.IsDummyMode;
 import rx.Observable;
 
 import javax.inject.Singleton;
@@ -24,6 +25,10 @@ public class AppModule {
         this.app = app;
     }
 
+    @Provides @IsDummyMode boolean provideDummyMode() {
+        return isDummy();
+    }
+
     @Provides @Singleton AppModule provideAppModule() {
         return this;
     }
@@ -32,10 +37,18 @@ public class AppModule {
         return app;
     }
 
-    @Provides @Singleton Connection provideConnection() { return new FsxConnection(); }
+    @Provides @Singleton Connection provideConnection() { return buildConnection(); }
 
     @Provides @Singleton Observable<RadioStatus> provideStatusObservable(Connection conn) {
         return conn.dataObjects().lift(pickInstancesOf(RadioStatus.class));
     }
 
+    protected Connection buildConnection() {
+        return new FsxConnection();
+    }
+
+    protected boolean isDummy() {
+        return false;
+    }
 }
+

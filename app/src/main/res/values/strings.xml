@@ -21,4 +21,5 @@
     <string name="btn_ap_rev">REV</string>
     <string name="btn_ap_altitude">ALT</string>
     <string name="pref_screen_on">Keep Screen On</string>
+    <string name="connect_dummy">Be a Dummy</string>
 </resources>

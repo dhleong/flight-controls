@@ -5,7 +5,7 @@ import android.preference.PreferenceManager;
 import dagger.Module;
 import dagger.Provides;
 import net.dhleong.ctrlf.App;
-import net.dhleong.ctrlf.util.Named;
+import net.dhleong.ctrlf.util.scopes.Pref;
 
 import javax.inject.Singleton;
 
@@ -19,7 +19,8 @@ public class PrefsModule {
         return PreferenceManager.getDefaultSharedPreferences(context);
     }
 
-    @Provides @Named("screen_on") boolean provideScreenOnPref(SharedPreferences prefs) {
+    @Provides @Pref("screen_on") boolean provideScreenOnPref(SharedPreferences prefs) {
         return prefs.getBoolean("pref_screen_on", true);
     }
+
 }

@@ -1,4 +1,4 @@
-package net.dhleong.ctrlf.util;
+package net.dhleong.ctrlf.util.scopes;
 
 import javax.inject.Qualifier;
 import java.lang.annotation.Documented;

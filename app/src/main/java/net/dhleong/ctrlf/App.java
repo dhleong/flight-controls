@@ -6,6 +6,7 @@ import android.view.View;
 import net.dhleong.ctrlf.component.AppComponent;
 import net.dhleong.ctrlf.component.DaggerAppComponent;
 import net.dhleong.ctrlf.module.AppModule;
+import net.dhleong.ctrlf.module.DummyAppModule;
 
 /**
  * @author dhleong
@@ -19,25 +20,26 @@ public class App extends Application {
     public static ComponentProvider provider;
 
     private AppComponent mAppComponent;
+    private boolean dummyMode;
 
     @Override
     public void onCreate() {
         super.onCreate();
 
-        mAppComponent = DaggerAppComponent.builder()
-            .appModule(new AppModule(this))
-            .build();
+        initComponent();
     }
 
     public AppComponent getAppComponent() {
         return mAppComponent;
     }
 
-    public static AppModule provideModule(final View view) {
-        return provideModule(view.getContext());
-    }
-    public static AppModule provideModule(final Context context) {
-        return provideComponent(context).appModule();
+    private void initComponent() {
+        final AppModule module = dummyMode
+                ? new DummyAppModule(this)
+                : new AppModule(this);
+        mAppComponent = DaggerAppComponent.builder()
+            .appModule(module)
+            .build();
     }
 
     public static AppComponent provideComponent(final View view) {
@@ -49,6 +51,12 @@ public class App extends Application {
 
         final App app = (App) context.getApplicationContext();
         return app.getAppComponent();
+    }
+
+    public static void toggleDummyMode(final Context context) {
+        final App app = (App) context.getApplicationContext();
+        app.dummyMode = !app.dummyMode;
+        app.initComponent();
     }
 
 }

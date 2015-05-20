@@ -11,7 +11,7 @@ import net.dhleong.ctrlf.model.RadioStatus;
 import net.dhleong.ctrlf.ui.NavComView;
 import net.dhleong.ctrlf.ui.SimpleAutoPilotView;
 import net.dhleong.ctrlf.ui.TransponderView;
-import net.dhleong.ctrlf.util.Named;
+import net.dhleong.ctrlf.util.scopes.Named;
 import net.dhleong.ctrlf.util.RadioUtil;
 import rx.Observable;
 import rx.Observer;

@@ -11,7 +11,7 @@ import net.dhleong.ctrlf.R;
 import net.dhleong.ctrlf.model.AutoPilotStatus;
 import net.dhleong.ctrlf.ui.art.IntegerArtist;
 import net.dhleong.ctrlf.ui.base.BaseLedView;
-import net.dhleong.ctrlf.util.Named;
+import net.dhleong.ctrlf.util.scopes.Named;
 import net.dhleong.ctrlf.util.RxUtil;
 import rx.Observable;
 import rx.Observer;

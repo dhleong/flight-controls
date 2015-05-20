@@ -5,7 +5,7 @@ import android.support.v7.app.AppCompatActivity;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import net.dhleong.ctrlf.model.Connection;
-import net.dhleong.ctrlf.util.Named;
+import net.dhleong.ctrlf.util.scopes.Pref;
 import net.dhleong.ctrlf.view.RadioStackView;
 
 import javax.inject.Inject;
@@ -16,7 +16,7 @@ import javax.inject.Inject;
 public class ControlsActivity extends AppCompatActivity {
 
     @Inject Connection connection;
-    @Inject @Named("screen_on") boolean keepScreenOn;
+    @Inject @Pref("screen_on") boolean keepScreenOn;
 
     @InjectView(R.id.radio_stack) RadioStackView radioStack;
 

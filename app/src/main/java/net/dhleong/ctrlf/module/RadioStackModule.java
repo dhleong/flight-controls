@@ -4,7 +4,7 @@ import dagger.Module;
 import dagger.Provides;
 import net.dhleong.ctrlf.model.Connection;
 import net.dhleong.ctrlf.model.SimEvent;
-import net.dhleong.ctrlf.util.Named;
+import net.dhleong.ctrlf.util.scopes.Named;
 import net.dhleong.ctrlf.util.RxUtil;
 import rx.Observer;
 

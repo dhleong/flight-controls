@@ -1,6 +1,7 @@
 package net.dhleong.ctrlf;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
@@ -13,6 +14,7 @@ import butterknife.InjectView;
 import butterknife.InjectViews;
 import butterknife.OnClick;
 import net.dhleong.ctrlf.model.Connection;
+import net.dhleong.ctrlf.util.scopes.IsDummyMode;
 import rx.Observer;
 import rx.functions.Action0;
 
@@ -31,9 +33,12 @@ public class ConnectActivity
     };
 
     @Inject Connection connection;
+    @Inject SharedPreferences prefs;
+    @Inject @IsDummyMode boolean isDummyMode;
 
     @InjectView(R.id.host) TextView host;
     @InjectView(R.id.port) TextView port;
+    @InjectView(R.id.connect) TextView connect;
     @InjectViews({R.id.host, R.id.port, R.id.connect}) List<View> allViews;
 
     @Override
@@ -49,6 +54,9 @@ public class ConnectActivity
         host.setText("192.168.1.30");
         port.setText("44506");
 
+        if (isDummyMode) {
+            connect.setText(R.string.connect_dummy);
+        }
     }
 
     @Override
@@ -63,11 +71,17 @@ public class ConnectActivity
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        switch (item.getItemId()) {
+        case R.id.action_settings:
             startActivity(new Intent(this, PrefsActivity.class));
+            return true;
+
+        case R.id.action_dummy:
+            App.toggleDummyMode(this);
+
+            // restart with the proper injections
+            finish();
+            startActivity(new Intent(this, ConnectActivity.class));
             return true;
         }
 
