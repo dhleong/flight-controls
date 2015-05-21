@@ -116,8 +116,8 @@ public class ConnectActivity
 
     @OnClick(R.id.connect) void connect() {
 
-        final String hostRaw = String.valueOf(host.getText());
-        final String portRaw = String.valueOf(port.getText());
+        final String hostRaw = String.valueOf(host.getText()).trim();
+        final String portRaw = String.valueOf(port.getText()).trim();
 
         final int portNo;
         try {
