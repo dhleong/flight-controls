@@ -22,4 +22,6 @@
     <string name="btn_ap_altitude">ALT</string>
     <string name="pref_screen_on">Keep Screen On</string>
     <string name="connect_dummy">Be a Dummy</string>
+    <string name="sim_quit">Simulation Ended</string>
+    <string name="sim_disconnect">Connection Lost</string>
 </resources>

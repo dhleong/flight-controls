@@ -2,9 +2,9 @@ package net.dhleong.ctrlf;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.widget.Toast;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
-import flightsim.simconnect.SimConnectPeriod;
 import net.dhleong.ctrlf.model.Connection;
 import net.dhleong.ctrlf.model.DataRequestPeriod;
 import net.dhleong.ctrlf.model.DataType;
@@ -65,8 +65,17 @@ public class ControlsActivity
             // we only need the initial state for this
             connection.requestData(DataType.LIGHT_STATUS, DataRequestPeriod.SINGLE);
             break;
+
         case SIM_QUIT:
+            Toast.makeText(this, R.string.sim_quit, Toast.LENGTH_SHORT).show();
+            finish();
+            break;
         case DISCONNECTED:
+            if (!isFinishing()) {
+                Toast.makeText(this, R.string.sim_disconnect, Toast.LENGTH_SHORT).show();
+                finish();
+            }
+            break;
         }
     }
 }
