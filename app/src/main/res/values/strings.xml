@@ -24,4 +24,5 @@
     <string name="connect_dummy">Be a Dummy</string>
     <string name="sim_quit">Simulation Ended</string>
     <string name="sim_disconnect">Connection Lost</string>
+    <string name="connect_error">Unable to connect:\n%s</string>
 </resources>

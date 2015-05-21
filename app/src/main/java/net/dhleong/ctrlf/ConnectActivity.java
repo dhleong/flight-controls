@@ -4,11 +4,13 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 import butterknife.ButterKnife;
 import butterknife.ButterKnife.Setter;
 import butterknife.InjectView;
@@ -19,6 +21,7 @@ import net.dhleong.ctrlf.util.scopes.IsDummyMode;
 import net.dhleong.ctrlf.util.scopes.Pref;
 import rx.Observer;
 import rx.functions.Action0;
+import rx.subscriptions.CompositeSubscription;
 
 import javax.inject.Inject;
 import java.util.List;
@@ -46,6 +49,8 @@ public class ConnectActivity
     @InjectView(R.id.port) TextView port;
     @InjectView(R.id.connect) TextView connect;
     @InjectViews({R.id.host, R.id.port, R.id.connect}) List<View> allViews;
+
+    final CompositeSubscription subscriptions = new CompositeSubscription();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,7 +104,14 @@ public class ConnectActivity
             connect();
             return true;
         }
-        return false;
+        return super.onKeyUp(keyCode, event);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        subscriptions.unsubscribe();
     }
 
     @OnClick(R.id.connect) void connect() {
@@ -123,29 +135,35 @@ public class ConnectActivity
              .apply();
 
         ButterKnife.apply(allViews, ENABLED, false);
-        connection.connect(hostRaw, portNo)
-            .finallyDo(new Action0() {
-                @Override
-                public void call() {
-                    ButterKnife.apply(allViews, ENABLED, true);
-                }
-            })
-            .subscribe(new Observer<Connection>() {
-                @Override
-                public void onCompleted() {
-                    onConnected();
-                }
 
-                @Override
-                public void onError(final Throwable throwable) {
-                    throwable.printStackTrace();
-                }
+        subscriptions.add(
+            connection.connect(hostRaw, portNo)
+                      .finallyDo(new Action0() {
+                          @Override
+                          public void call() {
+                              ButterKnife.apply(allViews, ENABLED, true);
+                          }
+                      })
+                      .subscribe(new Observer<Connection>() {
+                          @Override
+                          public void onCompleted() {
+                              onConnected();
+                          }
 
-                @Override
-                public void onNext(final Connection connection) {
+                          @Override
+                          public void onError(final Throwable throwable) {
+                              Log.w("ctrlf", "Error connecting to sim", throwable);
+                              Toast.makeText(ConnectActivity.this,
+                                      getString(R.string.connect_error, throwable.getMessage()),
+                                      Toast.LENGTH_LONG).show();
+                          }
 
-                }
-            });
+                          @Override
+                          public void onNext(final Connection connection) {
+
+                          }
+                      })
+        );
     }
 
     /** Called on successful connection */
