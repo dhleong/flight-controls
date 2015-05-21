@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import net.dhleong.ctrlf.ui.art.IntegerArtist;
 import net.dhleong.ctrlf.ui.base.BaseLedView;
+import net.dhleong.ctrlf.util.RxUtil;
 import rx.Observable;
 import rx.android.view.OnClickEvent;
 import rx.android.view.ViewObservable;
@@ -57,6 +58,7 @@ public class TransponderView extends BaseLedView {
             button.setMaxEms(1);
             numbers.add(button);
             ViewObservable.clicks(button)
+                    .doOnNext(RxUtil.PERFORM_HAPTIC)
                     .map(new AddDigitAction(i))
                     .subscribe(transponderChangesSubject);
             addView(button, new ViewGroup.LayoutParams(

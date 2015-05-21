@@ -1,11 +1,13 @@
 package net.dhleong.ctrlf.util;
 
+import android.view.HapticFeedbackConstants;
 import net.dhleong.ctrlf.model.Connection;
 import net.dhleong.ctrlf.model.SimEvent;
 import rx.Observable;
 import rx.Observer;
 import rx.Subscriber;
 import rx.android.view.OnClickEvent;
+import rx.functions.Action1;
 import rx.functions.Func0;
 import rx.functions.Func1;
 
@@ -20,6 +22,13 @@ public class RxUtil {
                     return null;
                 }
             };
+
+    public static final Action1<OnClickEvent> PERFORM_HAPTIC = new Action1<OnClickEvent>() {
+        @Override
+        public void call(final OnClickEvent onClickEvent) {
+            onClickEvent.view().performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
+        }
+    };
 
     /**
      * Returns an Observer which sends the provided Event

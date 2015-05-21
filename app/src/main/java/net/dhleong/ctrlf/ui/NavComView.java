@@ -100,6 +100,7 @@ public class NavComView extends BaseLedView {
         addView(navDial);
 
         comSwaps = ViewObservable.clicks(comSwap)
+                .doOnNext(RxUtil.PERFORM_HAPTIC)
                 .map(RxUtil.CLICK_TO_VOID);
         comSwaps.subscribe(new Action1<Void>() {
             @Override
@@ -112,6 +113,7 @@ public class NavComView extends BaseLedView {
         });
 
         navSwaps = ViewObservable.clicks(navSwap)
+                                 .doOnNext(RxUtil.PERFORM_HAPTIC)
                                  .map(RxUtil.CLICK_TO_VOID);
         navSwaps.subscribe(new Action1<Void>() {
             @Override

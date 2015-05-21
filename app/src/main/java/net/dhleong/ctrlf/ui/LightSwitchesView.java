@@ -12,6 +12,7 @@ import net.dhleong.ctrlf.App;
 import net.dhleong.ctrlf.R;
 import net.dhleong.ctrlf.model.LightsStatus;
 import net.dhleong.ctrlf.model.SimEvent;
+import net.dhleong.ctrlf.util.RxUtil;
 import net.dhleong.ctrlf.util.SwitchToggleObservable;
 import rx.Observable;
 import rx.Observer;
@@ -108,6 +109,7 @@ public class LightSwitchesView extends LinearLayout {
                                           return !receivingStatus;
                                       }
                                   })
+                                  .doOnNext(RxUtil.PERFORM_HAPTIC)
                                   .map(toEvent(ev))
                                   .subscribe(lightSwitcher);
             addView(toggle);

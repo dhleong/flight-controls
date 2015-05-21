@@ -11,8 +11,8 @@ import net.dhleong.ctrlf.R;
 import net.dhleong.ctrlf.model.AutoPilotStatus;
 import net.dhleong.ctrlf.ui.art.IntegerArtist;
 import net.dhleong.ctrlf.ui.base.BaseLedView;
-import net.dhleong.ctrlf.util.scopes.Named;
 import net.dhleong.ctrlf.util.RxUtil;
+import net.dhleong.ctrlf.util.scopes.Named;
 import rx.Observable;
 import rx.Observer;
 import rx.android.view.ViewObservable;
@@ -109,16 +109,16 @@ public class SimpleAutoPilotView extends BaseLedView {
 
         // connect events
         subscriptions.add(
-            dial.detents(INNER_DETENTS, OUTER_DETENTS)
-                .map(new Func1<Integer, Integer>() {
-                    @Override
-                    public Integer call(final Integer integer) {
-                        return altitudeArtist.toNumber() + integer;
-                    }
-                })
-                .map(limitRange(0, 99999))
-                .doOnNext(setTargetAltitude)
-                .subscribe(apSetAltitudeObserver)
+                dial.detents(INNER_DETENTS, OUTER_DETENTS)
+                    .map(new Func1<Integer, Integer>() {
+                        @Override
+                        public Integer call(final Integer integer) {
+                            return altitudeArtist.toNumber() + integer;
+                        }
+                    })
+                    .map(limitRange(0, 99000)) // not sure what sim does, but will keep the numbers from getting weird
+                    .doOnNext(setTargetAltitude)
+                    .subscribe(apSetAltitudeObserver)
         );
 
         subscriptions.add(
@@ -289,6 +289,7 @@ public class SimpleAutoPilotView extends BaseLedView {
     void bindTo(final View view, final Observer<Void> observer) {
         subscriptions.add(
                 ViewObservable.clicks(view)
+                              .doOnNext(RxUtil.PERFORM_HAPTIC)
                               .map(RxUtil.CLICK_TO_VOID)
                               .subscribe(observer)
         );
