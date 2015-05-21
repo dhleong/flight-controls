@@ -1,7 +1,6 @@
 package net.dhleong.ctrlf;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
@@ -33,7 +32,6 @@ public class ConnectActivity
     };
 
     @Inject Connection connection;
-    @Inject SharedPreferences prefs;
     @Inject @IsDummyMode boolean isDummyMode;
 
     @InjectView(R.id.host) TextView host;

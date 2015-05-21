@@ -12,13 +12,17 @@ import java.io.IOException;
 public class AutoPilotStatus implements SimData {
 
     public final int altitude;
+    public final float headingBug;
 
+    @SuppressWarnings("unused")
     AutoPilotStatus(final RecvSimObjectData data) {
         altitude = data.getDataInt32();
+        headingBug = data.getDataFloat32();
     }
 
-    public AutoPilotStatus(final int altitude) {
+    public AutoPilotStatus(final int altitude, final float headingBug) {
         this.altitude = altitude;
+        this.headingBug = headingBug;
     }
 
     @Override
@@ -29,6 +33,7 @@ public class AutoPilotStatus implements SimData {
     @SuppressWarnings("unused")
     public static void bindDataDefinition(SimConnect sc, Enum id) throws IOException {
         sc.addToDataDefinition(id, "Autopilot Altitude Lock Var", "Feet", SimConnectDataType.INT32);
+        sc.addToDataDefinition(id, "Autopilot Heading Lock Dir", "Degrees", SimConnectDataType.FLOAT32);
     }
 
 }

@@ -255,7 +255,7 @@ public class RadioStackTest extends BaseViewModuleTest<RadioStackView, RadioTest
 
         assertThat(view.ap.getTargetAltitude()).isEqualTo(0);
 
-        module.dataObjectsSubject.onNext(new AutoPilotStatus(3500));
+        module.dataObjectsSubject.onNext(new AutoPilotStatus(3500, 0));
         assertThat(view.ap.getTargetAltitude()).isEqualTo(3500);
     }
 

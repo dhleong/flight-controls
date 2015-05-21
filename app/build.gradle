@@ -10,7 +10,7 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:1.2.2'
         classpath 'com.neenbedankt.gradle.plugins:android-apt:1.4'
-        classpath 'org.robolectric:robolectric-gradle-plugin:1.1.0-SNAPSHOT'
+        classpath 'org.robolectric:robolectric-gradle-plugin:1.1.0'
         classpath 'com.novoda:gradle-android-command-plugin:1.4.0'
     }
 }
