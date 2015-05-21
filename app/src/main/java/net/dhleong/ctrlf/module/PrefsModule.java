@@ -15,12 +15,25 @@ import javax.inject.Singleton;
 @Module
 public class PrefsModule {
 
+    public static final String SCREEN_ON = "screen_on";
+
+    public static final String LAST_HOST = "last_host";
+    public static final String LAST_PORT = "last_port";
+
     @Provides @Singleton SharedPreferences providePrefs(final App context) {
         return PreferenceManager.getDefaultSharedPreferences(context);
     }
 
-    @Provides @Pref("screen_on") boolean provideScreenOnPref(SharedPreferences prefs) {
+    @Provides @Pref(SCREEN_ON) boolean provideScreenOnPref(SharedPreferences prefs) {
         return prefs.getBoolean("pref_screen_on", true);
+    }
+
+    @Provides @Pref(LAST_HOST) String provideLastHost(SharedPreferences prefs) {
+        return prefs.getString(LAST_HOST, "");
+    }
+
+    @Provides @Pref(LAST_PORT) String provideLastPort(SharedPreferences prefs) {
+        return prefs.getString(LAST_PORT, "");
     }
 
 }

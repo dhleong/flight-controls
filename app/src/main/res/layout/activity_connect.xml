@@ -10,13 +10,17 @@
                 android:gravity="center"
                 tools:context=".ConnectActivity">
 
+    <!--
+        We use "text" in case they want to enter an actual
+        host name (for whatever reason) or ipv6
+     -->
     <EditText
             android:id="@+id/host"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:hint="@string/ip_address"
-            android:inputType="numberDecimal"
-            android:minEms="11"
+            android:inputType="text|textUri"
+            android:minEms="10"
             />
 
 

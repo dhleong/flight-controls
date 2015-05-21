@@ -1,6 +1,7 @@
 package net.dhleong.ctrlf;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
@@ -14,12 +15,15 @@ import butterknife.InjectViews;
 import butterknife.OnClick;
 import net.dhleong.ctrlf.model.Connection;
 import net.dhleong.ctrlf.util.scopes.IsDummyMode;
+import net.dhleong.ctrlf.util.scopes.Pref;
 import rx.Observer;
 import rx.functions.Action0;
 
 import javax.inject.Inject;
 import java.util.List;
 
+import static net.dhleong.ctrlf.module.PrefsModule.LAST_HOST;
+import static net.dhleong.ctrlf.module.PrefsModule.LAST_PORT;
 
 public class ConnectActivity
         extends AppCompatActivity {
@@ -32,6 +36,9 @@ public class ConnectActivity
     };
 
     @Inject Connection connection;
+    @Inject SharedPreferences prefs;
+    @Inject @Pref(LAST_HOST) String lastHost;
+    @Inject @Pref(LAST_PORT) String lastPort;
     @Inject @IsDummyMode boolean isDummyMode;
 
     @InjectView(R.id.host) TextView host;
@@ -48,9 +55,8 @@ public class ConnectActivity
         final App app = (App) getApplication();
         app.getAppComponent().inject(this);
 
-        // TODO just restore previous one
-        host.setText("192.168.1.30");
-        port.setText("44506");
+        host.setText(lastHost);
+        port.setText(lastPort);
 
         if (isDummyMode) {
             connect.setText(R.string.connect_dummy);
@@ -87,17 +93,27 @@ public class ConnectActivity
     }
 
     @OnClick(R.id.connect) void connect() {
+
+        final String hostRaw = String.valueOf(host.getText());
+        final String portRaw = String.valueOf(port.getText());
+
         final int portNo;
         try {
-            portNo = Integer.parseInt(String.valueOf(port.getText()));
+            portNo = Integer.parseInt(portRaw);
             port.setError(null); // ensure cleared
         } catch (NumberFormatException e) {
             port.setError(getString(R.string.illegal_port));
             return;
         }
 
+        // save values
+        prefs.edit()
+             .putString(LAST_HOST, hostRaw)
+             .putString(LAST_PORT, portRaw)
+             .apply();
+
         ButterKnife.apply(allViews, ENABLED, false);
-        connection.connect(host.getText().toString(), portNo)
+        connection.connect(hostRaw, portNo)
             .finallyDo(new Action0() {
                 @Override
                 public void call() {
