@@ -125,7 +125,10 @@ public class SimpleAutoPilotView extends BaseLedView {
             status.subscribe(new Action1<AutoPilotStatus>() {
                 @Override
                 public void call(final AutoPilotStatus autoPilotStatus) {
+                    setVisibility(autoPilotStatus.available ? View.VISIBLE : View.GONE);
                     setTargetAltitude(autoPilotStatus.altitude);
+
+                    apMaster.setActivated(autoPilotStatus.master);
                 }
             })
         );

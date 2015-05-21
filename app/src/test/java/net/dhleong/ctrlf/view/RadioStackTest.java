@@ -4,7 +4,6 @@ import android.app.Application;
 import android.view.LayoutInflater;
 import net.dhleong.ctrlf.BaseViewModuleTest;
 import net.dhleong.ctrlf.R;
-import net.dhleong.ctrlf.model.AutoPilotStatus;
 import net.dhleong.ctrlf.model.Connection;
 import net.dhleong.ctrlf.model.RadioStatus;
 import net.dhleong.ctrlf.model.SimData;
@@ -22,6 +21,7 @@ import rx.subjects.BehaviorSubject;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.assertj.android.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
@@ -162,7 +162,7 @@ public class RadioStackTest extends BaseViewModuleTest<RadioStackView, RadioTest
         // with avionics disabled, we use a negative frequency
         //  to draw the views as "off"
         module.dataObjectsSubject.onNext(new RadioStatus(false, 118_000, 119_250, 112_000, 114_250));
-        assertThat(view.navCom1.isEnabled()).isEqualTo(false);
+        assertThat(view.navCom1).isDisabled();
         assertThat(view.navCom1.getComFrequency()).isEqualTo(-1);
         assertThat(view.navCom1.getComStandbyFrequency()).isEqualTo(-1);
         assertThat(view.navCom1.getNavFrequency()).isEqualTo(-1);
@@ -229,34 +229,6 @@ public class RadioStackTest extends BaseViewModuleTest<RadioStackView, RadioTest
 
         view.ap.dial.performDetentsMoved(FineDialView.STATE_INNER, 1);
         assertThat(module.apAltitudes).containsExactly(1000, 1100);
-    }
-
-    @Test
-    public void autopilotButtons() {
-        assertThat(module.clickEvents).isEmpty();
-
-        view.ap.allButtons.get(0).performClick();
-        assertThat(module.clickEvents).containsExactly(SimEvent.AP_MASTER_TOGGLE);
-
-        view.ap.allButtons.get(1).performClick();
-        assertThat(module.clickEvents).endsWith(SimEvent.AP_HEADING_TOGGLE);
-
-        view.ap.allButtons.get(2).performClick();
-        assertThat(module.clickEvents).endsWith(SimEvent.AP_NAV_TOGGLE);
-
-        view.ap.allButtons.get(5).performClick();
-        assertThat(module.clickEvents).endsWith(SimEvent.AP_ALTITUDE_TOGGLE);
-    }
-
-    @Test
-    public void autopilotStatus() {
-        // just provide power
-        view.ap.setEnabled(true);
-
-        assertThat(view.ap.getTargetAltitude()).isEqualTo(0);
-
-        module.dataObjectsSubject.onNext(new AutoPilotStatus(3500, 0));
-        assertThat(view.ap.getTargetAltitude()).isEqualTo(3500);
     }
 
     static class RadioTestModule extends TestModule {

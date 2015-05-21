@@ -4,15 +4,15 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Paint.Cap;
+import android.support.v7.widget.AppCompatButton;
 import android.util.AttributeSet;
-import android.widget.Button;
 
 /**
  * The frequency swap button for NavComView
  *
  * @author dhleong
  */
-public class SwapButton extends Button {
+public class SwapButton extends AppCompatButton {
 
     private final Paint paint;
     private final float arrowSize;
