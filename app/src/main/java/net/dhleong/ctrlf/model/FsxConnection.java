@@ -7,8 +7,10 @@ import flightsim.simconnect.SimConnectPeriod;
 import flightsim.simconnect.recv.DispatcherTask;
 import flightsim.simconnect.recv.ExceptionHandler;
 import flightsim.simconnect.recv.OpenHandler;
+import flightsim.simconnect.recv.QuitHandler;
 import flightsim.simconnect.recv.RecvException;
 import flightsim.simconnect.recv.RecvOpen;
+import flightsim.simconnect.recv.RecvQuit;
 import flightsim.simconnect.recv.RecvSimObjectData;
 import flightsim.simconnect.recv.SimObjectDataHandler;
 import net.dhleong.ctrlf.util.IOAction;
@@ -20,6 +22,7 @@ import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 import rx.subjects.BehaviorSubject;
 import rx.subjects.ReplaySubject;
+import rx.subjects.Subject;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
@@ -34,7 +37,8 @@ public class FsxConnection
         implements Connection,
                    SimObjectDataHandler,
                    ExceptionHandler,
-                   OpenHandler {
+                   OpenHandler,
+                   QuitHandler {
 
     private static final String TAG = "ctrlf:Fsx";
     private static final String APP_NAME = "net.dhleong.ctrlf";
@@ -92,6 +96,8 @@ public class FsxConnection
     // these let us (potentially) queue up events before we're ready
     final ReplaySubject<SimData> dataObjectsSubject = ReplaySubject.createWithSize(16);
     final ReplaySubject<PendingEvent> eventQueue = ReplaySubject.createWithSize(16);
+    // limit to the number of events in a lifecycle so we don't go crazy
+    final Subject<Lifecycle, Lifecycle> lifecycleSubject = Lifecycle.createSubject();
 
     SimConnect simConnect;
     DispatchThread thread;
@@ -111,6 +117,7 @@ public class FsxConnection
         // register listeners
         final DispatcherTask dt = new DispatcherTask(sc);
         dt.addOpenHandler(this);
+        dt.addQuitHandler(this);
         dt.addExceptionHandler(this);
         dt.addSimObjectDataHandler(this);
 
@@ -142,17 +149,23 @@ public class FsxConnection
         // prepare listener thread
         thread = new DispatchThread(sc, dt);
         thread.start();
+    }
 
-        // finally, request some data. We could perhaps rather use
-        //  the change events, but we need these anyway, and 1/s shouldn't
-        //  put that much strain on the network....
-        requestData(DataType.RADIO_STATUS, SimConnectPeriod.SECOND);
+    @Override
+    public void requestData(final DataType type, final DataRequestPeriod period) {
+        final SimConnectPeriod simPeriod;
+        switch (period) {
+        case SINGLE: simPeriod = SimConnectPeriod.ONCE; break;
+        case FAST: simPeriod = SimConnectPeriod.SIM_FRAME; break;
+        default:
+        case SLOW: simPeriod = SimConnectPeriod.SECOND; break;
+        }
 
-        // when we add more to this, we'll want SECOND period, probably
-        requestData(DataType.AUTOPILOT_STATUS, SimConnectPeriod.ONCE);
-
-        // we only need the initial state for this
-        requestData(DataType.LIGHT_STATUS, SimConnectPeriod.ONCE);
+        try {
+            requestData(type, simPeriod);
+        } catch (IOException e) {
+            ioexs.onNext(e);
+        }
     }
 
     @Override
@@ -163,6 +176,13 @@ public class FsxConnection
     @Override
     public void handleOpen(final SimConnect simConnect, final RecvOpen recvOpen) {
         Log.v(TAG, "opened! " + recvOpen);
+        lifecycleSubject.onNext(Lifecycle.SIM_START);
+    }
+
+    @Override
+    public void handleQuit(final SimConnect simConnect, final RecvQuit recvQuit) {
+        Log.v(TAG, "quit! " + recvQuit);
+        lifecycleSubject.onNext(Lifecycle.SIM_QUIT);
     }
 
     @Override
@@ -185,6 +205,11 @@ public class FsxConnection
     }
 
     @Override
+    public Observable<Lifecycle> lifecycleEvents() {
+        return lifecycleSubject;
+    }
+
+    @Override
     public Observable<Connection> connect(final String host, final int port) {
         return Observable.create(new OnSubscribe<Connection>() {
             @Override
@@ -194,6 +219,7 @@ public class FsxConnection
                     init(simConnect);
                     subscriber.onNext(FsxConnection.this);
                     subscriber.onCompleted();
+                    lifecycleSubject.onNext(Lifecycle.CONNECTED);
                 } catch (IOException e) {
                     subscriber.onError(e);
                 }
@@ -211,6 +237,7 @@ public class FsxConnection
         final SimConnect thisConnection = simConnect;
         if (thisConnection == null) return;
 
+        lifecycleSubject.onNext(Lifecycle.DISCONNECTED);
         Observable.create(new OnSubscribe<Void>() {
             @Override
             public void call(final Subscriber<? super Void> subscriber) {

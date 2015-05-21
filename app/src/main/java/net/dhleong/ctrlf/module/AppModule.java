@@ -39,7 +39,11 @@ public class AppModule {
 
     @Provides @Singleton Connection provideConnection() { return buildConnection(); }
 
-    @Provides @Singleton Observable<RadioStatus> provideStatusObservable(Connection conn) {
+    @Provides @Singleton Observable<Connection.Lifecycle> provideLifecycleObservable(Connection conn) {
+        return conn.lifecycleEvents();
+    }
+
+    @Provides @Singleton Observable<RadioStatus> provideRadioStatusObservable(Connection conn) {
         return conn.dataObjects().lift(pickInstancesOf(RadioStatus.class));
     }
 

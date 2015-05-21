@@ -1,8 +1,11 @@
 package net.dhleong.ctrlf.module;
 
+import android.util.Log;
 import dagger.Module;
 import net.dhleong.ctrlf.App;
 import net.dhleong.ctrlf.model.Connection;
+import net.dhleong.ctrlf.model.DataRequestPeriod;
+import net.dhleong.ctrlf.model.DataType;
 import net.dhleong.ctrlf.model.LightsStatus;
 import net.dhleong.ctrlf.model.RadioStatus;
 import net.dhleong.ctrlf.model.SimData;
@@ -14,6 +17,8 @@ import rx.Observable;
  */
 @Module
 public class DummyAppModule extends AppModule {
+
+    private static final String TAG = "ctrlf:dummy";
 
     public DummyAppModule(final App app) {
         super(app);
@@ -35,13 +40,28 @@ public class DummyAppModule extends AppModule {
             }
 
             @Override
+            public Observable<Lifecycle> lifecycleEvents() {
+                return Observable.just(
+                        Lifecycle.CONNECTED,
+                        Lifecycle.SIM_START
+                );
+            }
+
+            @Override
             public Observable<Connection> connect(final String host, final int port) {
                 return Observable.empty();
             }
 
             @Override
+            public void requestData(final DataType type, final DataRequestPeriod period) {
+                // ignore; we provide what want want to already
+                Log.v(TAG, "requested " + type + " at " + period);
+            }
+
+            @Override
             public void sendEvent(final SimEvent event, final int param) {
-                // drop it on the floor
+                // drop it on the floor (but log for testing)
+                Log.v(TAG, "sent " + event + ":" + param);
             }
         };
     }
