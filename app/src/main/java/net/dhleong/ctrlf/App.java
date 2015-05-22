@@ -43,7 +43,13 @@ public class App extends Application {
     }
 
     public static AppComponent provideComponent(final View view) {
-        return provideComponent(view.getContext());
+        if (view.isInEditMode()) {
+            return DaggerAppComponent.builder()
+                    .appModule(new DummyAppModule(view.getContext()))
+                    .build();
+        } else {
+            return provideComponent(view.getContext());
+        }
     }
     public static AppComponent provideComponent(final Context context) {
         final ComponentProvider provider = App.provider;

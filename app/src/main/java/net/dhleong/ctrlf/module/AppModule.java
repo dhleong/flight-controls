@@ -1,8 +1,8 @@
 package net.dhleong.ctrlf.module;
 
+import android.content.Context;
 import dagger.Module;
 import dagger.Provides;
-import net.dhleong.ctrlf.App;
 import net.dhleong.ctrlf.model.Connection;
 import net.dhleong.ctrlf.model.FsxConnection;
 import net.dhleong.ctrlf.model.RadioStatus;
@@ -19,9 +19,9 @@ import static net.dhleong.ctrlf.util.RxUtil.pickInstancesOf;
 @Module
 public class AppModule {
 
-    App app;
+    Context app;
 
-    public AppModule(final App app) {
+    public AppModule(final Context app) {
         this.app = app;
     }
 
@@ -31,10 +31,6 @@ public class AppModule {
 
     @Provides @Singleton AppModule provideAppModule() {
         return this;
-    }
-
-    @Provides @Singleton App provideAppContext() {
-        return app;
     }
 
     @Provides @Singleton Connection provideConnection() { return buildConnection(); }

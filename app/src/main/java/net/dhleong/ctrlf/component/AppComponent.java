@@ -23,5 +23,5 @@ public interface AppComponent {
 
     RadioStackComponent newRadioStackComponent();
     LightsComponent newLightsComponent();
-
+    InstrumentsComponent newInstrumentComponent();
 }

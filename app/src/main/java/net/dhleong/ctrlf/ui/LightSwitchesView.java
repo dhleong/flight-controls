@@ -20,7 +20,6 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.android.view.OnClickEvent;
 import rx.functions.Action1;
 import rx.functions.Func1;
-import rx.subjects.BehaviorSubject;
 import rx.subscriptions.CompositeSubscription;
 
 import javax.inject.Inject;
@@ -76,14 +75,9 @@ public class LightSwitchesView extends LinearLayout {
         setGravity(Gravity.CENTER);
         setWillNotDraw(false);
 
-        if (!isInEditMode()) {
-            App.provideComponent(this)
-               .newLightsComponent()
-               .inject(this);
-        } else {
-            lightSwitcher = BehaviorSubject.create();
-            lightsStatus = BehaviorSubject.create();
-        }
+        App.provideComponent(this)
+           .newLightsComponent()
+           .inject(this);
 
         labelPaint = new Paint();
         labelPaint.setColor(0xff000000);

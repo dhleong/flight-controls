@@ -1,8 +1,8 @@
 package net.dhleong.ctrlf.module;
 
+import android.content.Context;
 import android.util.Log;
 import dagger.Module;
-import net.dhleong.ctrlf.App;
 import net.dhleong.ctrlf.model.Connection;
 import net.dhleong.ctrlf.model.DataRequestPeriod;
 import net.dhleong.ctrlf.model.DataType;
@@ -20,7 +20,7 @@ public class DummyAppModule extends AppModule {
 
     private static final String TAG = "ctrlf:dummy";
 
-    public DummyAppModule(final App app) {
+    public DummyAppModule(final Context app) {
         super(app);
     }
 
