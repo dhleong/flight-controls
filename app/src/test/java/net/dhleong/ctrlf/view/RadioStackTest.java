@@ -6,7 +6,6 @@ import net.dhleong.ctrlf.BaseViewModuleTest;
 import net.dhleong.ctrlf.R;
 import net.dhleong.ctrlf.model.Connection;
 import net.dhleong.ctrlf.model.RadioStatus;
-import net.dhleong.ctrlf.model.SimData;
 import net.dhleong.ctrlf.model.SimEvent;
 import net.dhleong.ctrlf.module.TestModule;
 import net.dhleong.ctrlf.ui.FineDialView;
@@ -16,7 +15,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
-import rx.subjects.BehaviorSubject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +25,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.when;
 
 /**
  * @author dhleong
@@ -240,12 +237,8 @@ public class RadioStackTest extends BaseViewModuleTest<RadioStackView, RadioTest
 
         final List<SimEvent> clickEvents = new ArrayList<>();
 
-        final BehaviorSubject<SimData> dataObjectsSubject = BehaviorSubject.create();
-
         @Override
         protected void mockConnection(final Connection mock) {
-            when(mock.dataObjects()).thenReturn(dataObjectsSubject);
-
             doAnswer(storeTransponderParam(transponder))
                     .when(mock).sendEvent(eq(SimEvent.SET_TRANSPONDER), anyInt());
             doAnswer(storeFrequencyParam(com1))

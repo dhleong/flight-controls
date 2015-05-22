@@ -27,6 +27,9 @@ public class AutoPilotModule {
     @Provides @Named("APSetAltitude") Observer<Integer> provideAltitude(Connection conn) {
         return RxUtil.doSend(conn, SimEvent.SET_AP_ALTITUDE);
     }
+    @Provides @Named("APHeadingBug") Observer<Integer> provideHeadingBug(Connection conn) {
+        return RxUtil.doSend(conn, SimEvent.SET_AP_HEADING);
+    }
 
     @Provides @Named("APMaster") Observer<Void> provideMaster(Connection conn) {
         return RxUtil.doSend(conn, SimEvent.AP_MASTER_TOGGLE);

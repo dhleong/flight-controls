@@ -52,6 +52,7 @@ public class FineDialView extends View {
     final Paint gapPaint;
 
     final Vibrator vibrator;
+    private long hapticDuration = VIBRATION_MS;
 
     private int state = STATE_EMPTY;
     private float downX, downY;
@@ -146,6 +147,10 @@ public class FineDialView extends View {
                 outerDetents().map(RxUtil.times(outerMultiplicand)));
     }
 
+    public void setHapticDuration(final int hapticDuration) {
+        this.hapticDuration = hapticDuration;
+    }
+
     @Override
     protected void onDraw(final Canvas canvas) {
         super.onDraw(canvas);
@@ -165,11 +170,14 @@ public class FineDialView extends View {
     }
 
     protected void drawInnerDial(final Canvas canvas) {
+
+        final float top = center - radiusInner;
+
         canvas.save();
         canvas.rotate((float) Math.toDegrees(rotations[STATE_INNER]), center, center);
         canvas.drawCircle(center, center, radiusInner, innerPaint);
-        canvas.drawLine(center, radiusInner, center,
-                radiusInner - outerPaint.getStrokeWidth(), linePaint);
+        canvas.drawLine(center, top, center,
+                top + outerPaint.getStrokeWidth(), linePaint);
         canvas.restore();
     }
 
@@ -243,7 +251,7 @@ public class FineDialView extends View {
         }
 
         if (isHapticFeedbackEnabled()) {
-            vibrator.vibrate(VIBRATION_MS);
+            vibrator.vibrate(hapticDuration);
         }
     }
 

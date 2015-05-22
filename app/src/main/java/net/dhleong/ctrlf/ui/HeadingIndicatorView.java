@@ -14,7 +14,9 @@ import net.dhleong.ctrlf.R;
 import net.dhleong.ctrlf.model.AutoPilotStatus;
 import net.dhleong.ctrlf.model.HeadingStatus;
 import net.dhleong.ctrlf.ui.base.BaseInstrumentView;
+import net.dhleong.ctrlf.util.scopes.Named;
 import rx.Observable;
+import rx.Observer;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.functions.Func1;
@@ -40,6 +42,7 @@ public class HeadingIndicatorView extends BaseInstrumentView {
 
     final SmallDialView bugDial;
 
+    @Inject @Named("APHeadingBug") Observer<Integer> headingBugObserver;
     @Inject Observable<AutoPilotStatus> autoPilotStatus;
     @Inject Observable<HeadingStatus> headingStatus;
 
@@ -72,6 +75,7 @@ public class HeadingIndicatorView extends BaseInstrumentView {
            .inject(this);
 
         bugDial = new SmallDialView(context);
+        bugDial.setHapticDuration(5); // this is going to spin a lot more; be more subtle
         addView(bugDial);
 
         final Resources res = getResources();
@@ -144,7 +148,8 @@ public class HeadingIndicatorView extends BaseInstrumentView {
                            }
                        })
                        .map(modulo(360))
-                       .subscribe(setBugDegrees)
+                       .doOnNext(setBugDegrees)
+                       .subscribe(headingBugObserver)
         );
     }
 
@@ -321,15 +326,28 @@ public class HeadingIndicatorView extends BaseInstrumentView {
             }
         }
 
-        final TypedValue value = new TypedValue();
-        res.getValue(resId, value, true);
+        try {
+            final TypedValue value = new TypedValue();
+            res.getValue(resId, value, true);
 
-        if (value.type == TypedValue.TYPE_ATTRIBUTE) {
-            final Resources.Theme theme = context.getTheme();
-            theme.resolveAttribute(value.data, value, true);
+
+            if (value.type == TypedValue.TYPE_ATTRIBUTE) {
+                final Resources.Theme theme = context.getTheme();
+                theme.resolveAttribute(value.data, value, true);
+            }
+
+            return value.data;
+        } catch (IllegalArgumentException e) {
+            try {
+                Class.forName("org.robolectric.Robolectric");
+
+                // NB: we're running via robolectric; who cares?
+                return 0;
+            } catch (ClassNotFoundException e1) {
+                // not robolectric!
+                throw e;
+            }
         }
-
-        return value.data;
     }
 
 }

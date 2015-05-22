@@ -1,15 +1,18 @@
 package net.dhleong.ctrlf.module;
 
 import net.dhleong.ctrlf.model.Connection;
+import net.dhleong.ctrlf.model.SimData;
 import net.dhleong.ctrlf.model.SimEvent;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import rx.subjects.BehaviorSubject;
 
 import java.util.List;
 
 import static net.dhleong.ctrlf.util.RadioUtil.paramAsFrequency;
 import static net.dhleong.ctrlf.util.RadioUtil.paramAsTransponder;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Convenient subclass of AppModule allowing
@@ -18,6 +21,8 @@ import static org.mockito.Mockito.mock;
  * @author dhleong
  */
 public abstract class TestModule extends AppModule {
+
+    public final BehaviorSubject<SimData> dataObjectsSubject = BehaviorSubject.create();
 
     Connection connection;
 
@@ -42,6 +47,9 @@ public abstract class TestModule extends AppModule {
 
     private Connection createConnection() {
         final Connection connection = mock(Connection.class);
+
+        when(connection.dataObjects()).thenReturn(dataObjectsSubject);
+
         mockConnection(connection);
         return connection;
     }

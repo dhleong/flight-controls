@@ -140,7 +140,7 @@ public class RxUtil {
             @Override
             public Integer call(final Integer input) {
                 if (input < 0) {
-                    return (upperBound - input) % upperBound;
+                    return (upperBound + input) % upperBound;
                 }
 
                 return input % upperBound;
