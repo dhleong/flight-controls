@@ -1,10 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:tools="http://schemas.android.com/tools"
+<android.support.v4.view.ViewPager
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/panel_swapper">
+    <include layout="@layout/widget_instruments_panel"
+        android:id="@+id/instruments_panel" />
+
+    <ScrollView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             tools:context=".ControlsActivity">
 
-    <include layout="@layout/widget_radio_stack"
-             android:id="@+id/radio_stack" />
-</ScrollView>
+        <include layout="@layout/widget_radio_stack"
+                 android:id="@+id/radio_stack" />
+    </ScrollView>
+</android.support.v4.view.ViewPager>

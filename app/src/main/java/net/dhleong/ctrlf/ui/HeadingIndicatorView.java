@@ -7,6 +7,8 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.os.SystemClock;
 import android.util.AttributeSet;
+import android.util.TypedValue;
+import android.view.View;
 import net.dhleong.ctrlf.App;
 import net.dhleong.ctrlf.R;
 import net.dhleong.ctrlf.model.AutoPilotStatus;
@@ -23,13 +25,14 @@ import javax.inject.Inject;
  */
 public class HeadingIndicatorView extends BaseInstrumentView {
 
-    private static final float AIRPLANE_SCALE = 0.75f;
-    private static final float TICK_MAJOR = 6;
-    private static final float TICK_MINOR = 4;
-    private static final float TICK_OFFSET = 5;
+    private static final float AIRPLANE_SCALE = 0.65f;
+    private static final float TICK_MAJOR = 8;
+    private static final float TICK_MINOR = 5;
+    private static final float TICK_OFFSET = 6;
 
     /** in degrees */
     private static final float TICK_INTERVAL = 5;
+    private static final float DELTA_DEADZONE = 0.01f;
 
     @Inject Observable<AutoPilotStatus> autoPilotStatus;
     @Inject Observable<HeadingStatus> headingStatus;
@@ -62,14 +65,14 @@ public class HeadingIndicatorView extends BaseInstrumentView {
         tickOffset = TICK_OFFSET * density;
 
         airplanePaint = new Paint();
-        airplanePaint.setColor(res.getColor(R.color.heading_airplane));
+        airplanePaint.setColor(resolveResource(this, R.color.heading_airplane));
         airplanePaint.setAntiAlias(true);
         airplanePaint.setStyle(Paint.Style.STROKE);
         airplanePaint.setStrokeWidth(3 * density);
         airplanePaint.setStrokeJoin(Paint.Join.ROUND);
 
         bugPaint = new Paint(airplanePaint);
-        bugPaint.setStrokeWidth(4 * density);
+        bugPaint.setStrokeWidth(5 * density);
 
         tickPaint = new Paint();
         tickPaint.setColor(0xff111111);
@@ -77,6 +80,7 @@ public class HeadingIndicatorView extends BaseInstrumentView {
         tickPaint.setStrokeWidth(2 * density);
         tickPaint.setTextAlign(Paint.Align.CENTER);
         tickPaint.setTextSize(18 * density);
+        tickPaint.setAntiAlias(true);
     }
 
     @Override
@@ -99,6 +103,10 @@ public class HeadingIndicatorView extends BaseInstrumentView {
                         public void call(final HeadingStatus headingStatus) {
                             heading = headingStatus.heading;
                             headingDeltaRate = headingStatus.headingDeltaRate;
+
+                            if (headingDeltaRate > DELTA_DEADZONE) {
+                                postInvalidateOnAnimation();
+                            }
                         }
                     })
         );
@@ -114,24 +122,28 @@ public class HeadingIndicatorView extends BaseInstrumentView {
     protected void onDraw(final Canvas canvas) {
         super.onDraw(canvas);
 
+        final long now = SystemClock.uptimeMillis();
         if (lastFrame > 0) {
-            final long now = SystemClock.uptimeMillis();
             long delta = now - lastFrame;
             onUpdate(delta);
-            lastFrame = now;
         }
-
-        onDrawPlane(canvas);
+        lastFrame = now;
 
         final float center = (getRight() - getLeft()) / 2f;
         int start = canvas.save();
-        canvas.rotate(heading);
+        canvas.rotate(-heading, center, center);
         onDrawMarkers(canvas, center);
 
         canvas.save();
-        canvas.rotate(headingBug);
+        canvas.rotate(headingBug, center, center);
         onDrawBug(canvas, center);
         canvas.restoreToCount(start);
+
+        onDrawPlane(canvas);
+
+        if (headingDeltaRate > DELTA_DEADZONE) {
+            postInvalidateOnAnimation();
+        }
     }
 
     private void onDrawPlane(final Canvas canvas) {
@@ -182,16 +194,14 @@ public class HeadingIndicatorView extends BaseInstrumentView {
     }
 
     private void onDrawBug(final Canvas canvas, final float center) {
-        final float length = tickMinor + (tickMajor + tickMinor) / 2;
+        final float length = tickOffset + tickMinor + (tickMajor + tickMinor) / 2;
         final float separation = bugPaint.getStrokeWidth();
         canvas.drawLine(center - separation, 0, center - separation, length, bugPaint);
         canvas.drawLine(center + separation, 0, center + separation, length, bugPaint);
     }
 
     private void onUpdate(final long deltaMillis) {
-        if (Math.abs(headingDeltaRate) > 0.01) {
-            heading += headingDeltaRate * (deltaMillis / 1000f);
-        }
+        heading += headingDeltaRate * (deltaMillis / 1000f);
     }
 
     private static Path prepareAirplanePath(final float width) {
@@ -231,4 +241,36 @@ public class HeadingIndicatorView extends BaseInstrumentView {
 
         return newPath;
     }
+
+    /**
+     * If the the resource points to an attribute, this
+     *  will resolve the attribute
+     */
+    private static int resolveResource(final View view, final int resId) {
+
+        final Context context = view.getContext();
+        final Resources res = context.getResources();
+
+        if (view.isInEditMode()) {
+            // For some reason, the layout preview fails to retrieve the
+            //  color using the technique below, while real Android fails
+            //  to retrieve it using this method. Sigh.
+            try {
+                return res.getColor(resId);
+            } catch (Resources.NotFoundException e) {
+                // fall through
+            }
+        }
+
+        final TypedValue value = new TypedValue();
+        res.getValue(resId, value, true);
+
+        if (value.type == TypedValue.TYPE_ATTRIBUTE) {
+            final Resources.Theme theme = context.getTheme();
+            theme.resolveAttribute(value.data, value, true);
+        }
+
+        return value.data;
+    }
+
 }

@@ -1,7 +1,11 @@
 package net.dhleong.ctrlf;
 
 import android.os.Bundle;
+import android.support.v4.view.PagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Toast;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -9,7 +13,6 @@ import net.dhleong.ctrlf.model.Connection;
 import net.dhleong.ctrlf.model.DataRequestPeriod;
 import net.dhleong.ctrlf.model.DataType;
 import net.dhleong.ctrlf.util.scopes.Pref;
-import net.dhleong.ctrlf.view.RadioStackView;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
@@ -23,11 +26,37 @@ public class ControlsActivity
         extends AppCompatActivity
         implements Action1<Connection.Lifecycle> {
 
+    static class PanelAdapter extends PagerAdapter {
+
+        private int childCount;
+
+        public PanelAdapter(final int childCount) {
+            this.childCount = childCount;
+        }
+
+        @Override
+        public int getCount() {
+            return childCount;
+        }
+
+        @Override
+        public Object instantiateItem(final ViewGroup container, final int position) {
+            return container.getChildAt(position);
+        }
+
+        @Override
+        public boolean isViewFromObject(final View view, final Object object) {
+            return view == object;
+        }
+    }
+
     @Inject Connection connection;
     @Inject @Pref("screen_on") boolean keepScreenOn;
     @Inject Observable<Connection.Lifecycle> lifecycle;
 
-    @InjectView(R.id.radio_stack) RadioStackView radioStack;
+    @InjectView(R.id.panel_swapper) ViewPager panelSwapper;
+//    @InjectView(R.id.radio_stack) RadioStackView radioStack;
+//    @InjectView(R.id.instruments_panel) View instruments;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,7 +66,8 @@ public class ControlsActivity
         App.provideComponent(this).inject(this);
         ButterKnife.inject(this);
 
-        radioStack.setKeepScreenOn(keepScreenOn);
+        panelSwapper.setKeepScreenOn(keepScreenOn);
+        panelSwapper.setAdapter(new PanelAdapter(panelSwapper.getChildCount()));
 
         lifecycle.observeOn(AndroidSchedulers.mainThread())
                  .subscribe(this);

@@ -22,9 +22,15 @@ public class HeadingStatus implements SimData {
     /** In degrees/second */
     public final float headingDeltaRate;
 
+    @SuppressWarnings("unused")
     public HeadingStatus(final RecvSimObjectData data) {
         heading = data.getDataFloat32();
         headingDeltaRate = data.getDataFloat32();
+    }
+
+    public HeadingStatus(final float heading, final float headingDeltaRate) {
+        this.heading = heading;
+        this.headingDeltaRate = headingDeltaRate;
     }
 
     @Override

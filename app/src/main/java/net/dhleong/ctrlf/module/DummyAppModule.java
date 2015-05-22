@@ -6,6 +6,7 @@ import dagger.Module;
 import net.dhleong.ctrlf.model.Connection;
 import net.dhleong.ctrlf.model.DataRequestPeriod;
 import net.dhleong.ctrlf.model.DataType;
+import net.dhleong.ctrlf.model.HeadingStatus;
 import net.dhleong.ctrlf.model.LightsStatus;
 import net.dhleong.ctrlf.model.RadioStatus;
 import net.dhleong.ctrlf.model.SimData;
@@ -35,7 +36,8 @@ public class DummyAppModule extends AppModule {
             public Observable<SimData> dataObjects() {
                 return Observable.just(
                         new RadioStatus(true, 124_500, 118_000, 112_000, 114_250),
-                        new LightsStatus(true, false, false, true, true, false)
+                        new LightsStatus(true, false, false, true, true, false),
+                        new HeadingStatus(127, 1f)
                 );
             }
 
