@@ -1,10 +1,10 @@
 package net.dhleong.ctrlf.module;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import dagger.Module;
 import dagger.Provides;
-import net.dhleong.ctrlf.App;
 import net.dhleong.ctrlf.util.scopes.Pref;
 
 import javax.inject.Singleton;
@@ -20,7 +20,7 @@ public class PrefsModule {
     public static final String LAST_HOST = "last_host";
     public static final String LAST_PORT = "last_port";
 
-    @Provides @Singleton SharedPreferences providePrefs(final App context) {
+    @Provides @Singleton SharedPreferences providePrefs(final Context context) {
         return PreferenceManager.getDefaultSharedPreferences(context);
     }
 

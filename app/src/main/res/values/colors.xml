@@ -4,4 +4,6 @@
     <color name="dial_inner">#2F2F3F</color>
     <color name="dial_gap">#111</color>
     <color name="led_bg">#111</color>
+
+    <color name="heading_airplane">?attr/colorAccent</color>
 </resources>

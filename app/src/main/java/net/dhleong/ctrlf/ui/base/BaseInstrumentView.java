@@ -15,7 +15,7 @@ import rx.subscriptions.CompositeSubscription;
 public class BaseInstrumentView extends View {
 
     /** dips */
-    static final int MAX_WIDTH = 350;
+    static final int MAX_WIDTH = 220;
 
     protected final CompositeSubscription subscriptions = new CompositeSubscription();
 

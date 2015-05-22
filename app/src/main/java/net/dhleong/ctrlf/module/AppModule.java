@@ -25,6 +25,10 @@ public class AppModule {
         this.app = app;
     }
 
+    @Provides Context provideAppContext() {
+        return app;
+    }
+
     @Provides @IsDummyMode boolean provideDummyMode() {
         return isDummy();
     }

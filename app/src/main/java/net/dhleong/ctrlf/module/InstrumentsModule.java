@@ -6,8 +6,6 @@ import net.dhleong.ctrlf.model.Connection;
 import net.dhleong.ctrlf.model.HeadingStatus;
 import rx.Observable;
 
-import javax.inject.Singleton;
-
 import static net.dhleong.ctrlf.util.RxUtil.pickInstancesOf;
 
 /**
@@ -16,7 +14,7 @@ import static net.dhleong.ctrlf.util.RxUtil.pickInstancesOf;
 @Module
 public class InstrumentsModule {
 
-    @Provides @Singleton Observable<HeadingStatus> provideHeadingStatus(Connection conn) {
+    @Provides Observable<HeadingStatus> provideHeadingStatus(Connection conn) {
         return conn.dataObjects().lift(pickInstancesOf(HeadingStatus.class));
     }
 }
