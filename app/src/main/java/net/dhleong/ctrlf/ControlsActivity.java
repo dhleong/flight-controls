@@ -55,8 +55,6 @@ public class ControlsActivity
     @Inject Observable<Connection.Lifecycle> lifecycle;
 
     @InjectView(R.id.panel_swapper) ViewPager panelSwapper;
-//    @InjectView(R.id.radio_stack) RadioStackView radioStack;
-//    @InjectView(R.id.instruments_panel) View instruments;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,13 +82,13 @@ public class ControlsActivity
     public void call(final Connection.Lifecycle lifecycle) {
         switch (lifecycle) {
         case SIM_START:
-            // finally, request some data. We could perhaps rather use
+            // request some data. We could perhaps rather use
             //  the change events, but we need these anyway, and 1/s shouldn't
             //  put that much strain on the network....
             connection.requestData(DataType.RADIO_STATUS, DataRequestPeriod.SLOW);
 
-            // when we add more to this, we'll want SECOND period, probably
-            connection.requestData(DataType.AUTOPILOT_STATUS, DataRequestPeriod.SINGLE);
+            // ditto
+            connection.requestData(DataType.AUTOPILOT_STATUS, DataRequestPeriod.SLOW);
 
             // we only need the initial state for this
             connection.requestData(DataType.LIGHT_STATUS, DataRequestPeriod.SINGLE);
