@@ -14,6 +14,7 @@
             tools:context=".ControlsActivity">
 
         <include layout="@layout/widget_radio_stack"
-                 android:id="@+id/radio_stack" />
+            android:id="@+id/radio_stack"
+            />
     </ScrollView>
 </android.support.v4.view.ViewPager>

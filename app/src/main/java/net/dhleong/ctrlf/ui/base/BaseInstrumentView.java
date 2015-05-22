@@ -2,7 +2,7 @@ package net.dhleong.ctrlf.ui.base;
 
 import android.content.Context;
 import android.util.AttributeSet;
-import android.view.View;
+import android.view.ViewGroup;
 import rx.subscriptions.CompositeSubscription;
 
 /**
@@ -12,7 +12,7 @@ import rx.subscriptions.CompositeSubscription;
  *
  * @author dhleong
  */
-public class BaseInstrumentView extends View {
+public abstract class BaseInstrumentView extends ViewGroup {
 
     /** dips */
     static final int MAX_WIDTH = 220;
@@ -20,11 +20,13 @@ public class BaseInstrumentView extends View {
     protected final CompositeSubscription subscriptions = new CompositeSubscription();
 
     public BaseInstrumentView(final Context context) {
-        super(context);
+        this(context, null);
     }
 
     public BaseInstrumentView(final Context context, final AttributeSet attrs) {
         super(context, attrs);
+
+        setWillNotDraw(false);
     }
 
     @Override

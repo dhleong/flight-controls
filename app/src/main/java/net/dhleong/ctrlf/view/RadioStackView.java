@@ -2,6 +2,7 @@ package net.dhleong.ctrlf.view;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.view.Gravity;
 import android.widget.LinearLayout;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -11,8 +12,8 @@ import net.dhleong.ctrlf.model.RadioStatus;
 import net.dhleong.ctrlf.ui.NavComView;
 import net.dhleong.ctrlf.ui.SimpleAutoPilotView;
 import net.dhleong.ctrlf.ui.TransponderView;
-import net.dhleong.ctrlf.util.scopes.Named;
 import net.dhleong.ctrlf.util.RadioUtil;
+import net.dhleong.ctrlf.util.scopes.Named;
 import rx.Observable;
 import rx.Observer;
 import rx.android.schedulers.AndroidSchedulers;
@@ -51,6 +52,7 @@ public class RadioStackView
         super(context, attrs);
 
         setOrientation(VERTICAL);
+        setGravity(Gravity.CENTER);
     }
 
     @Override
@@ -58,14 +60,9 @@ public class RadioStackView
         // inject
         ButterKnife.inject(this);
 
-        if (!isInEditMode()) {
-            App.provideComponent(this)
-               .newRadioStackComponent()
-               .inject(this);
-        } else {
-            // dummy stuff
-            radioStatus = Observable.empty();
-        }
+        App.provideComponent(this)
+           .newRadioStackComponent()
+           .inject(this);
     }
 
     @Override

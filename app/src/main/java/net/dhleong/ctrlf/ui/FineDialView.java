@@ -1,5 +1,6 @@
 package net.dhleong.ctrlf.ui;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.Resources;
@@ -40,10 +41,10 @@ public class FineDialView extends View {
     public static final int STATE_INNER = 1;
     public static final int STATE_OUTER = 2;
 
-    final int width, center;
+    int width, center;
 
-    final float radiusOuter;
-    final float radiusInner;
+    float radiusOuter;
+    float radiusInner;
     final float radiusGap;
 
     final Paint outerPaint;
@@ -160,12 +161,21 @@ public class FineDialView extends View {
                 lineCenter + half, linePaint);
         canvas.restore();
 
+        drawInnerDial(canvas);
+    }
+
+    protected void drawInnerDial(final Canvas canvas) {
         canvas.save();
         canvas.rotate((float) Math.toDegrees(rotations[STATE_INNER]), center, center);
         canvas.drawCircle(center, center, radiusInner, innerPaint);
         canvas.drawLine(center, radiusInner, center,
                 radiusInner - outerPaint.getStrokeWidth(), linePaint);
         canvas.restore();
+    }
+
+    @SuppressLint("WrongCall")
+    protected void superOnDraw(final Canvas canvas) {
+        super.onDraw(canvas);
     }
 
     @TargetApi(VERSION_CODES.LOLLIPOP)

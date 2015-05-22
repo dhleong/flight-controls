@@ -79,9 +79,11 @@ public class LightSwitchesView extends LinearLayout {
            .newLightsComponent()
            .inject(this);
 
+        final float density = getResources().getDisplayMetrics().density;
         labelPaint = new Paint();
         labelPaint.setColor(0xff000000);
         labelPaint.setTextAlign(Align.CENTER);
+        labelPaint.setTextSize(11 * density);
 
         final int len = LABELS.length;
         labels = new String[len];

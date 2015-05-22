@@ -105,7 +105,6 @@ public class TransponderView extends BaseLedView {
     protected void onDraw(final Canvas canvas) {
         super.onDraw(canvas);
 
-        final int paddingLeft = getPaddingLeft();
         final int paddingTop = getPaddingTop();
 
         canvas.save();

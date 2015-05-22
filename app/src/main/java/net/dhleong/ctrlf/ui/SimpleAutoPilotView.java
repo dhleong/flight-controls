@@ -24,7 +24,7 @@ import javax.inject.Inject;
 import java.util.Arrays;
 import java.util.List;
 
-import static net.dhleong.ctrlf.util.RadioUtil.limitRange;
+import static net.dhleong.ctrlf.util.RxUtil.limitRange;
 
 /**
  * Buttons-based AutoPilot view, based on the one

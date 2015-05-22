@@ -117,4 +117,34 @@ public class RxUtil {
         };
     }
 
+    /**
+     * Create a mapping function that pins the input to be within the
+     *  provided bounds, inclusive
+     */
+    public static Func1<Integer, Integer> limitRange(final int lowerBound, final int upperBound) {
+        return new Func1<Integer, Integer>() {
+            @Override
+            public Integer call(final Integer input) {
+                return Math.min(upperBound, Math.max(lowerBound, input));
+            }
+        };
+    }
+
+    /**
+     * Create a mapping function that pins the input to be within the
+     *  provided bounds, inclusive; if over upperBound, it will become
+     *  <code>input % upperBound</code>
+     */
+    public static Func1<Integer, Integer> modulo(final int upperBound) {
+        return new Func1<Integer, Integer>() {
+            @Override
+            public Integer call(final Integer input) {
+                if (input < 0) {
+                    return (upperBound - input) % upperBound;
+                }
+
+                return input % upperBound;
+            }
+        };
+    }
 }

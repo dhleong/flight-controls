@@ -17,34 +17,48 @@ import net.dhleong.ctrlf.ui.base.BaseInstrumentView;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
+import rx.functions.Func1;
 
 import javax.inject.Inject;
+
+import static net.dhleong.ctrlf.util.RxUtil.modulo;
 
 /**
  * @author dhleong
  */
 public class HeadingIndicatorView extends BaseInstrumentView {
 
-    private static final float AIRPLANE_SCALE = 0.65f;
+    private static final float AIRPLANE_SCALE = 0.55f;
     private static final float TICK_MAJOR = 8;
     private static final float TICK_MINOR = 5;
-    private static final float TICK_OFFSET = 6;
+    private static final float TICK_OFFSET = 10;
+    private static final float DIAL_OFFSET = 10;
 
     /** in degrees */
     private static final float TICK_INTERVAL = 5;
     private static final float DELTA_DEADZONE = 0.01f;
 
+    final SmallDialView bugDial;
+
     @Inject Observable<AutoPilotStatus> autoPilotStatus;
     @Inject Observable<HeadingStatus> headingStatus;
 
     final Paint airplanePaint, bugPaint, tickPaint;
-    final float tickMajor, tickMinor, tickOffset;
+    final float tickMajor, tickMinor;
+    final float tickOffset, dialOffset, totalOffset;
 
     Path airplane;
 
     long lastFrame = 0;
 
     float heading, headingDeltaRate, headingBug;
+
+    private Action1<? super Integer> setBugDegrees = new Action1<Integer>() {
+        @Override
+        public void call(final Integer integer) {
+            setBugDegrees(integer);
+        }
+    };
 
     public HeadingIndicatorView(final Context context) {
         this(context, null);
@@ -57,12 +71,17 @@ public class HeadingIndicatorView extends BaseInstrumentView {
            .newInstrumentComponent()
            .inject(this);
 
+        bugDial = new SmallDialView(context);
+        addView(bugDial);
+
         final Resources res = getResources();
         final float density = res.getDisplayMetrics().density;
 
         tickMajor = TICK_MAJOR * density;
         tickMinor = TICK_MINOR * density;
         tickOffset = TICK_OFFSET * density;
+        dialOffset = DIAL_OFFSET * density;
+        totalOffset = tickOffset + dialOffset;
 
         airplanePaint = new Paint();
         airplanePaint.setColor(resolveResource(this, R.color.heading_airplane));
@@ -81,6 +100,11 @@ public class HeadingIndicatorView extends BaseInstrumentView {
         tickPaint.setTextAlign(Paint.Align.CENTER);
         tickPaint.setTextSize(18 * density);
         tickPaint.setAntiAlias(true);
+    }
+
+    public void setBugDegrees(final int degrees) {
+        headingBug = degrees;
+        invalidate();
     }
 
     @Override
@@ -111,6 +135,17 @@ public class HeadingIndicatorView extends BaseInstrumentView {
                     })
         );
 
+        subscriptions.add(
+                bugDial.detents(1, 1)
+                       .map(new Func1<Integer, Integer>() {
+                           @Override
+                           public Integer call(final Integer detents) {
+                               return (int) headingBug + detents;
+                           }
+                       })
+                       .map(modulo(360))
+                       .subscribe(setBugDegrees)
+        );
     }
 
     @Override
@@ -129,6 +164,9 @@ public class HeadingIndicatorView extends BaseInstrumentView {
         }
         lastFrame = now;
 
+        canvas.save();
+        canvas.translate(0, -dialOffset);
+
         final float center = (getRight() - getLeft()) / 2f;
         int start = canvas.save();
         canvas.rotate(-heading, center, center);
@@ -140,10 +178,28 @@ public class HeadingIndicatorView extends BaseInstrumentView {
         canvas.restoreToCount(start);
 
         onDrawPlane(canvas);
+        canvas.restore();
 
         if (headingDeltaRate > DELTA_DEADZONE) {
             postInvalidateOnAnimation();
         }
+    }
+
+    @Override
+    protected void onMeasure(final int widthMeasureSpec, final int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+
+        int dialWidth = getMeasuredWidth() / 4;
+        int dialSpec = MeasureSpec.makeMeasureSpec(dialWidth, MeasureSpec.EXACTLY);
+
+        bugDial.measure(dialSpec, dialSpec);
+    }
+
+    @Override
+    protected void onLayout(final boolean changed, final int l, final int t, final int r, final int b) {
+        int width = r - l;
+        int dialSize = bugDial.getMeasuredWidth();
+        bugDial.layout(width - dialSize, width - dialSize, width, width);
     }
 
     private void onDrawPlane(final Canvas canvas) {
@@ -152,7 +208,7 @@ public class HeadingIndicatorView extends BaseInstrumentView {
         final Path existing = airplane;
         if (existing == null) {
             final float width = getRight() - getLeft();
-            path = airplane = prepareAirplanePath(width);
+            path = airplane = prepareAirplanePath(totalOffset, width);
         } else {
             path = existing;
         }
@@ -167,8 +223,8 @@ public class HeadingIndicatorView extends BaseInstrumentView {
                 ? tickMajor
                 : tickMinor;
 
-            final float end = tickOffset + length;
-            canvas.drawLine(center, tickOffset, center, end, tickPaint);
+            final float end = totalOffset + length;
+            canvas.drawLine(center, totalOffset, center, end, tickPaint);
 
             final String toDraw;
             switch (degree) {
@@ -196,15 +252,18 @@ public class HeadingIndicatorView extends BaseInstrumentView {
     private void onDrawBug(final Canvas canvas, final float center) {
         final float length = tickOffset + tickMinor + (tickMajor + tickMinor) / 2;
         final float separation = bugPaint.getStrokeWidth();
-        canvas.drawLine(center - separation, 0, center - separation, length, bugPaint);
-        canvas.drawLine(center + separation, 0, center + separation, length, bugPaint);
+
+        final float start = dialOffset;
+        final float end = start + length;
+        canvas.drawLine(center - separation, start, center - separation, end, bugPaint);
+        canvas.drawLine(center + separation, start, center + separation, end, bugPaint);
     }
 
     private void onUpdate(final long deltaMillis) {
         heading += headingDeltaRate * (deltaMillis / 1000f);
     }
 
-    private static Path prepareAirplanePath(final float width) {
+    private static Path prepareAirplanePath(final float offset, final float width) {
 
         final float center = width / 2;
         final float unit = width / 10 * AIRPLANE_SCALE;
@@ -212,7 +271,7 @@ public class HeadingIndicatorView extends BaseInstrumentView {
         final float tiny = unit / 4;
 
         final Path newPath = new Path();
-        newPath.moveTo(center, tiny);
+        newPath.moveTo(center, offset + tiny);
         newPath.lineTo(center, center - 3 * unit);
 
         // right nose + wing
