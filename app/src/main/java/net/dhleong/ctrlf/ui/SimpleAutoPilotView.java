@@ -15,6 +15,7 @@ import net.dhleong.ctrlf.util.RxUtil;
 import net.dhleong.ctrlf.util.scopes.Named;
 import rx.Observable;
 import rx.Observer;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.android.view.ViewObservable;
 import rx.functions.Action1;
 import rx.functions.Func1;
@@ -122,15 +123,16 @@ public class SimpleAutoPilotView extends BaseLedView {
         );
 
         subscriptions.add(
-            status.subscribe(new Action1<AutoPilotStatus>() {
-                @Override
-                public void call(final AutoPilotStatus autoPilotStatus) {
-                    setVisibility(autoPilotStatus.available ? View.VISIBLE : View.GONE);
-                    setTargetAltitude(autoPilotStatus.altitude);
+                status.observeOn(AndroidSchedulers.mainThread())
+                      .subscribe(new Action1<AutoPilotStatus>() {
+                          @Override
+                          public void call(final AutoPilotStatus autoPilotStatus) {
+                              setVisibility(autoPilotStatus.available ? View.VISIBLE : View.GONE);
+                              setTargetAltitude(autoPilotStatus.altitude);
 
-                    apMaster.setActivated(autoPilotStatus.master);
-                }
-            })
+                              apMaster.setActivated(autoPilotStatus.master);
+                          }
+                      })
         );
 
         bindTo(apMaster, apMasterObserver);
