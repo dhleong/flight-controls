@@ -256,8 +256,10 @@ public class MagnetoSwitchView extends View {
 
         setCurrentNotch(currentNotch + notchesMoved);
 
-        // TODO notify
-        eventTags.onNext(notches[currentNotch].tag);
+        if (notchesMoved != 0) {
+            // notify, but don't dup
+            eventTags.onNext(notches[currentNotch].tag);
+        }
     }
 
     /**

@@ -2,6 +2,10 @@ package net.dhleong.ctrlf.model;
 
 import net.dhleong.ctrlf.ui.MagnetoSwitchView.MagnetoMode;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+
 /**
  * Send and receivable Sim Events
  * @author dhleong
@@ -74,5 +78,23 @@ public enum SimEvent {
         //  the events in MAGNETOS, but I think we can safely make
         //  that assumption...
         return MAGNETOS[magnetoIndex][magnetoMode.ordinal()];
+    }
+
+    public static Collection<SimEvent> getMagnetoEvents(final int magnetoIndex,
+            final MagnetoMode magnetoMode) {
+        final SimEvent base = getMagnetoEvent(magnetoIndex, magnetoMode);
+        switch (magnetoMode) {
+        case OFF:
+        case START:
+        case BOTH:
+            return Collections.singleton(base);
+
+        default:
+            // for left/right, we need to turn OFF first
+            //  to ensure consistent state
+            return Arrays.asList(
+                    getMagnetoEvent(magnetoIndex, MagnetoMode.OFF),
+                    base);
+        }
     }
 }

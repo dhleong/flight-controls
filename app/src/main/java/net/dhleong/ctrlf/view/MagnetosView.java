@@ -16,6 +16,7 @@ import rx.functions.Func1;
 import rx.subscriptions.CompositeSubscription;
 
 import javax.inject.Inject;
+import java.util.Collection;
 
 /**
  * Contains and manages the Magnetos switches
@@ -86,10 +87,10 @@ public class MagnetosView
             final int magnetoIndex = i;
             subscriptions.add(
                 view.modeChanges()
-                    .map(new Func1<MagnetoMode, SimEvent>() {
+                    .flatMapIterable(new Func1<MagnetoMode, Collection<SimEvent>>() {
                         @Override
-                        public SimEvent call(final MagnetoMode magnetoMode) {
-                            return SimEvent.getMagnetoEvent(magnetoIndex, magnetoMode);
+                        public Collection<SimEvent> call(final MagnetoMode magnetoMode) {
+                            return SimEvent.getMagnetoEvents(magnetoIndex, magnetoMode);
                         }
                     })
                     .subscribe(magnetoSetter)

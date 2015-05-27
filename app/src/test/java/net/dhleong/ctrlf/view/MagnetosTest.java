@@ -110,7 +110,9 @@ public class MagnetosTest extends BaseViewModuleTest<MagnetosView, MagnetosTestM
         module.sentEvents.clear();
 
         getMagneto(0).performNotchMoved(-1);
-        assertThat(module.sentEvents).containsExactly(SimEvent.MAGNETO1_LEFT);
+        assertThat(module.sentEvents).containsExactly(
+                SimEvent.MAGNETO1_OFF,
+                SimEvent.MAGNETO1_LEFT);
         module.sentEvents.clear();
 
         getMagneto(1).performNotchMoved(-1);
@@ -118,11 +120,15 @@ public class MagnetosTest extends BaseViewModuleTest<MagnetosView, MagnetosTestM
         module.sentEvents.clear();
 
         getMagneto(0).performNotchMoved(-1);
-        assertThat(module.sentEvents).containsExactly(SimEvent.MAGNETO1_RIGHT);
+        assertThat(module.sentEvents).containsExactly(
+                SimEvent.MAGNETO1_OFF,
+                SimEvent.MAGNETO1_RIGHT);
         module.sentEvents.clear();
 
         getMagneto(1).performNotchMoved(-1);
-        assertThat(module.sentEvents).containsExactly(SimEvent.MAGNETO2_LEFT);
+        assertThat(module.sentEvents).containsExactly(
+                SimEvent.MAGNETO2_OFF,
+                SimEvent.MAGNETO2_LEFT);
         module.sentEvents.clear();
 
         getMagneto(0).performNotchMoved(-1);
@@ -130,7 +136,9 @@ public class MagnetosTest extends BaseViewModuleTest<MagnetosView, MagnetosTestM
         module.sentEvents.clear();
 
         getMagneto(1).performNotchMoved(-1);
-        assertThat(module.sentEvents).containsExactly(SimEvent.MAGNETO2_RIGHT);
+        assertThat(module.sentEvents).containsExactly(
+                SimEvent.MAGNETO2_OFF,
+                SimEvent.MAGNETO2_RIGHT);
         module.sentEvents.clear();
 
         getMagneto(1).performNotchMoved(-1);

@@ -132,7 +132,7 @@ public class FsxConnection
         }
 
         // rx subscription
-        eventQueue.subscribeOn(Schedulers.io())
+        eventQueue.observeOn(Schedulers.io())
                   .subscribe(new IOAction<PendingEvent>(ioexs) {
                       @Override
                       protected void perform(final PendingEvent pendingEvent)
