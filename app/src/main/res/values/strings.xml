@@ -25,4 +25,9 @@
     <string name="sim_quit">Simulation Ended</string>
     <string name="sim_disconnect">Connection Lost</string>
     <string name="connect_error">Unable to connect:\n%s</string>
+    <string name="off">Off</string>
+    <string name="key_right">R</string>
+    <string name="key_left">L</string>
+    <string name="key_both">Both</string>
+    <string name="key_start">Start</string>
 </resources>

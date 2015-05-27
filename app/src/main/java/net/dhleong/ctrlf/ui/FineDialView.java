@@ -15,6 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import net.dhleong.ctrlf.R;
 import net.dhleong.ctrlf.util.RxUtil;
+import net.dhleong.ctrlf.util.UiUtil;
 import rx.Observable;
 import rx.functions.Func0;
 import rx.subjects.PublishSubject;
@@ -205,7 +206,7 @@ public class FineDialView extends View {
 
             downX = lastX = x;
             downY = lastY = y;
-            downAngle = lastAngle = angle(dcY, dcX);
+            downAngle = lastAngle = UiUtil.angle(dcY, dcX);
             downRotation = rotations[state];
             lastDetents = 0; // reset!
             totalDetents = 0;
@@ -215,8 +216,8 @@ public class FineDialView extends View {
             break;
 
         case MotionEvent.ACTION_MOVE:
-            final double angle = angle(dcY, dcX);
-            rotations[state] += angleDelta(lastAngle, angle);
+            final double angle = UiUtil.angle(dcY, dcX);
+            rotations[state] += UiUtil.angleDelta(lastAngle, angle);
             lastAngle = angle;
             invalidate();
 
@@ -259,22 +260,6 @@ public class FineDialView extends View {
     protected void onMeasure(final int widthMeasureSpec, final int heightMeasureSpec) {
         // TODO respect the spec?
         setMeasuredDimension(width, width);
-    }
-
-    /** @return the atan of y/x in the range [0, 2pi] */
-    private static double angle(final float y, final float x) {
-        return Math.PI + Math.atan2(y, x);
-    }
-
-    /**
-     * Calculate the difference between the angles, taking into
-     *  account crossovers (ie: down at 350, angle at 10 should be 20)
-     */
-    private static double angleDelta(final double downAngle, final double angle) {
-        final double base = angle - downAngle;
-        if (base > Math.PI) return Math.PI * 2 - base;
-        if (base < -Math.PI) return Math.PI * 2 + base;
-        return base;
     }
 
 }

@@ -19,4 +19,10 @@
         style="@style/Radio.Panel"
         />
 
+    <net.dhleong.ctrlf.ui.MagnetoSwitchView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        />
+
 </LinearLayout>
