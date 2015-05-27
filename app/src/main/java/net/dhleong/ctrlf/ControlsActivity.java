@@ -90,8 +90,13 @@ public class ControlsActivity
             // ditto
             connection.requestData(DataType.AUTOPILOT_STATUS, DataRequestPeriod.SLOW);
 
-            // we only need the initial state for this
+            // let's see if "slow" works for now; we have the delta rate,
+            //  so it might not glitch that much. Worst case, we just switch to "Fast"
+            connection.requestData(DataType.HEADING_STATUS, DataRequestPeriod.SLOW);
+
+            // we only need the initial state for these
             connection.requestData(DataType.LIGHT_STATUS, DataRequestPeriod.SINGLE);
+            connection.requestData(DataType.ENGINE_STATUS, DataRequestPeriod.SINGLE);
             break;
 
         case SIM_QUIT:

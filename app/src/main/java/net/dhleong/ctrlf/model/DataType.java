@@ -9,10 +9,10 @@ package net.dhleong.ctrlf.model;
  */
 public enum DataType {
     AUTOPILOT_STATUS(AutoPilotStatus.class),
+    ENGINE_STATUS(EngineStatus.class),
     HEADING_STATUS(HeadingStatus.class),
     LIGHT_STATUS(LightsStatus.class),
-    RADIO_STATUS(RadioStatus.class),
-    ;
+    RADIO_STATUS(RadioStatus.class);
 
     final Class<? extends SimData> implementationType;
 

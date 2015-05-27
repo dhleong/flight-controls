@@ -13,7 +13,10 @@ import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
 import android.view.View;
 import net.dhleong.ctrlf.R;
+import rx.Observable;
+import rx.subjects.PublishSubject;
 
+import static net.dhleong.ctrlf.util.RxUtil.pickInstancesOf;
 import static net.dhleong.ctrlf.util.UiUtil.angle;
 import static net.dhleong.ctrlf.util.UiUtil.angleDelta;
 
@@ -26,18 +29,37 @@ import static net.dhleong.ctrlf.util.UiUtil.angleDelta;
  */
 public class MagnetoSwitchView extends View {
 
+    public enum MagnetoMode {
+        OFF(false, false),
+        RIGHT(false, true),
+        LEFT(true, false),
+        BOTH(true, true),
+        START(true, true);
+
+        public final boolean hasLeft;
+        public final boolean hasRight;
+
+        MagnetoMode(boolean hasLeft, boolean hasRight) {
+            this.hasLeft = hasLeft;
+            this.hasRight = hasRight;
+        }
+    }
+
     static class Notch {
+        final Object tag;
         final float rotationDegrees;
         final int shiftOnRelease;
         private final int labelResId;
         private String label;
 
-        public Notch(final float rotationDegrees, final int labelResId) {
-            this(rotationDegrees, labelResId, 0);
+        public Notch(final Object tag, final float rotationDegrees, final int labelResId) {
+            this(tag, rotationDegrees, labelResId, 0);
         }
 
-        public Notch(final float rotationDegrees, final int labelResId,
+        public Notch(final Object tag,
+                final float rotationDegrees, final int labelResId,
                 final int shiftOnRelease) {
+            this.tag = tag;
             this.rotationDegrees = rotationDegrees;
             this.labelResId = labelResId;
             this.shiftOnRelease = shiftOnRelease;
@@ -63,11 +85,11 @@ public class MagnetoSwitchView extends View {
     static final float KEY_SIZE = 0.8f;
 
     private final Notch[] notches = {
-            new Notch(270, R.string.off),
-            new Notch(315, R.string.key_right),
-            new Notch(360, R.string.key_left),
-            new Notch(400, R.string.key_both),
-            new Notch(440, R.string.key_start, -1),
+            new Notch(MagnetoMode.OFF,   270, R.string.off),
+            new Notch(MagnetoMode.RIGHT, 315, R.string.key_right),
+            new Notch(MagnetoMode.LEFT,  360, R.string.key_left),
+            new Notch(MagnetoMode.BOTH,  400, R.string.key_both),
+            new Notch(MagnetoMode.START, 440, R.string.key_start, -1),
     };
 
     private final Paint columnPaint;
@@ -81,9 +103,8 @@ public class MagnetoSwitchView extends View {
     private float currentRotation = notches[currentNotch].rotationDegrees;
 
     private double lastAngle;
-    private float downRotation;
 
-    private int lastDetents;
+    private PublishSubject<Object> eventTags = PublishSubject.create();
 
     public MagnetoSwitchView(final Context context) {
         this(context, null);
@@ -105,6 +126,7 @@ public class MagnetoSwitchView extends View {
         labelPaint.setColor(0xFF111111);
         labelPaint.setTextAlign(Align.CENTER);
         labelPaint.setTextSize(12 * density);
+        labelPaint.setAntiAlias(true);
     }
 
     @Override
@@ -184,8 +206,6 @@ public class MagnetoSwitchView extends View {
         switch (event.getActionMasked()) {
         case MotionEvent.ACTION_DOWN:
             lastAngle = angle(dcY, dcX);
-            downRotation = currentRotation;
-            lastDetents = 0; // reset!
 
             // we will ALWAYS steal touch events
             getParent().requestDisallowInterceptTouchEvent(true);
@@ -227,9 +247,6 @@ public class MagnetoSwitchView extends View {
     }
 
     public void performNotchMoved(final int notchesMoved) {
-        currentNotch += notchesMoved;
-        currentRotation = notches[currentNotch].rotationDegrees;
-
         if (notchesMoved != 0) {
             performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
         } else {
@@ -237,8 +254,39 @@ public class MagnetoSwitchView extends View {
             performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
         }
 
+        setCurrentNotch(currentNotch + notchesMoved);
+
+        // TODO notify
+        eventTags.onNext(notches[currentNotch].tag);
+    }
+
+    /**
+     * @return An Observable stream of event tags
+     *  from the specified notches
+     */
+    public Observable<Object> eventTags() {
+        return eventTags;
+    }
+
+    public Observable<MagnetoMode> modeChanges() {
+        return eventTags().lift(pickInstancesOf(MagnetoMode.class));
+    }
+
+    public void setCurrentNotch(final int notchIndex) {
+        if (notchIndex < 0 || notchIndex >= notches.length) {
+            throw new IllegalArgumentException("Invalid notch index " + notchIndex);
+        }
+
+        currentNotch = notchIndex;
+
         // TODO animate
+        currentRotation = notches[currentNotch].rotationDegrees;
         postInvalidateOnAnimation();
+    }
+
+    public void setCurrentMode(final MagnetoMode mode) {
+        // cheating? perhaps...
+        setCurrentNotch(mode.ordinal());
     }
 
 }

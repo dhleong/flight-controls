@@ -6,11 +6,14 @@ import dagger.Module;
 import net.dhleong.ctrlf.model.Connection;
 import net.dhleong.ctrlf.model.DataRequestPeriod;
 import net.dhleong.ctrlf.model.DataType;
+import net.dhleong.ctrlf.model.EngineStatus;
+import net.dhleong.ctrlf.model.EngineStatus.EngineType;
 import net.dhleong.ctrlf.model.HeadingStatus;
 import net.dhleong.ctrlf.model.LightsStatus;
 import net.dhleong.ctrlf.model.RadioStatus;
 import net.dhleong.ctrlf.model.SimData;
 import net.dhleong.ctrlf.model.SimEvent;
+import net.dhleong.ctrlf.ui.MagnetoSwitchView.MagnetoMode;
 import rx.Observable;
 
 /**
@@ -37,7 +40,9 @@ public class DummyAppModule extends AppModule {
                 return Observable.just(
                         new RadioStatus(true, 124_500, 118_000, 112_000, 114_250),
                         new LightsStatus(true, false, false, true, true, false),
-                        new HeadingStatus(127, 1f)
+                        new HeadingStatus(127, 1f),
+                        new EngineStatus(EngineType.TURBOPROP,
+                                MagnetoMode.BOTH, MagnetoMode.BOTH)
                 );
             }
 

@@ -18,7 +18,8 @@ public interface AppComponent {
     void inject(ConnectActivity activity);
     void inject(ControlsActivity activity);
 
-    RadioStackComponent newRadioStackComponent();
-    LightsComponent newLightsComponent();
+    EngineComponent newEngineComponent();
     InstrumentsComponent newInstrumentComponent();
+    LightsComponent newLightsComponent();
+    RadioStackComponent newRadioStackComponent();
 }
