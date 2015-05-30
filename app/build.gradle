@@ -27,7 +27,7 @@ apply plugin: 'android-command'
 
 android {
     compileSdkVersion 21
-    buildToolsVersion "21.1.2"
+    buildToolsVersion "22.0.1"
 
     defaultConfig {
         applicationId "net.dhleong.ctrlf"
