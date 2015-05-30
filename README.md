@@ -1,7 +1,29 @@
 FlightControls
 ==============
 
-Control various FSX instruments from your Android device
+*Reach out and touch Flight Simulator X*
+
+## What?
+
+FlightControls is an open source Android app that connects 
+directly to a running instance of Microsoft's Flight Simulator X, 
+providing interactive controls that mimic those in the game. 
+The graphics are not quite strictly following Android styling,
+nor are they realistic, but they're functional; the point is not
+so much the look, but the feel. Right now, the controls are modeled
+more-or-less after the default Cessna (and some googling), but
+alternate versions for Jet-types may come along later
+
+### Features
+
+ - Nav/Com box, with inner/outer knobs
+    - Tap the inner knob to toggle between 25 kHz and 50 kHz
+- Transponder box
+- Autopilot box with knob for altitude setting
+    - Buttons to activate nav/heading modes work, but the LCD doesn't yet reflect them
+- Heading indicator, with knob for the heading bug
+- Light switches (with default Android widget... for now)
+- Magneto switches when appropriate (
 
 ## Why?
 
