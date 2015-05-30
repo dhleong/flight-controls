@@ -1,0 +1,6 @@
+language: android
+
+script:
+  - ./gradlew assemble
+  - ./gradlew test
+

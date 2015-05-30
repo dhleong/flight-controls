@@ -16,14 +16,14 @@ alternate versions for Jet-types may come along later
 
 ### Features
 
- - Nav/Com box, with inner/outer knobs
+- Nav/Com box, with inner/outer knobs
     - Tap the inner knob to toggle between 25 kHz and 50 kHz
 - Transponder box
 - Autopilot box with knob for altitude setting
     - Buttons to activate nav/heading modes work, but the LCD doesn't yet reflect them
 - Heading indicator, with knob for the heading bug
 - Light switches (with default Android widget... for now)
-- Magneto switches when appropriate (
+- Magneto switches as appropriate
 
 ## Why?
 
