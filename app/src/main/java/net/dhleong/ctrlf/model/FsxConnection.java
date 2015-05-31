@@ -21,6 +21,7 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 import rx.subjects.BehaviorSubject;
+import rx.subjects.PublishSubject;
 import rx.subjects.ReplaySubject;
 import rx.subjects.Subject;
 
@@ -96,8 +97,9 @@ public class FsxConnection
     // these let us (potentially) queue up events before we're ready
     final ReplaySubject<SimData> dataObjectsSubject = ReplaySubject.createWithSize(16);
     final ReplaySubject<PendingEvent> eventQueue = ReplaySubject.createWithSize(16);
-    // limit to the number of events in a lifecycle so we don't go crazy
-    final Subject<Lifecycle, Lifecycle> lifecycleSubject = Lifecycle.createSubject();
+    final Subject<Lifecycle, Lifecycle> lifecycleSubject = PublishSubject.create();
+
+    Lifecycle currentState = Lifecycle.DISCONNECTED;
 
     SimConnect simConnect;
     DispatchThread thread;
@@ -107,6 +109,14 @@ public class FsxConnection
             @Override
             public void call(final IOException e) {
                 e.printStackTrace();
+            }
+        });
+
+        // keep track of the latest state
+        lifecycleSubject.subscribe(new Action1<Lifecycle>() {
+            @Override
+            public void call(final Lifecycle lifecycle) {
+                currentState = lifecycle;
             }
         });
     }
@@ -206,7 +216,27 @@ public class FsxConnection
 
     @Override
     public Observable<Lifecycle> lifecycleEvents() {
-        return lifecycleSubject;
+        // create a new one each time so it can start with the current state
+        final Observable<Lifecycle> initialEvents;
+        switch (currentState) {
+        case CONNECTED:
+            initialEvents = Observable.just(Lifecycle.CONNECTED);
+            break;
+        case SIM_START:
+            initialEvents = Observable.just(Lifecycle.CONNECTED, Lifecycle.SIM_START);
+            break;
+        default:
+            initialEvents = Observable.empty();
+        }
+
+        // subscribe to the subject immediately, recording for playback.
+        // I'm not entirely sure why we can't just pass the subject in
+        //  directly to concat()---perhaps subscription is deferred until
+        //  the initialEvents are consumed?---but this is simple enough
+        final ReplaySubject<Lifecycle> subscribed = ReplaySubject.create();
+        lifecycleSubject.subscribe(subscribed);
+
+        return Observable.concat(initialEvents, subscribed);
     }
 
     @Override

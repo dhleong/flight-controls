@@ -14,13 +14,6 @@ public interface Connection {
         SIM_START,
         SIM_QUIT,
         DISCONNECTED;
-
-        /** Create the Subject that should be used for the lifecycleEvents method */
-        public static Subject<Lifecycle,Lifecycle> createSubject() {
-            // we use half the number of events so you shouldn't
-            //  get a sequence like QUIT, DISCONNECT, CONNECT, START
-            return ReplaySubject.createWithSize(2);
-        }
     }
 
     void disconnect();
