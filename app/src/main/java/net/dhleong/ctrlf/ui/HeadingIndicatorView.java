@@ -129,10 +129,12 @@ public class HeadingIndicatorView extends BaseInstrumentView {
                     .subscribe(new Action1<HeadingStatus>() {
                         @Override
                         public void call(final HeadingStatus headingStatus) {
+                            final float oldHeading = heading;
                             heading = headingStatus.heading;
                             headingDeltaRate = headingStatus.headingDeltaRate;
 
-                            if (headingDeltaRate > DELTA_DEADZONE) {
+                            if (headingDeltaRate > DELTA_DEADZONE
+                                    || Math.abs(heading - oldHeading) > 0) {
                                 postInvalidateOnAnimation();
                             }
                         }
