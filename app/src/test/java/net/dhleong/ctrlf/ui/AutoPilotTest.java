@@ -67,6 +67,27 @@ public class AutoPilotTest extends BaseViewModuleTest<SimpleAutoPilotView, AutoP
     }
 
     @Test
+    public void preventAltitudeOverrides() {
+        // just provide power
+        view.setEnabled(true);
+
+        assertThat(view.getTargetAltitude()).isEqualTo(0);
+
+        module.dataObjectsSubject.onNext(new AutoPilotStatus(true, true, 3500, 0));
+        assertThat(view.getTargetAltitude()).isEqualTo(3500);
+
+        view.dial.performDetentsMoved(FineDialView.STATE_OUTER, 1);
+        assertThat(view.getTargetAltitude()).isEqualTo(4500);
+
+        module.dataObjectsSubject.onNext(new AutoPilotStatus(true, true, 4000, 0));
+        assertThat(view.getTargetAltitude()).isEqualTo(4500); // no change
+
+        module.dataObjectsSubject.onNext(new AutoPilotStatus(true, true, 4500, 0));
+        module.dataObjectsSubject.onNext(new AutoPilotStatus(true, true, 5000, 0));
+        assertThat(view.getTargetAltitude()).isEqualTo(5000); // NOW change it
+    }
+
+    @Test
     public void hideWhenUnavailable() {
         // just provide power
         view.setEnabled(true);

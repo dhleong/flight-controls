@@ -89,12 +89,15 @@ public class OverridePreventer<T> implements Action1<T> {
     }
 
     boolean shouldAllow(final T input) {
-        if (awaitingSent && input != lastSent) {
-            return false;
-        } else if (awaitingSent) {
+        final boolean matches = input == lastSent
+                || (input != null && input.equals(lastSent));
+        if (awaitingSent && matches) {
             // equals! allow it
             awaitingSent = false;
             return true;
+        } else if (awaitingSent) {
+            // no match, still waiting...
+            return false;
         }
 
         // not awaiting; allow it!

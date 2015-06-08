@@ -11,6 +11,7 @@ import net.dhleong.ctrlf.R;
 import net.dhleong.ctrlf.model.AutoPilotStatus;
 import net.dhleong.ctrlf.ui.art.IntegerArtist;
 import net.dhleong.ctrlf.ui.base.BaseLedView;
+import net.dhleong.ctrlf.util.OverridePreventer;
 import net.dhleong.ctrlf.util.RxUtil;
 import net.dhleong.ctrlf.util.scopes.Named;
 import rx.Observable;
@@ -66,6 +67,8 @@ public class SimpleAutoPilotView extends BaseLedView {
     @Inject @Named("APAltitude") Observer<Void> apAltitudeObserver;
     @Inject @Named("APHeading") Observer<Void> apHeadingObserver;
 
+    private OverridePreventer<Integer> altitudeOverrides = OverridePreventer.create();
+
     private CompositeSubscription subscriptions = new CompositeSubscription();
 
     @SuppressWarnings("FieldCanBeLocal")
@@ -117,17 +120,28 @@ public class SimpleAutoPilotView extends BaseLedView {
                             return altitudeArtist.toNumber() + integer;
                         }
                     })
-                    .map(limitRange(0, 99000)) // not sure what sim does, but will keep the numbers from getting weird
+                    .map(limitRange(0,
+                            99000)) // not sure what sim does, but will keep the numbers from getting weird
                     .doOnNext(setTargetAltitude)
+                    .doOnNext(altitudeOverrides)
                     .subscribe(apSetAltitudeObserver)
         );
 
         subscriptions.add(
                 status.observeOn(AndroidSchedulers.mainThread())
+                      .lift(altitudeOverrides.prevent(new Func1<AutoPilotStatus, Integer>() {
+                          @Override
+                          public Integer call(final AutoPilotStatus autoPilotStatus) {
+                              // we prevent overrides based on the altitude
+                              return autoPilotStatus.altitude;
+                          }
+                      }))
                       .subscribe(new Action1<AutoPilotStatus>() {
                           @Override
                           public void call(final AutoPilotStatus autoPilotStatus) {
-                              setVisibility(autoPilotStatus.available ? View.VISIBLE : View.GONE);
+                              setVisibility(autoPilotStatus.available
+                                      ? View.VISIBLE
+                                      : View.GONE);
                               setTargetAltitude(autoPilotStatus.altitude);
 
                               apMaster.setActivated(autoPilotStatus.master);
