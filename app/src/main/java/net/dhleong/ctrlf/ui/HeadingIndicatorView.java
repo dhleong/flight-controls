@@ -14,6 +14,7 @@ import net.dhleong.ctrlf.R;
 import net.dhleong.ctrlf.model.AutoPilotStatus;
 import net.dhleong.ctrlf.model.HeadingStatus;
 import net.dhleong.ctrlf.ui.base.BaseInstrumentView;
+import net.dhleong.ctrlf.util.OverridePreventer;
 import net.dhleong.ctrlf.util.scopes.Named;
 import rx.Observable;
 import rx.Observer;
@@ -45,6 +46,8 @@ public class HeadingIndicatorView extends BaseInstrumentView {
     @Inject @Named("APHeadingBug") Observer<Integer> headingBugObserver;
     @Inject Observable<AutoPilotStatus> autoPilotStatus;
     @Inject Observable<HeadingStatus> headingStatus;
+
+    final OverridePreventer<Integer> headingBugOverrides = OverridePreventer.create();
 
     final Paint airplanePaint, bugPaint, tickPaint;
     final float tickMajor, tickMinor;
@@ -117,12 +120,18 @@ public class HeadingIndicatorView extends BaseInstrumentView {
 
         subscriptions.add(
                 autoPilotStatus.observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new Action1<AutoPilotStatus>() {
-                        @Override
-                        public void call(final AutoPilotStatus autoPilotStatus) {
-                            headingBug = autoPilotStatus.headingBug;
-                        }
-                    })
+                               .lift(headingBugOverrides.prevent(new Func1<AutoPilotStatus, Integer>() {
+                                   @Override
+                                   public Integer call(final AutoPilotStatus autoPilotStatus) {
+                                       return (int) autoPilotStatus.headingBug;
+                                   }
+                               }))
+                               .subscribe(new Action1<AutoPilotStatus>() {
+                                   @Override
+                                   public void call(final AutoPilotStatus autoPilotStatus) {
+                                       headingBug = autoPilotStatus.headingBug;
+                                   }
+                               })
         );
         subscriptions.add(
                 headingStatus.observeOn(AndroidSchedulers.mainThread())
@@ -151,6 +160,7 @@ public class HeadingIndicatorView extends BaseInstrumentView {
                        })
                        .map(modulo(360))
                        .doOnNext(setBugDegrees)
+                       .doOnNext(headingBugOverrides)
                        .subscribe(headingBugObserver)
         );
     }

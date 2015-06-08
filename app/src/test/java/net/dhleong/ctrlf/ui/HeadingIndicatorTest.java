@@ -66,6 +66,32 @@ public class HeadingIndicatorTest extends BaseViewModuleTest<HeadingIndicatorVie
         assertThat(module.setBugs).endsWith(357);
     }
 
+    @Test
+    public void overridesPrevented() {
+        assertThat(view.headingBug).isEqualTo(0);
+
+        module.dataObjectsSubject.onNext(new AutoPilotStatus(true, true, 0, 2));
+        assertThat(view.headingBug).isEqualTo(2);
+
+        view.bugDial.performDetentsMoved(FineDialView.STATE_INNER, 5);
+        assertThat(module.setBugs).containsExactly(7);
+        assertThat(view.headingBug).isEqualTo(7);
+
+        // receive a heading bug change from the server, but it doesn't
+        //  match what we requested yet
+        module.dataObjectsSubject.onNext(new AutoPilotStatus(true, true, 0, 4));
+        assertThat(view.headingBug).isEqualTo(7);
+
+        // matches, now
+        module.dataObjectsSubject.onNext(new AutoPilotStatus(true, true, 0, 7));
+        assertThat(view.headingBug).isEqualTo(7);
+
+        // so now we'll respect it
+        module.dataObjectsSubject.onNext(new AutoPilotStatus(true, true, 0, 8));
+        assertThat(view.headingBug).isEqualTo(8);
+
+    }
+
     public static class HeadingIndicatorModule extends TestModule {
 
         List<Integer> setBugs = new ArrayList<>();
