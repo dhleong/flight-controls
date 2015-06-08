@@ -145,6 +145,11 @@ public class SimpleAutoPilotView extends BaseLedView {
                               setTargetAltitude(autoPilotStatus.altitude);
 
                               apMaster.setActivated(autoPilotStatus.master);
+                              heading.setActivated(autoPilotStatus.headingHold);
+                              nav.setActivated(autoPilotStatus.navHold);
+                              apr.setActivated(autoPilotStatus.approachHold);
+                              backCourse.setActivated(autoPilotStatus.revHold);
+                              altitude.setActivated(autoPilotStatus.altitudeHold);
                           }
                       })
         );

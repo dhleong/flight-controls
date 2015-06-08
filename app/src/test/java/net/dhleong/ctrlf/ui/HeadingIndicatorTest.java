@@ -46,7 +46,7 @@ public class HeadingIndicatorTest extends BaseViewModuleTest<HeadingIndicatorVie
         assertThat(view.heading).isEqualTo(127);
         assertThat(view.headingBug).isEqualTo(0);
 
-        module.dataObjectsSubject.onNext(new AutoPilotStatus(true, true, 0, 42));
+        module.dataObjectsSubject.onNext(new AutoPilotStatus(true, true, 42, 0));
         assertThat(view.heading).isEqualTo(127);
         assertThat(view.headingBug).isEqualTo(42);
     }
@@ -56,7 +56,7 @@ public class HeadingIndicatorTest extends BaseViewModuleTest<HeadingIndicatorVie
         assertThat(view.heading).isEqualTo(0);
         assertThat(view.headingBug).isEqualTo(0);
 
-        module.dataObjectsSubject.onNext(new AutoPilotStatus(true, true, 0, 2));
+        module.dataObjectsSubject.onNext(new AutoPilotStatus(true, true, 2, 0));
         assertThat(view.headingBug).isEqualTo(2);
 
         view.bugDial.performDetentsMoved(FineDialView.STATE_INNER, 5);
@@ -70,7 +70,7 @@ public class HeadingIndicatorTest extends BaseViewModuleTest<HeadingIndicatorVie
     public void overridesPrevented() {
         assertThat(view.headingBug).isEqualTo(0);
 
-        module.dataObjectsSubject.onNext(new AutoPilotStatus(true, true, 0, 2));
+        module.dataObjectsSubject.onNext(new AutoPilotStatus(true, true, 2, 0));
         assertThat(view.headingBug).isEqualTo(2);
 
         view.bugDial.performDetentsMoved(FineDialView.STATE_INNER, 5);
@@ -79,15 +79,15 @@ public class HeadingIndicatorTest extends BaseViewModuleTest<HeadingIndicatorVie
 
         // receive a heading bug change from the server, but it doesn't
         //  match what we requested yet
-        module.dataObjectsSubject.onNext(new AutoPilotStatus(true, true, 0, 4));
+        module.dataObjectsSubject.onNext(new AutoPilotStatus(true, true, 4, 0));
         assertThat(view.headingBug).isEqualTo(7);
 
         // matches, now
-        module.dataObjectsSubject.onNext(new AutoPilotStatus(true, true, 0, 7));
+        module.dataObjectsSubject.onNext(new AutoPilotStatus(true, true, 7, 0));
         assertThat(view.headingBug).isEqualTo(7);
 
         // so now we'll respect it
-        module.dataObjectsSubject.onNext(new AutoPilotStatus(true, true, 0, 8));
+        module.dataObjectsSubject.onNext(new AutoPilotStatus(true, true, 8, 0));
         assertThat(view.headingBug).isEqualTo(8);
 
     }

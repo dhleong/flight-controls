@@ -62,7 +62,7 @@ public class AutoPilotTest extends BaseViewModuleTest<SimpleAutoPilotView, AutoP
 
         assertThat(view.getTargetAltitude()).isEqualTo(0);
 
-        module.dataObjectsSubject.onNext(new AutoPilotStatus(true, true, 3500, 0));
+        module.dataObjectsSubject.onNext(new AutoPilotStatus(true, true, 0, 3500));
         assertThat(view.getTargetAltitude()).isEqualTo(3500);
     }
 
@@ -73,17 +73,17 @@ public class AutoPilotTest extends BaseViewModuleTest<SimpleAutoPilotView, AutoP
 
         assertThat(view.getTargetAltitude()).isEqualTo(0);
 
-        module.dataObjectsSubject.onNext(new AutoPilotStatus(true, true, 3500, 0));
+        module.dataObjectsSubject.onNext(new AutoPilotStatus(true, true, 0, 3500));
         assertThat(view.getTargetAltitude()).isEqualTo(3500);
 
         view.dial.performDetentsMoved(FineDialView.STATE_OUTER, 1);
         assertThat(view.getTargetAltitude()).isEqualTo(4500);
 
-        module.dataObjectsSubject.onNext(new AutoPilotStatus(true, true, 4000, 0));
+        module.dataObjectsSubject.onNext(new AutoPilotStatus(true, true, 0, 4000));
         assertThat(view.getTargetAltitude()).isEqualTo(4500); // no change
 
-        module.dataObjectsSubject.onNext(new AutoPilotStatus(true, true, 4500, 0));
-        module.dataObjectsSubject.onNext(new AutoPilotStatus(true, true, 5000, 0));
+        module.dataObjectsSubject.onNext(new AutoPilotStatus(true, true, 0, 4500));
+        module.dataObjectsSubject.onNext(new AutoPilotStatus(true, true, 0, 5000));
         assertThat(view.getTargetAltitude()).isEqualTo(5000); // NOW change it
     }
 
@@ -93,7 +93,7 @@ public class AutoPilotTest extends BaseViewModuleTest<SimpleAutoPilotView, AutoP
         view.setEnabled(true);
         assertThat(view).isVisible();
 
-        module.dataObjectsSubject.onNext(new AutoPilotStatus(false, false, 3500, 0));
+        module.dataObjectsSubject.onNext(new AutoPilotStatus(false, false, 0, 3500));
         assertThat(view).isGone();
     }
 
