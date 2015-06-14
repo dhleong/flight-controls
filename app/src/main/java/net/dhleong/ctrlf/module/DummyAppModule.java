@@ -44,7 +44,7 @@ public class DummyAppModule extends AppModule {
                         new HeadingStatus(127, 1f),
                         new EngineStatus(EngineType.TURBOPROP,
                                 MagnetoMode.BOTH, MagnetoMode.BOTH),
-                        new AltitudeStatus(1500, 400f)
+                        new AltitudeStatus(1500, 400f, 1013)
                 );
             }
 

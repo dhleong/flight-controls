@@ -4,17 +4,23 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Paint.Align;
 import android.graphics.Paint.FontMetrics;
 import android.os.SystemClock;
 import android.util.AttributeSet;
 import net.dhleong.ctrlf.App;
 import net.dhleong.ctrlf.model.AltitudeStatus;
 import net.dhleong.ctrlf.ui.base.BaseInstrumentView;
+import net.dhleong.ctrlf.util.OverridePreventer;
+import net.dhleong.ctrlf.util.scopes.Named;
 import rx.Observable;
+import rx.Observer;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
+import rx.functions.Func1;
 
 import javax.inject.Inject;
+import java.util.Locale;
 
 /**
  * @author dhleong
@@ -30,11 +36,17 @@ public class AnalogAltimeter extends BaseInstrumentView {
     private static final float TICK_INTERVAL = 7.2f;
     private static final float DELTA_DEADZONE = 0.01f;
 
+    /** Kohlsman is in millibars * 16 */
+    private static final int KOHLSMAN_DETENTS = 4;
+
     final SmallDialView dial;
 
+    @Inject @Named("KohlsmanMb16") Observer<Integer> kohlsmanObserver;
     @Inject Observable<AltitudeStatus> altitudeStatus;
 
-    final Paint tickPaint;
+    final OverridePreventer<Integer> kohlsmanOverrides = OverridePreventer.create();
+
+    final Paint tickPaint, kohlsmanPaint;
     final float tickMajor, tickMinor;
     final float tickOffset, dialOffset, totalOffset;
     final float textCenter;
@@ -42,13 +54,26 @@ public class AnalogAltimeter extends BaseInstrumentView {
     long lastFrame = 0;
 
     float altitude, altitudeDeltaRate;
+    float kohlsmanMb;
 
-    public AnalogAltimeter(final Context context,
-            final AttributeSet attrs) {
+    private Action1<? super Integer> setKohlsmanMb = new Action1<Integer>() {
+        @Override
+        public void call(final Integer millibarsTimes16) {
+            kohlsmanMb = millibarsTimes16;
+            invalidate();
+        }
+    };
+
+    public AnalogAltimeter(final Context context) {
+        this(context, null);
+    }
+
+    public AnalogAltimeter(final Context context, final AttributeSet attrs) {
         super(context, attrs);
 
         if (isInEditMode()) {
             altitude = 10180;
+            kohlsmanMb = 1013 * 16; // see above
         }
 
         App.provideComponent(this)
@@ -75,9 +100,18 @@ public class AnalogAltimeter extends BaseInstrumentView {
         tickPaint.setTextSize(18 * density);
         tickPaint.setAntiAlias(true);
 
+        kohlsmanPaint = new Paint(tickPaint);
+        kohlsmanPaint.setTextAlign(Align.RIGHT);
+        kohlsmanPaint.setTextSize(11 * density);
+
         // pre-calculate for faster draws (and to avoid allocations)
         final FontMetrics metrics = tickPaint.getFontMetrics();
         textCenter = (tickPaint.getTextSize() + metrics.descent) / 2f;
+    }
+
+    public void setKohlsmanMb(final int millibars) {
+        kohlsmanMb = millibars * 16;
+        invalidate();
     }
 
     @Override
@@ -86,19 +120,41 @@ public class AnalogAltimeter extends BaseInstrumentView {
 
         subscriptions.add(
                 altitudeStatus.observeOn(AndroidSchedulers.mainThread())
+                              .lift(kohlsmanOverrides.prevent(new Func1<AltitudeStatus, Integer>() {
+                                  @Override
+                                  public Integer call(final AltitudeStatus status) {
+                                      return status.kohlsmanMb * 16; // kohlsman * 16
+                                  }
+                              }))
                               .subscribe(new Action1<AltitudeStatus>() {
                                   @Override
                                   public void call(final AltitudeStatus altitudeStatus) {
                                       final float oldAltitude = altitude;
+                                      final float oldKohlsman = kohlsmanMb;
                                       altitude = altitudeStatus.altitude;
                                       altitudeDeltaRate = altitudeStatus.altitudeDeltaRate;
+                                      kohlsmanMb = altitudeStatus.kohlsmanMb * 16; // kohlsman * 16
 
                                       if (altitudeDeltaRate > DELTA_DEADZONE
-                                              || Math.abs(altitude - oldAltitude) > 0) {
+                                              || Math.abs(altitude - oldAltitude) > 0
+                                              || Math.abs(kohlsmanMb - oldKohlsman) > 0) {
                                           postInvalidateOnAnimation();
                                       }
                                   }
                               })
+        );
+
+        subscriptions.add(
+                dial.detents(KOHLSMAN_DETENTS, KOHLSMAN_DETENTS)
+                    .map(new Func1<Integer, Integer>() {
+                        @Override
+                        public Integer call(final Integer detents) {
+                            return (int) kohlsmanMb + detents;
+                        }
+                    })
+                    .doOnNext(setKohlsmanMb)
+                    .doOnNext(kohlsmanOverrides)
+                    .subscribe(kohlsmanObserver)
         );
     }
 
@@ -116,12 +172,18 @@ public class AnalogAltimeter extends BaseInstrumentView {
         canvas.save();
         canvas.translate(0, -dialOffset);
 
-        final float center = (getRight() - getLeft()) / 2f;
+        final float width = getRight() - getLeft();
+        final float center = width / 2f;
         onDrawMarkers(canvas, center);
 
         onDrawTenThousands(canvas, center, altitude / 10000f);
         onDrawThousands(canvas, center, altitude / 100f);
         onDrawHundreds(canvas, center, altitude / 1000f);
+
+        canvas.drawText(String.format(Locale.US, "%.2f", mbToInHg(kohlsmanMb)),
+                width - totalOffset - tickMajor,
+                center,
+                kohlsmanPaint);
 
         canvas.restore();
 
@@ -222,6 +284,11 @@ public class AnalogAltimeter extends BaseInstrumentView {
 
     private void onUpdate(final long deltaMillis) {
         altitude += altitudeDeltaRate * (deltaMillis / 1000f);
+    }
+
+    static float mbToInHg(final float millibars) {
+        // from: http://www.srh.noaa.gov/images/epz/wxcalc/pressureConversion.pdf
+        return 0.0295300f * millibars;
     }
 
 }

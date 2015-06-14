@@ -33,6 +33,9 @@ public enum SimEvent {
     AP_HEADING_TOGGLE("AP_PANEL_HEADING_HOLD"),
     AP_ALTITUDE_TOGGLE("AP_PANEL_ALTITUDE_HOLD"),
 
+    /** NB: This is in millibars * 16 to avoid having to add floating point */
+    ALTIMETER_KOHLSMAN_16("KOHLSMAN_SET"),
+
     MAGNETO1_OFF("MAGNETO1_OFF"),
     MAGNETO1_RIGHT("MAGNETO1_RIGHT"),
     MAGNETO1_LEFT("MAGNETO1_LEFT"),
