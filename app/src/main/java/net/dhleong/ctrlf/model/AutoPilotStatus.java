@@ -65,8 +65,8 @@ public class AutoPilotStatus implements SimData {
         sc.addToDataDefinition(id, "Autopilot Approach Hold", "Bool", SimConnectDataType.INT32);
         sc.addToDataDefinition(id, "Autopilot Backcourse Hold", "Bool", SimConnectDataType.INT32);
         sc.addToDataDefinition(id, "Autopilot Altitude Lock", "Bool", SimConnectDataType.INT32);
-        sc.addToDataDefinition(id, "Autopilot Altitude Lock Var", "Feet", SimConnectDataType.INT32);
         sc.addToDataDefinition(id, "Autopilot Heading Lock Dir", "Degrees", SimConnectDataType.FLOAT32);
+        sc.addToDataDefinition(id, "Autopilot Altitude Lock Var", "Feet", SimConnectDataType.INT32);
     }
 
 }
