@@ -3,6 +3,7 @@ package net.dhleong.ctrlf.module;
 import android.content.Context;
 import android.util.Log;
 import dagger.Module;
+import net.dhleong.ctrlf.model.AltitudeStatus;
 import net.dhleong.ctrlf.model.Connection;
 import net.dhleong.ctrlf.model.DataRequestPeriod;
 import net.dhleong.ctrlf.model.DataType;
@@ -42,7 +43,8 @@ public class DummyAppModule extends AppModule {
                         new LightsStatus(true, false, false, true, true, false),
                         new HeadingStatus(127, 1f),
                         new EngineStatus(EngineType.TURBOPROP,
-                                MagnetoMode.BOTH, MagnetoMode.BOTH)
+                                MagnetoMode.BOTH, MagnetoMode.BOTH),
+                        new AltitudeStatus(1500, 400f)
                 );
             }
 

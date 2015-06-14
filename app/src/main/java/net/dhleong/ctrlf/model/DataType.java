@@ -8,6 +8,7 @@ package net.dhleong.ctrlf.model;
  * @author dhleong
  */
 public enum DataType {
+    ALTITUDE_STATUS(AltitudeStatus.class),
     AUTOPILOT_STATUS(AutoPilotStatus.class),
     ENGINE_STATUS(EngineStatus.class),
     HEADING_STATUS(HeadingStatus.class),

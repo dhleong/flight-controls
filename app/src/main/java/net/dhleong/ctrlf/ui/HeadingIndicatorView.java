@@ -38,7 +38,7 @@ public class HeadingIndicatorView extends BaseInstrumentView {
     private static final float DIAL_OFFSET = 10;
 
     /** in degrees */
-    private static final float TICK_INTERVAL = 5;
+    private static final float TICK_INTERVAL = 6;
     private static final float DELTA_DEADZONE = 0.01f;
 
     final SmallDialView bugDial;
@@ -163,11 +163,6 @@ public class HeadingIndicatorView extends BaseInstrumentView {
                        .doOnNext(headingBugOverrides)
                        .subscribe(headingBugObserver)
         );
-    }
-
-    @Override
-    protected void onDetachedFromWindow() {
-        super.onDetachedFromWindow();
     }
 
     @Override
