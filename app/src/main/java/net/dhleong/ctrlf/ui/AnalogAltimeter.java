@@ -180,7 +180,10 @@ public class AnalogAltimeter extends BaseInstrumentView {
         onDrawThousands(canvas, center, altitude / 100f);
         onDrawHundreds(canvas, center, altitude / 1000f);
 
-        canvas.drawText(String.format(Locale.US, "%.2f", mbToInHg(kohlsmanMb)),
+        canvas.drawText(String.format(
+                        Locale.US,
+                        "%.2f",
+                        mbToInHg(kohlsmanMb / 16f)), // we store in *16
                 width - totalOffset - tickMajor,
                 center,
                 kohlsmanPaint);
