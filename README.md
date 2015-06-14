@@ -22,6 +22,7 @@ alternate versions for Jet-types may come along later
 - Autopilot box with knob for altitude setting
     - Buttons to activate nav/heading modes work, but the LCD doesn't yet reflect them
 - Heading indicator, with knob for the heading bug
+- Analog Altimeter, with knob to adjust the Kohlsman setting (QNH)
 - Light switches (with default Android widget... for now)
 - Magneto switches as appropriate
 
