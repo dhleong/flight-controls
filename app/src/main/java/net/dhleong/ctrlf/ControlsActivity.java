@@ -93,6 +93,7 @@ public class ControlsActivity
             // let's see if "slow" works for now; we have the delta rate,
             //  so it might not glitch that much. Worst case, we just switch to "Fast"
             connection.requestData(DataType.HEADING_STATUS, DataRequestPeriod.SLOW);
+            connection.requestData(DataType.ALTITUDE_STATUS, DataRequestPeriod.SLOW);
 
             // we only need the initial state for these
             connection.requestData(DataType.LIGHT_STATUS, DataRequestPeriod.SINGLE);

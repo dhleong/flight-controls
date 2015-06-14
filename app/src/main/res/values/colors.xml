@@ -6,4 +6,5 @@
     <color name="led_bg">#111</color>
 
     <color name="heading_airplane">?attr/colorAccent</color>
+    <color name="altimeter_color">?attr/colorAccent</color>
 </resources>

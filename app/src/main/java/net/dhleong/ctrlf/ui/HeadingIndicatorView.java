@@ -7,14 +7,14 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.os.SystemClock;
 import android.util.AttributeSet;
-import android.util.TypedValue;
-import android.view.View;
 import net.dhleong.ctrlf.App;
 import net.dhleong.ctrlf.R;
 import net.dhleong.ctrlf.model.AutoPilotStatus;
 import net.dhleong.ctrlf.model.HeadingStatus;
+import net.dhleong.ctrlf.ui.art.PathArtist;
 import net.dhleong.ctrlf.ui.base.BaseInstrumentView;
 import net.dhleong.ctrlf.util.OverridePreventer;
+import net.dhleong.ctrlf.util.UiUtil;
 import net.dhleong.ctrlf.util.scopes.Named;
 import rx.Observable;
 import rx.Observer;
@@ -30,6 +30,19 @@ import static net.dhleong.ctrlf.util.RxUtil.modulo;
  * @author dhleong
  */
 public class HeadingIndicatorView extends BaseInstrumentView {
+
+    static class AirplaneArtist extends PathArtist<HeadingIndicatorView> {
+
+        public AirplaneArtist(final HeadingIndicatorView view) {
+            super(view);
+        }
+
+        @Override
+        protected Path onCreatePath() {
+            return prepareAirplanePath(view.totalOffset, width());
+        }
+    }
+
 
     private static final float AIRPLANE_SCALE = 0.55f;
     private static final float TICK_MAJOR = 8;
@@ -53,7 +66,7 @@ public class HeadingIndicatorView extends BaseInstrumentView {
     final float tickMajor, tickMinor;
     final float tickOffset, dialOffset, totalOffset;
 
-    Path airplane;
+    final AirplaneArtist airplaneArtist = new AirplaneArtist(this);
 
     long lastFrame = 0;
 
@@ -91,7 +104,7 @@ public class HeadingIndicatorView extends BaseInstrumentView {
         totalOffset = tickOffset + dialOffset;
 
         airplanePaint = new Paint();
-        airplanePaint.setColor(resolveResource(this, R.color.heading_airplane));
+        airplanePaint.setColor(UiUtil.resolveResource(this, R.color.heading_airplane));
         airplanePaint.setAntiAlias(true);
         airplanePaint.setStyle(Paint.Style.STROKE);
         airplanePaint.setStrokeWidth(3 * density);
@@ -189,7 +202,7 @@ public class HeadingIndicatorView extends BaseInstrumentView {
         onDrawBug(canvas, center);
         canvas.restoreToCount(start);
 
-        onDrawPlane(canvas);
+        airplaneArtist.draw(canvas, airplanePaint);
         canvas.restore();
 
         if (headingDeltaRate > DELTA_DEADZONE) {
@@ -212,20 +225,6 @@ public class HeadingIndicatorView extends BaseInstrumentView {
         int width = r - l;
         int dialSize = bugDial.getMeasuredWidth();
         bugDial.layout(width - dialSize, width - dialSize, width, width);
-    }
-
-    private void onDrawPlane(final Canvas canvas) {
-
-        final Path path;
-        final Path existing = airplane;
-        if (existing == null) {
-            final float width = getRight() - getLeft();
-            path = airplane = prepareAirplanePath(totalOffset, width);
-        } else {
-            path = existing;
-        }
-
-        canvas.drawPath(path, airplanePaint);
     }
 
     private void onDrawMarkers(final Canvas canvas, final float center) {
@@ -311,50 +310,6 @@ public class HeadingIndicatorView extends BaseInstrumentView {
         newPath.lineTo(center, center - 3 * unit);
 
         return newPath;
-    }
-
-    /**
-     * If the the resource points to an attribute, this
-     *  will resolve the attribute
-     */
-    private static int resolveResource(final View view, final int resId) {
-
-        final Context context = view.getContext();
-        final Resources res = context.getResources();
-
-        if (view.isInEditMode()) {
-            // For some reason, the layout preview fails to retrieve the
-            //  color using the technique below, while real Android fails
-            //  to retrieve it using this method. Sigh.
-            try {
-                return res.getColor(resId);
-            } catch (Resources.NotFoundException e) {
-                // fall through
-            }
-        }
-
-        try {
-            final TypedValue value = new TypedValue();
-            res.getValue(resId, value, true);
-
-
-            if (value.type == TypedValue.TYPE_ATTRIBUTE) {
-                final Resources.Theme theme = context.getTheme();
-                theme.resolveAttribute(value.data, value, true);
-            }
-
-            return value.data;
-        } catch (IllegalArgumentException e) {
-            try {
-                Class.forName("org.robolectric.Robolectric");
-
-                // NB: we're running via robolectric; who cares?
-                return 0;
-            } catch (ClassNotFoundException e1) {
-                // not robolectric!
-                throw e;
-            }
-        }
     }
 
 }

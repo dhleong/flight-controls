@@ -6,12 +6,17 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Paint.Align;
 import android.graphics.Paint.FontMetrics;
+import android.graphics.Paint.Style;
+import android.graphics.Path;
 import android.os.SystemClock;
 import android.util.AttributeSet;
 import net.dhleong.ctrlf.App;
+import net.dhleong.ctrlf.R;
 import net.dhleong.ctrlf.model.AltitudeStatus;
+import net.dhleong.ctrlf.ui.art.PathArtist;
 import net.dhleong.ctrlf.ui.base.BaseInstrumentView;
 import net.dhleong.ctrlf.util.OverridePreventer;
+import net.dhleong.ctrlf.util.UiUtil;
 import net.dhleong.ctrlf.util.scopes.Named;
 import rx.Observable;
 import rx.Observer;
@@ -26,6 +31,82 @@ import java.util.Locale;
  * @author dhleong
  */
 public class AnalogAltimeter extends BaseInstrumentView {
+
+    static class TenThousandsHand extends PathArtist<AnalogAltimeter> {
+        public TenThousandsHand(final AnalogAltimeter view) {
+            super(view);
+        }
+
+        @Override
+        protected Path onCreatePath() {
+            final float half = view.tickMinor / 2f;
+            final float triangle = view.tickMajor;
+
+            final float center = center();
+            final Path path = new Path();
+            path.moveTo(center, view.totalOffset);
+            path.rLineTo(-half, 0);
+            path.rLineTo(half, triangle);
+            path.lineTo(center, center);
+            path.lineTo(center, view.totalOffset + triangle);
+            path.rLineTo(half, -triangle);
+            path.close();
+
+            return path;
+        }
+    }
+
+    static class ThousandsHand extends PathArtist<AnalogAltimeter> {
+        public ThousandsHand(final AnalogAltimeter view) {
+            super(view);
+        }
+
+        @Override
+        protected Path onCreatePath() {
+            final float half = view.tickMinor / 2;
+            final float triangle = view.tickMajor;
+
+            final float center = center();
+            final float small = center / 3f;
+
+            final Path path = new Path();
+            path.moveTo(center, center);
+            path.rLineTo(-half, 0);
+            path.rLineTo(-half, -small);
+            path.rLineTo(2 * half, -triangle);
+            path.rLineTo(2 * half, triangle);
+            path.lineTo(center + half, center);
+            path.close();
+
+            return path;
+        }
+    }
+
+    static class HundredsHand extends PathArtist<AnalogAltimeter> {
+        public HundredsHand(final AnalogAltimeter view) {
+            super(view);
+        }
+
+        @Override
+        protected Path onCreatePath() {
+            final float half = view.tickMinor / 2;
+            final float triangle = view.tickMajor;
+
+            final float center = center();
+            final float small = center * 0.65f;
+
+            final Path path = new Path();
+            path.moveTo(center, center);
+            path.rLineTo(-half, 0);
+            path.rLineTo(0, -small);
+            path.rLineTo(half, -triangle);
+            path.rLineTo(half, triangle);
+            path.lineTo(center + half, center);
+            path.close();
+
+            return path;
+        }
+    }
 
     private static final float TICK_MAJOR = 8;
     private static final float TICK_MINOR = 5;
@@ -46,10 +127,14 @@ public class AnalogAltimeter extends BaseInstrumentView {
 
     final OverridePreventer<Integer> kohlsmanOverrides = OverridePreventer.create();
 
-    final Paint tickPaint, kohlsmanPaint;
+    final Paint tickPaint, kohlsmanPaint, handPaint, colorPaint;
     final float tickMajor, tickMinor;
     final float tickOffset, dialOffset, totalOffset;
     final float textCenter;
+
+    final TenThousandsHand tenThousandsHand = new TenThousandsHand(this);
+    final ThousandsHand thousandsHand = new ThousandsHand(this);
+    final HundredsHand hundredsHand = new HundredsHand(this);
 
     long lastFrame = 0;
 
@@ -72,7 +157,7 @@ public class AnalogAltimeter extends BaseInstrumentView {
         super(context, attrs);
 
         if (isInEditMode()) {
-            altitude = 10180;
+            altitude = 3680;
             kohlsmanMb = 1013 * 16; // see above
         }
 
@@ -103,6 +188,13 @@ public class AnalogAltimeter extends BaseInstrumentView {
         kohlsmanPaint = new Paint(tickPaint);
         kohlsmanPaint.setTextAlign(Align.RIGHT);
         kohlsmanPaint.setTextSize(11 * density);
+
+        handPaint = new Paint(tickPaint);
+        handPaint.setStrokeWidth(2 * density);
+        handPaint.setStyle(Style.FILL_AND_STROKE);
+
+        colorPaint = new Paint(handPaint);
+        colorPaint.setColor(UiUtil.resolveResource(this, R.color.altimeter_color));
 
         // pre-calculate for faster draws (and to avoid allocations)
         final FontMetrics metrics = tickPaint.getFontMetrics();
@@ -176,9 +268,11 @@ public class AnalogAltimeter extends BaseInstrumentView {
         final float center = width / 2f;
         onDrawMarkers(canvas, center);
 
+        onDrawThousands(canvas, center, altitude / 1000f);
+        onDrawHundreds(canvas, center, altitude / 100f);
         onDrawTenThousands(canvas, center, altitude / 10000f);
-        onDrawThousands(canvas, center, altitude / 100f);
-        onDrawHundreds(canvas, center, altitude / 1000f);
+
+        canvas.drawCircle(center, center, tickMinor, tickPaint);
 
         canvas.drawText(String.format(
                         Locale.US,
@@ -209,9 +303,14 @@ public class AnalogAltimeter extends BaseInstrumentView {
     protected void onLayout(final boolean changed, final int l, final int t, final int r,
             final int b) {
 
-        int width = r - l;
-        int dialSize = dial.getMeasuredWidth();
-        dial.layout(0, width - dialSize, dialSize, width);
+        final int width = r - l;
+        final int dialSize = dial.getMeasuredWidth();
+
+        // NB: it's typically on the left, but to avoid issues with being
+        //  too close to the heading bug dial (for now) we'll put it
+        //  on the right
+//        dial.layout(0, width - dialSize, dialSize, width);
+        dial.layout(width - dialSize, width - dialSize, width, width);
     }
 
     private void onDrawMarkers(final Canvas canvas, final float center) {
@@ -255,8 +354,7 @@ public class AnalogAltimeter extends BaseInstrumentView {
             final float tensThousands) {
         canvas.save();
         rotateFeet(canvas, center, tensThousands);
-        // TODO
-        canvas.drawLine(center, center, center, 0, tickPaint);
+        tenThousandsHand.draw(canvas, handPaint);
         canvas.restore();
     }
 
@@ -264,8 +362,7 @@ public class AnalogAltimeter extends BaseInstrumentView {
             final float thousands) {
         canvas.save();
         rotateFeet(canvas, center, thousands);
-        // TODO
-        canvas.drawLine(center, center, center, center / 2f, tickPaint);
+        thousandsHand.draw(canvas, colorPaint);
         canvas.restore();
     }
 
@@ -273,8 +370,7 @@ public class AnalogAltimeter extends BaseInstrumentView {
             final float hundreds) {
         canvas.save();
         rotateFeet(canvas, center, hundreds);
-        // TODO
-        canvas.drawLine(center, center, center, center * .75f, tickPaint);
+        hundredsHand.draw(canvas, colorPaint);
         canvas.restore();
     }
 
