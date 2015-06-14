@@ -13,18 +13,18 @@ public class AltitudeStatus implements SimData {
 
     public final float altitude;
     public final float altitudeDeltaRate;
-    public final int kohlsmanMb;
+    public final float kohlsmanMb;
 
     @SuppressWarnings("unused")
     AltitudeStatus(final RecvSimObjectData data) {
         altitude = data.getDataFloat32();
         altitudeDeltaRate = data.getDataFloat32();
-        kohlsmanMb = data.getDataInt32();
+        kohlsmanMb = data.getDataFloat32();
     }
 
     public AltitudeStatus(final float altitude,
             final float altitudeDeltaRate,
-            final int kohlsmanMb) {
+            final float kohlsmanMb) {
 
         this.altitude = altitude;
         this.altitudeDeltaRate = altitudeDeltaRate;
@@ -40,6 +40,6 @@ public class AltitudeStatus implements SimData {
     public static void bindDataDefinition(SimConnect sc, Enum id) throws IOException {
         sc.addToDataDefinition(id, "Indicated Altitude", "Feet", SimConnectDataType.FLOAT32);
         sc.addToDataDefinition(id, "Vertical Speed", "Feet per second", SimConnectDataType.FLOAT32);
-        sc.addToDataDefinition(id, "Kohlsman Setting MB", "Millibars", SimConnectDataType.INT32);
+        sc.addToDataDefinition(id, "Kohlsman Setting MB", "Millibars", SimConnectDataType.FLOAT32);
     }
 }

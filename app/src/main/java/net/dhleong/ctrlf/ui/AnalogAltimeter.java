@@ -119,6 +119,7 @@ public class AnalogAltimeter extends BaseInstrumentView {
 
     /** Kohlsman is in millibars * 16 */
     private static final int KOHLSMAN_DETENTS = 4;
+    private static final float DEFAULT_KOHLSMAN = 1013 * 16;
 
     final SmallDialView dial;
 
@@ -139,7 +140,7 @@ public class AnalogAltimeter extends BaseInstrumentView {
     long lastFrame = 0;
 
     float altitude, altitudeDeltaRate;
-    float kohlsmanMb;
+    float kohlsmanMb = DEFAULT_KOHLSMAN;
 
     private Action1<? super Integer> setKohlsmanMb = new Action1<Integer>() {
         @Override
@@ -215,7 +216,7 @@ public class AnalogAltimeter extends BaseInstrumentView {
                               .lift(kohlsmanOverrides.prevent(new Func1<AltitudeStatus, Integer>() {
                                   @Override
                                   public Integer call(final AltitudeStatus status) {
-                                      return status.kohlsmanMb * 16; // kohlsman * 16
+                                      return Math.round(status.kohlsmanMb * 16); // kohlsman * 16
                                   }
                               }))
                               .subscribe(new Action1<AltitudeStatus>() {
@@ -227,7 +228,7 @@ public class AnalogAltimeter extends BaseInstrumentView {
                                       altitudeDeltaRate = altitudeStatus.altitudeDeltaRate;
                                       kohlsmanMb = altitudeStatus.kohlsmanMb * 16; // kohlsman * 16
 
-                                      if (altitudeDeltaRate > DELTA_DEADZONE
+                                      if (Math.abs(altitudeDeltaRate) > DELTA_DEADZONE
                                               || Math.abs(altitude - oldAltitude) > 0
                                               || Math.abs(kohlsmanMb - oldKohlsman) > 0) {
                                           postInvalidateOnAnimation();
@@ -284,7 +285,7 @@ public class AnalogAltimeter extends BaseInstrumentView {
 
         canvas.restore();
 
-        if (altitudeDeltaRate > DELTA_DEADZONE) {
+        if (Math.abs(altitudeDeltaRate) > DELTA_DEADZONE) {
             postInvalidateOnAnimation();
         }
     }
