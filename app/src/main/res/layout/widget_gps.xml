@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<net.dhleong.ctrlf.view.GpsView
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="16dp"
+        >
+
+    <!-- right side -->
+    <Button
+            android:id="@+id/range_up"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="^"
+            />
+    <Button
+            android:id="@+id/range_down"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="v"
+            />
+    <Button
+            android:id="@+id/direct"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="-D>"
+            />
+    <Button
+            android:id="@+id/menu"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="MENU"
+            />
+    <Button
+            android:id="@+id/clear"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="CLR"
+            />
+    <Button
+            android:id="@+id/enter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ENT"
+            />
+
+
+    <!-- bottom -->
+    <Button
+            android:id="@+id/nearest"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="NRST"
+            />
+    <Button
+            android:id="@+id/obs"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="OBS"
+            />
+    <Button
+            android:id="@+id/message"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="MSG"
+            />
+    <Button
+            android:id="@+id/flight_plan"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="FPL"
+            />
+    <Button
+            android:id="@+id/terrain"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="TERR"
+            />
+    <Button
+            android:id="@+id/procedure"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="PROC"
+            />
+
+    <net.dhleong.ctrlf.ui.FineDialView
+            android:id="@+id/dial"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+</net.dhleong.ctrlf.view.GpsView>

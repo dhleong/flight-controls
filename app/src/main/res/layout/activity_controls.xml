@@ -5,9 +5,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/panel_swapper">
+
+    <!-- page one -->
     <include layout="@layout/widget_instruments_panel"
         android:id="@+id/instruments_panel" />
 
+    <!-- page two -->
     <ScrollView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -17,4 +20,8 @@
             android:id="@+id/radio_stack"
             />
     </ScrollView>
+
+    <!-- page three -->
+    <include layout="@layout/widget_gps"
+         android:id="@+id/gps" />
 </android.support.v4.view.ViewPager>
