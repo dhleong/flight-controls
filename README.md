@@ -1,4 +1,4 @@
-FlightControls
+FlightControls [![Build Status](http://img.shields.io/travis/dhleong/flight-controls.svg?style=flat)](https://travis-ci.org/dhleong/flight-controls)
 ==============
 
 *Reach out and touch Flight Simulator X*
@@ -34,10 +34,10 @@ alternate versions for Jet-types may come along later
 I recently got into flying planes in 
 [Flight Simulator X](http://store.steampowered.com/app/314160/)
 and wanted a better way to interact with some of the switches and
-instruments that I couldn't map onto my flight stick and throttle.
+instruments that I couldn't map onto my flight stick or throttle.
 
 Also, I wanted to try out [Dagger 2](http://google.github.io/dagger/)
 
-## Dependencies
+## Special Thanks
 
 - [jSimConnect 0.8](http://lc0277.gratisim.fr/jsimconnect.html) (LGPL)
