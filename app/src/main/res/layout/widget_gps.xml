@@ -3,8 +3,16 @@
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="16dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="12dp"
+        android:paddingLeft="8dp"
+        android:paddingRight="8dp"
         >
+    <!--
+      extra padding on the bottom to prevent touch
+      confusion with the soft bottom bar
+      -->
+
 
     <!-- right side -->
     <Button
@@ -12,36 +20,42 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="^"
+            style="?android:attr/buttonStyleSmall"
             />
     <Button
             android:id="@+id/range_down"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="v"
+            style="?android:attr/buttonStyleSmall"
             />
     <Button
             android:id="@+id/direct"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="-D>"
+            style="?android:attr/buttonStyleSmall"
             />
     <Button
             android:id="@+id/menu"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="MENU"
+            style="?android:attr/buttonStyleSmall"
             />
     <Button
             android:id="@+id/clear"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="CLR"
+            style="?android:attr/buttonStyleSmall"
             />
     <Button
             android:id="@+id/enter"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="ENT"
+            style="?android:attr/buttonStyleSmall"
             />
 
 
@@ -51,36 +65,42 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="NRST"
+            style="?android:attr/buttonStyleSmall"
             />
     <Button
             android:id="@+id/obs"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="OBS"
+            style="?android:attr/buttonStyleSmall"
             />
     <Button
             android:id="@+id/message"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="MSG"
+            style="?android:attr/buttonStyleSmall"
             />
     <Button
             android:id="@+id/flight_plan"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="FPL"
+            style="?android:attr/buttonStyleSmall"
             />
     <Button
             android:id="@+id/terrain"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="TERR"
+            style="?android:attr/buttonStyleSmall"
             />
     <Button
             android:id="@+id/procedure"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="PROC"
+            style="?android:attr/buttonStyleSmall"
             />
 
     <net.dhleong.ctrlf.ui.FineDialView

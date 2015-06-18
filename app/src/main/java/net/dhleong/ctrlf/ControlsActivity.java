@@ -67,6 +67,12 @@ public class ControlsActivity
         panelSwapper.setKeepScreenOn(keepScreenOn);
         panelSwapper.setAdapter(new PanelAdapter(panelSwapper.getChildCount()));
 
+        // we shouldn't ever have too many pages, so let's just keep
+        //  them all attached. If things start working too hard, we can
+        //  consider sending PAUSE/UNPAUSE when "destroyed"; let's not
+        //  optimize prematurely here, though
+        panelSwapper.setOffscreenPageLimit(panelSwapper.getChildCount());
+
         lifecycle.observeOn(AndroidSchedulers.mainThread())
                  .subscribe(this);
     }
