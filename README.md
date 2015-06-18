@@ -25,6 +25,9 @@ alternate versions for Jet-types may come along later
 - Analog Altimeter, with knob to adjust the Kohlsman setting (QNH)
 - Light switches (with default Android widget... for now)
 - Magneto switches as appropriate
+- GPS panel
+    - **Display is non-functioning**. This is mostly for a more 
+    natural interface with the onscreen GPS *(for now)*
 
 ## Why?
 
