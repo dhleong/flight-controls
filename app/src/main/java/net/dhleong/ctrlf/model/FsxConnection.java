@@ -157,7 +157,7 @@ public class FsxConnection
                   });
 
         // prepare listener thread
-        thread = new DispatchThread(sc, dt);
+        thread = new DispatchThread(this, sc, dt);
         thread.start();
     }
 
@@ -294,18 +294,24 @@ public class FsxConnection
 
 
     private static class DispatchThread extends Thread {
+        private final FsxConnection conn;
         private final SimConnect sc;
         private final DispatcherTask task;
 
         boolean running = true;
 
-        public DispatchThread(final SimConnect sc, DispatcherTask task) {
+        public DispatchThread(final FsxConnection conn,
+                final SimConnect sc,
+                DispatcherTask task) {
+            this.conn = conn;
             this.sc = sc;
             this.task = task;
         }
 
         @Override
         public void run() {
+            boolean closeUnexpected = false;
+            IOException notifyIoe = null;
             while (running) {
                 try {
                     sc.callDispatch(task);
@@ -314,7 +320,22 @@ public class FsxConnection
                         // TODO we should probably do something with this....
                         e.printStackTrace();
                     }
+
+                    if (sc.isClosed()) {
+                        Log.v(TAG, "connection closed!");
+                        notifyIoe = e;
+                        closeUnexpected = running;
+                        break;
+                    }
                 }
+            }
+
+            if (closeUnexpected) {
+                // we weren't canceled; notify listeners
+                if (notifyIoe != null) {
+                    conn.ioexs.onNext(notifyIoe);
+                }
+                conn.lifecycleSubject.onNext(Lifecycle.DISCONNECTED);
             }
         }
 

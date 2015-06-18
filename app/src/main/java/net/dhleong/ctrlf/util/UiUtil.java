@@ -1,9 +1,13 @@
 package net.dhleong.ctrlf.util;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.res.Resources;
+import android.os.Build.VERSION;
+import android.os.Build.VERSION_CODES;
 import android.util.TypedValue;
 import android.view.View;
+import android.view.View.OnSystemUiVisibilityChangeListener;
 
 /**
  * @author dhleong
@@ -67,5 +71,30 @@ public class UiUtil {
                 throw e;
             }
         }
+    }
+
+    public static void setActivityLowProfile(final Activity activity) {
+        setLowProfile(activity.getWindow().getDecorView());
+    }
+
+    private static void setLowProfile(final View decorView) {
+        final int newVisibility;
+        if (VERSION.SDK_INT >=  VERSION_CODES.KITKAT) {
+            newVisibility = View.SYSTEM_UI_FLAG_LOW_PROFILE
+                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_IMMERSIVE
+                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+        } else {
+            // Unfortunately, seems to be somewhat broken right now...
+            // See: https://code.google.com/p/android/issues/detail?id=116438
+            newVisibility = View.SYSTEM_UI_FLAG_LOW_PROFILE;
+        }
+        decorView.setSystemUiVisibility(newVisibility);
+        decorView.setOnSystemUiVisibilityChangeListener(new OnSystemUiVisibilityChangeListener() {
+            @Override
+            public void onSystemUiVisibilityChange(final int visibility) {
+                decorView.setSystemUiVisibility(newVisibility);
+            }
+        });
     }
 }

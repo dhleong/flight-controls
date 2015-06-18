@@ -12,6 +12,7 @@ import butterknife.InjectView;
 import net.dhleong.ctrlf.model.Connection;
 import net.dhleong.ctrlf.model.DataRequestPeriod;
 import net.dhleong.ctrlf.model.DataType;
+import net.dhleong.ctrlf.util.UiUtil;
 import net.dhleong.ctrlf.util.scopes.Pref;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
@@ -75,6 +76,8 @@ public class ControlsActivity
 
         lifecycle.observeOn(AndroidSchedulers.mainThread())
                  .subscribe(this);
+
+        UiUtil.setActivityLowProfile(this);
     }
 
     @Override

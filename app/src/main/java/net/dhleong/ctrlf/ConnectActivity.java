@@ -67,6 +67,7 @@ public class ConnectActivity
         if (isDummyMode) {
             connect.setText(R.string.connect_dummy);
         }
+
     }
 
     @Override
