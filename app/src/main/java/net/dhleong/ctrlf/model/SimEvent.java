@@ -77,7 +77,9 @@ public enum SimEvent {
     GPS_GROUP_KNOB_DEC("GPS_GROUP_KNOB_DEC"),
     GPS_PAGE_KNOB_INC("GPS_PAGE_KNOB_INC"),
     GPS_PAGE_KNOB_DEC("GPS_PAGE_KNOB_DEC"),
-    ;
+
+    // bit of a hack, but GPS is usually panel 3
+    GPS_TOGGLE_SHOWN("PANEL_3");
 
     static final SimEvent MAGNETOS[][] = {
         {MAGNETO1_OFF, MAGNETO1_RIGHT, MAGNETO1_LEFT, MAGNETO1_BOTH, MAGNETO1_START},

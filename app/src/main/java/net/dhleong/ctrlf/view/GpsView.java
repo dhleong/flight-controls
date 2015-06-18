@@ -3,6 +3,7 @@ package net.dhleong.ctrlf.view;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.HapticFeedbackConstants;
+import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import butterknife.ButterKnife;
@@ -14,14 +15,16 @@ import net.dhleong.ctrlf.R;
 import net.dhleong.ctrlf.model.SimEvent;
 import net.dhleong.ctrlf.ui.FineDialView;
 import net.dhleong.ctrlf.util.RxUtil;
+import net.dhleong.ctrlf.util.scopes.Named;
 import rx.Observer;
-import rx.android.view.OnClickEvent;
 import rx.android.view.ViewObservable;
 import rx.functions.Func1;
 import rx.subscriptions.CompositeSubscription;
 
 import javax.inject.Inject;
 import java.util.List;
+
+import static net.dhleong.ctrlf.util.RxUtil.toObject;
 
 /**
  * @author dhleong
@@ -47,6 +50,7 @@ public class GpsView extends ViewGroup {
 
     @InjectView(R.id.dial) FineDialView dial;
     @InjectView(R.id.menu) View menu;
+    @InjectView(R.id.display) TextureView display;
 
     @InjectViews({R.id.range_up, R.id.range_down, R.id.direct,
     R.id.menu, R.id.clear, R.id.enter}) List<View> rightButtons;
@@ -54,6 +58,7 @@ public class GpsView extends ViewGroup {
     @InjectViews({R.id.nearest, R.id.obs, R.id.message, R.id.flight_plan,
     R.id.terrain, R.id.procedure}) List<View> bottomButtons;
 
+    @Inject @Named("GpsToggle") Observer<Void> toggleGpsObserver;
     @Inject Observer<SimEvent> clicksObserver;
 
     final CompositeSubscription subscriptions = new CompositeSubscription();
@@ -87,8 +92,15 @@ public class GpsView extends ViewGroup {
         subscriptions.add(
             ViewObservable.clicks(dial)
                           .doOnNext(RxUtil.PERFORM_HAPTIC)
-                          .map(toSimEvent(SimEvent.GPS_CURSOR))
+                          .map(toObject(SimEvent.GPS_CURSOR))
                           .subscribe(clicksObserver)
+        );
+
+        subscriptions.add(
+                ViewObservable.clicks(display)
+                              .doOnNext(RxUtil.PERFORM_HAPTIC)
+                              .map(RxUtil.CLICK_TO_VOID)
+                              .subscribe(toggleGpsObserver)
         );
 
         subscriptions.add(
@@ -102,16 +114,6 @@ public class GpsView extends ViewGroup {
                     .map(upOrDown(SimEvent.GPS_GROUP_KNOB_INC, SimEvent.GPS_GROUP_KNOB_DEC))
                     .subscribe(clicksObserver)
         );
-    }
-
-    private Func1<? super Integer, SimEvent> upOrDown(
-            final SimEvent up, final SimEvent down) {
-        return new Func1<Integer, SimEvent>() {
-            @Override
-            public SimEvent call(final Integer direction) {
-                return direction > 0 ? up : down;
-            }
-        };
     }
 
     @Override
@@ -140,6 +142,23 @@ public class GpsView extends ViewGroup {
         for (final View v : bottomButtons) {
             v.measure(width, anySpec);
         }
+
+        final int totalWidth = MeasureSpec.getSize(widthMeasureSpec);
+        final int totalHeight = MeasureSpec.getSize(heightMeasureSpec);
+        final int displayWidth = totalWidth
+                - getPaddingLeft()
+                - getPaddingRight()
+                - menu.getMeasuredWidth();
+        final int displayHeight = totalHeight
+                - getPaddingTop()
+                - getPaddingBottom()
+                - dial.getMeasuredHeight();
+        final int displayWidthSpec = MeasureSpec.makeMeasureSpec(
+                displayWidth, MeasureSpec.EXACTLY);
+        final int displayHeightSpec = MeasureSpec.makeMeasureSpec(
+                displayHeight, MeasureSpec.EXACTLY);
+
+        display.measure(displayWidthSpec, displayHeightSpec);
     }
 
     @Override
@@ -158,6 +177,10 @@ public class GpsView extends ViewGroup {
         dial.layout(dialL, dialT,
                 dialL + dial.getMeasuredWidth(),
                 dialT + dial.getMeasuredHeight());
+
+        display.layout(pl, pt,
+                pl + display.getMeasuredWidth(),
+                pt + display.getMeasuredHeight());
 
         final int rightH = dialT - pt;
         final int eachRight = rightH / rightButtons.size();
@@ -206,20 +229,26 @@ public class GpsView extends ViewGroup {
             subscriptions.add(
                     ViewObservable.clicks(v)
                                   .doOnNext(RxUtil.PERFORM_HAPTIC)
-                                  .map(toSimEvent(thisEvent))
+                                  .map(toObject(thisEvent))
                                   .subscribe(clicksObserver)
             );
         }
     }
 
-    /** Returns a function that maps click events to the provided SimEvent */
-    static Func1<? super OnClickEvent, SimEvent> toSimEvent(final SimEvent event) {
-        return new Func1<OnClickEvent, SimEvent>() {
+    /**
+     * Returns a function that maps integers to
+     *  one of two Objects based on whether that
+     *  number is positive or negative.
+     */
+    static <T> Func1<? super Integer, SimEvent> upOrDown(
+            final SimEvent up, final SimEvent down) {
+        return new Func1<Integer, SimEvent>() {
             @Override
-            public SimEvent call(final OnClickEvent onClickEvent) {
-                return event;
+            public SimEvent call(final Integer direction) {
+                return direction > 0 ? up : down;
             }
         };
     }
+
 
 }

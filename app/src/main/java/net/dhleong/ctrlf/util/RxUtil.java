@@ -16,12 +16,8 @@ import rx.functions.Func1;
  */
 public class RxUtil {
     public static final Func1<? super OnClickEvent, Void> CLICK_TO_VOID =
-            new Func1<OnClickEvent, Void>() {
-                @Override
-                public Void call(final OnClickEvent onClickEvent) {
-                    return null;
-                }
-            };
+            toObject((Void) null);
+
 
     public static final Action1<OnClickEvent> PERFORM_HAPTIC = new Action1<OnClickEvent>() {
         @Override
@@ -144,6 +140,19 @@ public class RxUtil {
                 }
 
                 return input % upperBound;
+            }
+        };
+    }
+
+    /**
+     * Returns a function that ignores input
+     *  and just returns the provided object
+     */
+    public static <I, J> Func1<I, J> toObject(final J result) {
+        return new Func1<I, J>() {
+            @Override
+            public J call(final I ignored) {
+                return result;
             }
         };
     }

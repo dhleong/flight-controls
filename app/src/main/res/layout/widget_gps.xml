@@ -108,4 +108,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
 
+    <TextureView
+            android:id="@+id/display"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
 </net.dhleong.ctrlf.view.GpsView>

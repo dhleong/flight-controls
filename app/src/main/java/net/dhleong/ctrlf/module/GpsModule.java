@@ -4,6 +4,8 @@ import dagger.Module;
 import dagger.Provides;
 import net.dhleong.ctrlf.model.Connection;
 import net.dhleong.ctrlf.model.SimEvent;
+import net.dhleong.ctrlf.util.RxUtil;
+import net.dhleong.ctrlf.util.scopes.Named;
 import rx.Observer;
 
 /**
@@ -11,6 +13,10 @@ import rx.Observer;
  */
 @Module
 public class GpsModule {
+
+    @Provides @Named("GpsToggle") Observer<Void> provideGpsToggleObserver(final Connection conn) {
+        return RxUtil.doSend(conn, SimEvent.GPS_TOGGLE_SHOWN);
+    }
 
     @Provides Observer<SimEvent> provideGpsButtonObserver(final Connection connection) {
         return new Observer<SimEvent>() {

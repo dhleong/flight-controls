@@ -50,14 +50,15 @@ public class GpsTest extends BaseViewModuleTest<GpsView, GpsTestModule> {
         assertClickSends(R.id.clear, SimEvent.GPS_CLEAR);
         assertClickSends(R.id.enter, SimEvent.GPS_ENTER);
 
-        assertClickSends(R.id.dial, SimEvent.GPS_CURSOR);
-
         assertClickSends(R.id.nearest, SimEvent.GPS_NEAREST);
         assertClickSends(R.id.obs, SimEvent.GPS_OBS);
         assertClickSends(R.id.message, SimEvent.GPS_MESSAGE);
         assertClickSends(R.id.flight_plan, SimEvent.GPS_FLIGHT_PLAN);
         assertClickSends(R.id.terrain, SimEvent.GPS_TERRAIN);
         assertClickSends(R.id.procedure, SimEvent.GPS_PROCEDURE);
+
+        assertClickSends(R.id.dial, SimEvent.GPS_CURSOR);
+        assertClickSends(R.id.display, SimEvent.GPS_TOGGLE_SHOWN);
     }
 
     @Test
