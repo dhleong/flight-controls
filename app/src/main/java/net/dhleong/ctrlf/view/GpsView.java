@@ -28,8 +28,8 @@ import java.util.List;
  */
 public class GpsView extends ViewGroup {
     static final SimEvent[] RIGHT_EVENTS = {
-            SimEvent.GPS_ZOOM_IN,
             SimEvent.GPS_ZOOM_OUT,
+            SimEvent.GPS_ZOOM_IN,
             SimEvent.GPS_DIRECT,
             SimEvent.GPS_MENU,
             SimEvent.GPS_CLEAR,
