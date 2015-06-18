@@ -310,31 +310,25 @@ public class FsxConnection
 
         @Override
         public void run() {
-            boolean closeUnexpected = false;
             IOException notifyIoe = null;
             while (running) {
                 try {
                     sc.callDispatch(task);
                 } catch (IOException e) {
                     if (running) {
-                        // TODO we should probably do something with this....
+                        // NB: We've probably lost our connection
                         e.printStackTrace();
-                    }
 
-                    if (sc.isClosed()) {
                         Log.v(TAG, "connection closed!");
                         notifyIoe = e;
-                        closeUnexpected = running;
                         break;
                     }
                 }
             }
 
-            if (closeUnexpected) {
+            if (notifyIoe != null) {
                 // we weren't canceled; notify listeners
-                if (notifyIoe != null) {
-                    conn.ioexs.onNext(notifyIoe);
-                }
+                conn.ioexs.onNext(notifyIoe);
                 conn.lifecycleSubject.onNext(Lifecycle.DISCONNECTED);
             }
         }
