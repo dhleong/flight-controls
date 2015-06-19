@@ -121,6 +121,7 @@ public class RadioStackView
             navCom1.setComStandbyFrequency(radioStatus.com1Standby);
             navCom1.setNavFrequency(radioStatus.nav1Active);
             navCom1.setNavStandbyFrequency(radioStatus.nav1Standby);
+            xpndr.setTransponderCode(radioStatus.transponder);
         }
 
         // we never influence avionics power, so it's safe to

@@ -39,7 +39,7 @@ public class DummyAppModule extends AppModule {
             @Override
             public Observable<SimData> dataObjects() {
                 return Observable.just(
-                        new RadioStatus(true, 124_500, 118_000, 112_000, 114_250),
+                        new RadioStatus(true, 124_500, 118_000, 112_000, 114_250, 1200),
                         new LightsStatus(true, false, false, true, true, false),
                         new HeadingStatus(127, 1f),
                         new EngineStatus(EngineType.TURBOPROP,

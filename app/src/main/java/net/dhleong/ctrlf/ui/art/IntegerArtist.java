@@ -57,14 +57,18 @@ public class IntegerArtist {
     public int toNumber() {
         int multiplicand = 1;
 
+        boolean wasCleared = true;
         int number = 0;
         final int len = digits.length;
         for (int i=len-1; i >= 0; i--) {
-            number += digits[i].getDigit() * multiplicand;
+            final int digit = digits[i].getDigit();
+            number += digit * multiplicand;
             multiplicand *= 10;
+
+            wasCleared &= digit == -1;
         }
 
-        return number;
+        return wasCleared ? -1 : number;
     }
 
     public void clear() {

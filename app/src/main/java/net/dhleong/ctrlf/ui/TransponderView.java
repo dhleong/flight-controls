@@ -41,6 +41,7 @@ public class TransponderView extends BaseLedView {
     public final Button ident;
 
     private int cursor;
+    private int oldTransponder = -1;
 
     final PublishSubject<Integer> transponderChangesSubject =
             PublishSubject.create();
@@ -79,6 +80,10 @@ public class TransponderView extends BaseLedView {
         return transponderChangesSubject;
     }
 
+    public int getTransponderCode() {
+        return digits.toNumber();
+    }
+
     public void setTransponderCode(int code) {
         digits.setNumber(code);
         invalidate();
@@ -94,9 +99,10 @@ public class TransponderView extends BaseLedView {
         super.setEnabled(enabled);
 
         if (enabled) {
-            // TODO probably, remember the last value and restore
-            setTransponderCode(VFR_CODE);
+            final int old = oldTransponder;
+            setTransponderCode(old > 0 ? old : VFR_CODE);
         } else {
+            oldTransponder = digits.toNumber();
             digits.clear();
         }
     }

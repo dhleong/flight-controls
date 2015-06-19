@@ -144,11 +144,16 @@ public class RadioStackTest extends BaseViewModuleTest<RadioStackView, RadioTest
         assertThat(view.navCom1.getComFrequency()).isEqualTo(INITIAL_COM_ACTIVE);
         assertThat(view.navCom1.getNavFrequency()).isEqualTo(INITIAL_NAV_ACTIVE);
 
-        module.dataObjectsSubject.onNext(new RadioStatus(true, 118_000, 119_250, 112_000, 114_250));
+        // assume powered initially
+        view.navCom1.setEnabled(true);
+        view.xpndr.setEnabled(true);
+
+        module.dataObjectsSubject.onNext(new RadioStatus(true, 118_000, 119_250, 112_000, 114_250, 3015));
         assertThat(view.navCom1.getComFrequency()).isEqualTo(118_000);
         assertThat(view.navCom1.getComStandbyFrequency()).isEqualTo(119_250);
         assertThat(view.navCom1.getNavFrequency()).isEqualTo(112_000);
         assertThat(view.navCom1.getNavStandbyFrequency()).isEqualTo(114_250);
+        assertThat(view.xpndr.getTransponderCode()).isEqualTo(3015);
     }
 
     @Test
@@ -156,21 +161,29 @@ public class RadioStackTest extends BaseViewModuleTest<RadioStackView, RadioTest
         assertThat(view.navCom1.getComFrequency()).isEqualTo(INITIAL_COM_ACTIVE);
         assertThat(view.navCom1.getNavFrequency()).isEqualTo(INITIAL_NAV_ACTIVE);
 
+        // assume powered initially
+        view.navCom1.setEnabled(true);
+        view.xpndr.setEnabled(true);
+
         // with avionics disabled, we use a negative frequency
         //  to draw the views as "off"
-        module.dataObjectsSubject.onNext(new RadioStatus(false, 118_000, 119_250, 112_000, 114_250));
+        module.dataObjectsSubject.onNext(new RadioStatus(false, 118_000, 119_250, 112_000, 114_250, 3015));
         assertThat(view.navCom1).isDisabled();
         assertThat(view.navCom1.getComFrequency()).isEqualTo(-1);
         assertThat(view.navCom1.getComStandbyFrequency()).isEqualTo(-1);
         assertThat(view.navCom1.getNavFrequency()).isEqualTo(-1);
         assertThat(view.navCom1.getNavStandbyFrequency()).isEqualTo(-1);
+        assertThat(view.xpndr).isDisabled();
+        assertThat(view.xpndr.getTransponderCode()).isEqualTo(-1);
 
         // providing power should not lose the last frequency
         view.navCom1.setEnabled(true);
+        view.xpndr.setEnabled(true);
         assertThat(view.navCom1.getComFrequency()).isEqualTo(118_000);
         assertThat(view.navCom1.getComStandbyFrequency()).isEqualTo(119_250);
         assertThat(view.navCom1.getNavFrequency()).isEqualTo(112_000);
         assertThat(view.navCom1.getNavStandbyFrequency()).isEqualTo(114_250);
+        assertThat(view.xpndr.getTransponderCode()).isEqualTo(3015);
     }
 
     @Test
