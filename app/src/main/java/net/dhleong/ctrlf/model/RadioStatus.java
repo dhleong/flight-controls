@@ -1,5 +1,6 @@
 package net.dhleong.ctrlf.model;
 
+import android.util.Log;
 import flightsim.simconnect.SimConnect;
 import flightsim.simconnect.SimConnectDataType;
 import flightsim.simconnect.recv.RecvSimObjectData;
@@ -55,7 +56,7 @@ public class RadioStatus implements SimData {
         sc.addToDataDefinition(id, "Com Standby Frequency:1", FREQ, SimConnectDataType.INT32);
         sc.addToDataDefinition(id, "Nav Active Frequency:1", FREQ, SimConnectDataType.INT32);
         sc.addToDataDefinition(id, "Nav Standby Frequency:1", FREQ, SimConnectDataType.INT32);
-        sc.addToDataDefinition(id, "Transponder Code:1", "BCO 16", SimConnectDataType.INT32);
+        sc.addToDataDefinition(id, "Transponder Code:1", "BCO16", SimConnectDataType.INT32);
     }
 
     static int readFrequency(final RecvSimObjectData data) {

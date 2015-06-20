@@ -84,18 +84,14 @@ public class TransponderView extends BaseLedView {
         return digits.toNumber();
     }
 
-    public void setTransponderCode(int code) {
+    public void setTransponderCode(final int code) {
+        oldTransponder = code;
         digits.setNumber(code);
         invalidate();
     }
 
     @Override
     public void setEnabled(final boolean enabled) {
-
-        if (enabled == isEnabled()) {
-            return;
-        }
-
         super.setEnabled(enabled);
 
         if (enabled) {

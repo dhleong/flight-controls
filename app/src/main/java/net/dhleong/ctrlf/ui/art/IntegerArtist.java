@@ -13,6 +13,7 @@ import net.dhleong.ctrlf.ui.art.LedArtist.DigitLedArtist;
 public class IntegerArtist {
 
     static final float OFFSET = 0.2f;
+    static final int CLEARED = -1;
 
     private final RectF inputRect;
     private final DigitLedArtist[] digits;
@@ -65,15 +66,15 @@ public class IntegerArtist {
             number += digit * multiplicand;
             multiplicand *= 10;
 
-            wasCleared &= digit == -1;
+            wasCleared &= digit == CLEARED;
         }
 
-        return wasCleared ? -1 : number;
+        return wasCleared ? CLEARED : number;
     }
 
     public void clear() {
         for (DigitLedArtist artist : digits) {
-            artist.setDigit(-1);
+            artist.setDigit(CLEARED);
         }
     }
 

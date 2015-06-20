@@ -144,10 +144,6 @@ public class RadioStackTest extends BaseViewModuleTest<RadioStackView, RadioTest
         assertThat(view.navCom1.getComFrequency()).isEqualTo(INITIAL_COM_ACTIVE);
         assertThat(view.navCom1.getNavFrequency()).isEqualTo(INITIAL_NAV_ACTIVE);
 
-        // assume powered initially
-        view.navCom1.setEnabled(true);
-        view.xpndr.setEnabled(true);
-
         module.dataObjectsSubject.onNext(new RadioStatus(true, 118_000, 119_250, 112_000, 114_250, 3015));
         assertThat(view.navCom1.getComFrequency()).isEqualTo(118_000);
         assertThat(view.navCom1.getComStandbyFrequency()).isEqualTo(119_250);
@@ -160,10 +156,6 @@ public class RadioStackTest extends BaseViewModuleTest<RadioStackView, RadioTest
     public void receiveNoPower() {
         assertThat(view.navCom1.getComFrequency()).isEqualTo(INITIAL_COM_ACTIVE);
         assertThat(view.navCom1.getNavFrequency()).isEqualTo(INITIAL_NAV_ACTIVE);
-
-        // assume powered initially
-        view.navCom1.setEnabled(true);
-        view.xpndr.setEnabled(true);
 
         // with avionics disabled, we use a negative frequency
         //  to draw the views as "off"
