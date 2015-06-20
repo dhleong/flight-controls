@@ -5,9 +5,11 @@ import flightsim.simconnect.SimConnect;
 import flightsim.simconnect.SimConnectConstants;
 import flightsim.simconnect.SimConnectPeriod;
 import flightsim.simconnect.recv.DispatcherTask;
+import flightsim.simconnect.recv.EventHandler;
 import flightsim.simconnect.recv.ExceptionHandler;
 import flightsim.simconnect.recv.OpenHandler;
 import flightsim.simconnect.recv.QuitHandler;
+import flightsim.simconnect.recv.RecvEvent;
 import flightsim.simconnect.recv.RecvException;
 import flightsim.simconnect.recv.RecvOpen;
 import flightsim.simconnect.recv.RecvQuit;
@@ -39,7 +41,8 @@ public class FsxConnection
                    SimObjectDataHandler,
                    ExceptionHandler,
                    OpenHandler,
-                   QuitHandler {
+                   QuitHandler,
+                   EventHandler {
 
     private static final String TAG = "ctrlf:Fsx";
     private static final String APP_NAME = "net.dhleong.ctrlf";
@@ -90,6 +93,11 @@ public class FsxConnection
             }
         }
     }
+
+    // prevent multiple array allocations
+    static final Lifecycle[] LIFECYCLES = Lifecycle.values();
+    static final int LIFECYCLE_OFFSET = SimEvent.values().length;
+
     static final SimConnectDataTypes dataTypes = new SimConnectDataTypes();
 
     final BehaviorSubject<IOException> ioexs = BehaviorSubject.create();
@@ -130,6 +138,7 @@ public class FsxConnection
         dt.addQuitHandler(this);
         dt.addExceptionHandler(this);
         dt.addSimObjectDataHandler(this);
+        dt.addEventHandler(this);
 
         // map events
         for (final SimEvent ev : SimEvent.values()) {
@@ -140,6 +149,13 @@ public class FsxConnection
         for (final DataType type : DataType.VALUES) {
             dataTypes.bindDataDefinition(type, sc);
         }
+
+        // internal events (bummer that it doesn't "just work" with a separate enum)
+        sc.subscribeToSystemEvent(LIFECYCLE_OFFSET + Lifecycle.SIM_START.ordinal(),
+                "SimStart");
+        sc.subscribeToSystemEvent(LIFECYCLE_OFFSET + Lifecycle.SIM_QUIT.ordinal(),
+                "SimStop");
+
 
         // rx subscription
         eventQueue.observeOn(Schedulers.io())
@@ -201,6 +217,13 @@ public class FsxConnection
 
         final DataType request = DataType.fromInt(data.getRequestID());
         dataObjectsSubject.onNext(parseSimObject(data, request));
+    }
+
+    @Override
+    public void handleEvent(final SimConnect simConnect, final RecvEvent recvEvent) {
+        final int index = recvEvent.getEventID() - LIFECYCLE_OFFSET;
+        final Lifecycle event = LIFECYCLES[index];
+        Log.v(TAG, "lifecycle=" + event);
     }
 
     @Override
