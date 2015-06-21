@@ -17,10 +17,13 @@ import butterknife.InjectView;
 import butterknife.InjectViews;
 import butterknife.OnClick;
 import net.dhleong.ctrlf.model.Connection;
+import net.dhleong.ctrlf.model.Connection.Lifecycle;
 import net.dhleong.ctrlf.util.scopes.IsDummyMode;
 import net.dhleong.ctrlf.util.scopes.Pref;
+import rx.Observable;
 import rx.Observer;
-import rx.functions.Action0;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
 import rx.subscriptions.CompositeSubscription;
 
 import javax.inject.Inject;
@@ -41,6 +44,7 @@ public class ConnectActivity
 
     @Inject Connection connection;
     @Inject SharedPreferences prefs;
+    @Inject Observable<Lifecycle> lifecycle;
     @Inject @Pref(LAST_HOST) String lastHost;
     @Inject @Pref(LAST_PORT) String lastPort;
     @Inject @IsDummyMode boolean isDummyMode;
@@ -68,6 +72,22 @@ public class ConnectActivity
             connect.setText(R.string.connect_dummy);
         }
 
+        subscriptions.add(
+            lifecycle.observeOn(AndroidSchedulers.mainThread())
+                     .subscribe(new Action1<Lifecycle>() {
+                         @Override
+                         public void call(final Lifecycle lifecycle) {
+                             switch (lifecycle) {
+                             case DISCONNECTED:
+                                 onDisconnected(null);
+                                 break;
+                             case CONNECTED:
+                                 onConnected();
+                                 break;
+                             }
+                         }
+                     })
+        );
     }
 
     @Override
@@ -139,24 +159,17 @@ public class ConnectActivity
 
         subscriptions.add(
             connection.connect(hostRaw, portNo)
-                      .finallyDo(new Action0() {
-                          @Override
-                          public void call() {
-                              ButterKnife.apply(allViews, ENABLED, true);
-                          }
-                      })
                       .subscribe(new Observer<Connection>() {
                           @Override
                           public void onCompleted() {
-                              onConnected();
+                              Log.v("ctrlf", "Connection ready");
+                              // TODO some UI?
                           }
 
                           @Override
                           public void onError(final Throwable throwable) {
                               Log.w("ctrlf", "Error connecting to sim", throwable);
-                              Toast.makeText(ConnectActivity.this,
-                                      getString(R.string.connect_error, throwable.getMessage()),
-                                      Toast.LENGTH_LONG).show();
+                              onDisconnected(throwable);
                           }
 
                           @Override
@@ -169,6 +182,19 @@ public class ConnectActivity
 
     /** Called on successful connection */
     void onConnected() {
+        ButterKnife.apply(allViews, ENABLED, true);
         startActivity(new Intent(this, ControlsActivity.class));
+    }
+
+    void onDisconnected(final Throwable throwable) {
+        ButterKnife.apply(allViews, ENABLED, true);
+
+        if (throwable == null) {
+            Toast.makeText(this, R.string.sim_disconnect, Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(ConnectActivity.this,
+                    getString(R.string.connect_error, throwable.getMessage()),
+                    Toast.LENGTH_LONG).show();
+        }
     }
 }
