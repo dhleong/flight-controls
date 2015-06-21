@@ -151,11 +151,10 @@ public class FsxConnection
         }
 
         // internal events (bummer that it doesn't "just work" with a separate enum)
-        sc.subscribeToSystemEvent(LIFECYCLE_OFFSET + Lifecycle.SIM_START.ordinal(),
-                "SimStart");
-        sc.subscribeToSystemEvent(LIFECYCLE_OFFSET + Lifecycle.SIM_QUIT.ordinal(),
-                "SimStop");
-
+        sc.subscribeToSystemEvent(LIFECYCLE_OFFSET
+                        + Lifecycle.SIM_START.ordinal(), "SimStart");
+        sc.subscribeToSystemEvent(LIFECYCLE_OFFSET
+                        + Lifecycle.SIM_STOP.ordinal(), "SimStop");
 
         // rx subscription
         eventQueue.observeOn(Schedulers.io())
@@ -202,13 +201,15 @@ public class FsxConnection
     @Override
     public void handleOpen(final SimConnect simConnect, final RecvOpen recvOpen) {
         Log.v(TAG, "opened! " + recvOpen);
-        lifecycleSubject.onNext(Lifecycle.SIM_START);
+//        lifecycleSubject.onNext(Lifecycle.SIM_START);
+        transitionLifecycle(Lifecycle.CONNECTED);
     }
 
     @Override
     public void handleQuit(final SimConnect simConnect, final RecvQuit recvQuit) {
-        Log.v(TAG, "quit! " + recvQuit);
-        lifecycleSubject.onNext(Lifecycle.SIM_QUIT);
+//        Log.v(TAG, "quit! " + recvQuit);
+//        lifecycleSubject.onNext(Lifecycle.SIM_STOP);
+        transitionLifecycle(Lifecycle.DISCONNECTED);
     }
 
     @Override
@@ -223,7 +224,8 @@ public class FsxConnection
     public void handleEvent(final SimConnect simConnect, final RecvEvent recvEvent) {
         final int index = recvEvent.getEventID() - LIFECYCLE_OFFSET;
         final Lifecycle event = LIFECYCLES[index];
-        Log.v(TAG, "lifecycle=" + event);
+//        Log.v(TAG, "lifecycle=" + event);
+        transitionLifecycle(event);
     }
 
     @Override
@@ -272,7 +274,9 @@ public class FsxConnection
                     init(simConnect);
                     subscriber.onNext(FsxConnection.this);
                     subscriber.onCompleted();
-                    lifecycleSubject.onNext(Lifecycle.CONNECTED);
+
+                    // NB: This will be provided by the onCompleted
+//                    lifecycleSubject.onNext(Lifecycle.CONNECTED);
                 } catch (IOException e) {
                     subscriber.onError(e);
                 }
@@ -303,6 +307,12 @@ public class FsxConnection
             }
         }).subscribeOn(Schedulers.io())
           .subscribe(); // just do it (tm)
+    }
+
+    void transitionLifecycle(final Lifecycle newState) {
+        if (currentState == newState) return;
+
+        lifecycleSubject.onNext(newState);
     }
 
     private void requestData(final DataType type, final SimConnectPeriod period) throws IOException {
@@ -352,7 +362,8 @@ public class FsxConnection
             if (notifyIoe != null) {
                 // we weren't canceled; notify listeners
                 conn.ioexs.onNext(notifyIoe);
-                conn.lifecycleSubject.onNext(Lifecycle.DISCONNECTED);
+//                conn.lifecycleSubject.onNext(Lifecycle.DISCONNECTED);
+                conn.transitionLifecycle(Lifecycle.DISCONNECTED);
             }
         }
 

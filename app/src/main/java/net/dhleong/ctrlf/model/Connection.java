@@ -12,7 +12,7 @@ public interface Connection {
     enum Lifecycle {
         CONNECTED,
         SIM_START,
-        SIM_QUIT,
+        SIM_STOP,
         DISCONNECTED;
     }
 

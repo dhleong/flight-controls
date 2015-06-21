@@ -1,5 +1,6 @@
 package net.dhleong.ctrlf.model;
 
+import flightsim.simconnect.recv.RecvEvent;
 import net.dhleong.ctrlf.model.Connection.Lifecycle;
 import org.junit.Before;
 import org.junit.Test;
@@ -8,6 +9,8 @@ import rx.Observable;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author dhleong
@@ -90,13 +93,49 @@ public class FsxConnectionTest {
     public void reconnect() {
         submitLifecycle(connection, Lifecycle.CONNECTED);
         submitLifecycle(connection, Lifecycle.SIM_START);
-        submitLifecycle(connection, Lifecycle.SIM_QUIT);
+        submitLifecycle(connection, Lifecycle.SIM_STOP);
         submitLifecycle(connection, Lifecycle.DISCONNECTED);
         submitLifecycle(connection, Lifecycle.CONNECTED);
 
         assertThat(slurpEvents(connection))
-                .containsExactly(
-                        Lifecycle.CONNECTED);
+                .containsExactly(Lifecycle.CONNECTED);
+    }
+
+    @Test
+    public void simPause() {
+        final Observable<Lifecycle> events = connection.lifecycleEvents();
+
+        connection.handleOpen(null, null);
+        connection.handleEvent(null, lifecycle(Lifecycle.SIM_START));
+        connection.handleEvent(null, lifecycle(Lifecycle.SIM_STOP));
+
+        assertThat(slurpEvents(connection, events))
+                .containsExactly(Lifecycle.CONNECTED,
+                                 Lifecycle.SIM_START,
+                                 Lifecycle.SIM_STOP);
+    }
+
+    @Test
+    public void noDupDisconnect() {
+        final Observable<Lifecycle> events = connection.lifecycleEvents();
+
+        connection.handleOpen(null, null);
+
+        // these are both "disconnect" events
+        connection.handleQuit(null, null);
+        connection.transitionLifecycle(Lifecycle.DISCONNECTED);
+
+        assertThat(slurpEvents(connection, events))
+                .containsExactly(Lifecycle.CONNECTED,
+                                 Lifecycle.DISCONNECTED);
+    }
+
+    static RecvEvent lifecycle(final Lifecycle lifecycle) {
+        final int eventId = FsxConnection.LIFECYCLE_OFFSET
+                + lifecycle.ordinal();
+        final RecvEvent ev = mock(RecvEvent.class);
+        when(ev.getEventID()).thenReturn(eventId);
+        return ev;
     }
 
     static void submitLifecycle(FsxConnection connection, Lifecycle event) {

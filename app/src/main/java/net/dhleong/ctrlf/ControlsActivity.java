@@ -90,7 +90,7 @@ public class ControlsActivity
     @Override
     public void call(final Connection.Lifecycle lifecycle) {
         switch (lifecycle) {
-        case SIM_START:
+        case CONNECTED:
             // request some data. We could perhaps rather use
             //  the change events, but we need these anyway, and 1/s shouldn't
             //  put that much strain on the network....
@@ -104,14 +104,15 @@ public class ControlsActivity
             connection.requestData(DataType.HEADING_STATUS, DataRequestPeriod.SLOW);
             connection.requestData(DataType.ALTITUDE_STATUS, DataRequestPeriod.SLOW);
 
+        case SIM_START:
             // we only need the initial state for these
             connection.requestData(DataType.LIGHT_STATUS, DataRequestPeriod.SINGLE);
             connection.requestData(DataType.ENGINE_STATUS, DataRequestPeriod.SINGLE);
             break;
 
-        case SIM_QUIT:
-            Toast.makeText(this, R.string.sim_quit, Toast.LENGTH_SHORT).show();
-            finish();
+        case SIM_STOP:
+//            Toast.makeText(this, R.string.sim_quit, Toast.LENGTH_SHORT).show();
+//            finish();
             break;
         case DISCONNECTED:
             if (!isFinishing()) {
