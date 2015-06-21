@@ -3,6 +3,7 @@ package net.dhleong.ctrlf;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -10,7 +11,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 import butterknife.ButterKnife;
 import butterknife.ButterKnife.Setter;
 import butterknife.InjectView;
@@ -49,6 +49,7 @@ public class ConnectActivity
     @Inject @Pref(LAST_PORT) String lastPort;
     @Inject @IsDummyMode boolean isDummyMode;
 
+    @InjectView(R.id.root) View root;
     @InjectView(R.id.host) TextView host;
     @InjectView(R.id.port) TextView port;
     @InjectView(R.id.connect) TextView connect;
@@ -188,13 +189,21 @@ public class ConnectActivity
 
     void onDisconnected(final Throwable throwable) {
         ButterKnife.apply(allViews, ENABLED, true);
+        Snackbar.make(root,
+                pickDisconnectedMessage(throwable),
+                Snackbar.LENGTH_LONG).show();
+    }
 
+    private CharSequence pickDisconnectedMessage(final Throwable throwable) {
         if (throwable == null) {
-            Toast.makeText(this, R.string.sim_disconnect, Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(ConnectActivity.this,
-                    getString(R.string.connect_error, throwable.getMessage()),
-                    Toast.LENGTH_LONG).show();
+            return getString(R.string.sim_disconnect);
         }
+
+        final String base = throwable.getMessage();
+        if (base.startsWith("failed") || base.startsWith("Failed")) {
+            return base;
+        }
+
+        return getString(R.string.connect_error, base);
     }
 }
