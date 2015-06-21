@@ -1,8 +1,6 @@
 package net.dhleong.ctrlf.model;
 
 import rx.Observable;
-import rx.subjects.ReplaySubject;
-import rx.subjects.Subject;
 
 /**
  * @author dhleong
@@ -10,6 +8,8 @@ import rx.subjects.Subject;
 public interface Connection {
 
     enum Lifecycle {
+        CONNECTING,
+
         CONNECTED,
         SIM_START,
         SIM_STOP,

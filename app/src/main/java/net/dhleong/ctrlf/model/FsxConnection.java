@@ -113,6 +113,7 @@ public class FsxConnection
     DispatchThread thread;
 
     public FsxConnection() {
+
         ioexs.subscribe(new Action1<IOException>() {
             @Override
             public void call(final IOException e) {
@@ -200,7 +201,7 @@ public class FsxConnection
 
     @Override
     public void handleOpen(final SimConnect simConnect, final RecvOpen recvOpen) {
-        Log.v(TAG, "opened! " + recvOpen);
+//        Log.v(TAG, "opened! " + recvOpen);
 //        lifecycleSubject.onNext(Lifecycle.SIM_START);
         transitionLifecycle(Lifecycle.CONNECTED);
     }
@@ -266,6 +267,8 @@ public class FsxConnection
 
     @Override
     public Observable<Connection> connect(final String host, final int port) {
+        transitionLifecycle(Lifecycle.CONNECTING);
+
         return Observable.create(new OnSubscribe<Connection>() {
             @Override
             public void call(final Subscriber<? super Connection> subscriber) {

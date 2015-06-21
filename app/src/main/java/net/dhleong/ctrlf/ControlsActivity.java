@@ -6,7 +6,6 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import net.dhleong.ctrlf.model.Connection;
@@ -116,7 +115,7 @@ public class ControlsActivity
             break;
         case DISCONNECTED:
             if (!isFinishing()) {
-                Toast.makeText(this, R.string.sim_disconnect, Toast.LENGTH_SHORT).show();
+//                Toast.makeText(this, R.string.sim_disconnect, Toast.LENGTH_SHORT).show();
                 finish();
             }
             break;
