@@ -61,8 +61,19 @@ public class App extends Application {
 
     public static void toggleDummyMode(final Context context) {
         final App app = (App) context.getApplicationContext();
-        app.dummyMode = !app.dummyMode;
-        app.initComponent();
+        setDummyMode(app, !app.dummyMode);
     }
+
+    public static boolean setDummyMode(final Context context, final boolean isDummy) {
+        final App app = (App) context.getApplicationContext();
+        if (app.dummyMode != isDummy) {
+            app.dummyMode = isDummy;
+            app.initComponent();
+            return true;
+        }
+
+        return false;
+    }
+
 
 }

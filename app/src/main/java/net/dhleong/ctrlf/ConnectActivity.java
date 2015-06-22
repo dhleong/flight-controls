@@ -79,6 +79,8 @@ public class ConnectActivity
         setContentView(R.layout.activity_connect);
         ButterKnife.inject(this);
 
+        App.setDummyMode(this, false);
+        
         final App app = (App) getApplication();
         app.getAppComponent().inject(this);
 
@@ -135,11 +137,12 @@ public class ConnectActivity
             return true;
 
         case R.id.action_dummy:
-            App.toggleDummyMode(this);
+            App.setDummyMode(this, true);
 
-            // restart with the proper injections
-            finish();
-            startActivity(new Intent(this, ConnectActivity.class));
+//            // restart with the proper injections
+//            finish();
+//            startActivity(new Intent(this, ConnectActivity.class));
+            onConnected();
             return true;
         }
 
@@ -163,6 +166,13 @@ public class ConnectActivity
             return true;
         }
         return super.onKeyUp(keyCode, event);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        App.setDummyMode(this, false);
     }
 
     @Override
