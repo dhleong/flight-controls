@@ -3,23 +3,33 @@ package net.dhleong.ctrlf;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.View.OnTouchListener;
+import android.view.ViewGroup;
 import android.widget.TextView;
 import butterknife.ButterKnife;
 import butterknife.ButterKnife.Setter;
 import butterknife.InjectView;
 import butterknife.InjectViews;
 import butterknife.OnClick;
+import net.dhleong.ctrlf.history.ConnectionHistorian;
+import net.dhleong.ctrlf.history.HistoricalConnection;
 import net.dhleong.ctrlf.model.Connection;
 import net.dhleong.ctrlf.model.Connection.Lifecycle;
 import net.dhleong.ctrlf.util.scopes.IsDummyMode;
-import net.dhleong.ctrlf.util.scopes.Pref;
 import rx.Observable;
 import rx.Observer;
 import rx.android.schedulers.AndroidSchedulers;
@@ -28,9 +38,6 @@ import rx.subscriptions.CompositeSubscription;
 
 import javax.inject.Inject;
 import java.util.List;
-
-import static net.dhleong.ctrlf.module.PrefsModule.LAST_HOST;
-import static net.dhleong.ctrlf.module.PrefsModule.LAST_PORT;
 
 public class ConnectActivity
         extends AppCompatActivity {
@@ -44,18 +51,27 @@ public class ConnectActivity
 
     @Inject Connection connection;
     @Inject SharedPreferences prefs;
+    @Inject ConnectionHistorian historian;
     @Inject Observable<Lifecycle> lifecycle;
-    @Inject @Pref(LAST_HOST) String lastHost;
-    @Inject @Pref(LAST_PORT) String lastPort;
+//    @Inject @Pref(LAST_HOST) String lastHost;
+//    @Inject @Pref(LAST_PORT) String lastPort;
     @Inject @IsDummyMode boolean isDummyMode;
 
+    @InjectView(R.id.fab) FloatingActionButton fab;
     @InjectView(R.id.root) View root;
     @InjectView(R.id.host) TextView host;
     @InjectView(R.id.port) TextView port;
+    @InjectView(R.id.empty) View emptyView;
     @InjectView(R.id.connect) TextView connect;
-    @InjectViews({R.id.host, R.id.port, R.id.connect}) List<View> allViews;
+    @InjectView(R.id.connections) RecyclerView connections;
+    @InjectView(R.id.new_connection) View newConnections;
+    @InjectViews({R.id.connections, R.id.connect, R.id.fab,
+            R.id.host, R.id.port}) List<View> allViews;
 
     final CompositeSubscription subscriptions = new CompositeSubscription();
+
+    HistoryAdapter adapter;
+    HistoricalConnection pendingConnection;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,8 +82,12 @@ public class ConnectActivity
         final App app = (App) getApplication();
         app.getAppComponent().inject(this);
 
-        host.setText(lastHost);
-        port.setText(lastPort);
+        adapter = new HistoryAdapter();
+        connections.setLayoutManager(new LinearLayoutManager(this));
+        connections.setAdapter(adapter);
+
+//        host.setText(lastHost);
+//        port.setText(lastPort);
 
         if (isDummyMode) {
             connect.setText(R.string.connect_dummy);
@@ -88,6 +108,12 @@ public class ConnectActivity
                              }
                          }
                      })
+        );
+
+        subscriptions.add(
+            historian.load()
+                     .observeOn(AndroidSchedulers.mainThread())
+                     .subscribe(adapter)
         );
     }
 
@@ -121,6 +147,16 @@ public class ConnectActivity
     }
 
     @Override
+    public void onBackPressed() {
+        if (newConnections.getVisibility() == View.VISIBLE) {
+            closeFab();
+            return;
+        }
+
+        super.onBackPressed();
+    }
+
+    @Override
     public boolean onKeyUp(final int keyCode, final KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_ENTER) {
             connect();
@@ -150,16 +186,63 @@ public class ConnectActivity
             return;
         }
 
-        // save values
-        prefs.edit()
-             .putString(LAST_HOST, hostRaw)
-             .putString(LAST_PORT, portRaw)
-             .apply();
+//        // save values
+//        prefs.edit()
+//             .putString(LAST_HOST, hostRaw)
+//             .putString(LAST_PORT, portRaw)
+//             .apply();
 
+        connections.animate().alpha(0.5f);
+        connect(new HistoricalConnection(hostRaw.trim(), portNo));
+    }
+
+    @OnClick(R.id.fab) void openFab() {
+        // might this be better as a dialog?
+        newConnections.setAlpha(0);
+        newConnections.setVisibility(View.VISIBLE);
+        newConnections.animate().alpha(1);
+
+        final float translation = fab.getHeight() * 3;
+        fab.animate().translationY(translation)
+                     .withEndAction(new Runnable() {
+                         @Override
+                         public void run() {
+                             // NB: the fab behavior with snackbar overrides
+                             //  our translationY so we have to do this
+                             fab.setVisibility(View.GONE);
+                         }
+                     });
+    }
+
+    void closeFab() {
+
+        if (newConnections.getVisibility() == View.GONE) {
+            // nothing to do
+            return;
+        }
+
+        final float translation = fab.getHeight() * 3;
+        fab.setTranslationY(translation);
+        fab.setVisibility(View.VISIBLE);
+        fab.animate().translationY(0);
+        newConnections.animate()
+                      .alpha(0)
+                      .withEndAction(new Runnable() {
+                          @Override
+                          public void run() {
+                              newConnections.setVisibility(View.GONE);
+                          }
+                      });
+    }
+
+    void connect(final HistoricalConnection info) {
+        Snackbar.make(root, R.string.connecting, Snackbar.LENGTH_SHORT).show();
         ButterKnife.apply(allViews, ENABLED, false);
+        connections.animate().alpha(0.5f);
 
+        pendingConnection = info;
         subscriptions.add(
-            connection.connect(hostRaw, portNo)
+            connection.connect(info.getHost(), info.getPort())
                       .subscribe(new Observer<Connection>() {
                           @Override
                           public void onCompleted() {
@@ -183,11 +266,20 @@ public class ConnectActivity
 
     /** Called on successful connection */
     void onConnected() {
+        closeFab();
+
+        if (pendingConnection != null) {
+            // it'd be null for dummy connection
+            historian.connect(pendingConnection);
+        }
+
+        connections.animate().alpha(1);
         ButterKnife.apply(allViews, ENABLED, true);
         startActivity(new Intent(this, ControlsActivity.class));
     }
 
     void onDisconnected(final Throwable throwable) {
+        connections.animate().alpha(1);
         ButterKnife.apply(allViews, ENABLED, true);
         Snackbar.make(root,
                 pickDisconnectedMessage(throwable),
@@ -205,5 +297,100 @@ public class ConnectActivity
         }
 
         return getString(R.string.connect_error, base);
+    }
+
+    class HistoryHolder
+            extends ViewHolder
+            implements OnClickListener {
+
+        private HistoricalConnection myConnection;
+
+        public HistoryHolder(final View itemView) {
+            super(itemView);
+
+            itemView.setOnClickListener(this);
+            itemView.setOnTouchListener(new OnTouchListener() {
+                @Override
+                public boolean onTouch(final View v, final MotionEvent event) {
+                    // steal input while connecting
+                    if (!connections.isEnabled()) return true;
+                    return false;
+                }
+            });
+        }
+
+        void bind(final HistoricalConnection connection) {
+            myConnection = connection;
+            ((TextView) itemView).setText(connection.toString());
+        }
+
+        @Override
+        public void onClick(final View v) {
+            Log.v("ctrlf", "Select " + myConnection);
+            connect(myConnection);
+        }
+    }
+
+    class HistoryAdapter
+            extends RecyclerView.Adapter<HistoryHolder>
+            implements Action1<List<HistoricalConnection>> {
+
+        private LayoutInflater inflater = LayoutInflater.from(ConnectActivity.this);
+
+        private List<HistoricalConnection> list;
+
+        @Override
+        public HistoryHolder onCreateViewHolder(
+                final ViewGroup parent, final int viewType) {
+            return new HistoryHolder(inflater.inflate(
+                    R.layout.listitem_history, parent, false));
+        }
+
+        @Override
+        public void onBindViewHolder(final HistoryHolder holder, final int position) {
+            holder.bind(list.get(position));
+        }
+
+        @Override
+        public int getItemCount() {
+            return list == null ? 0 : list.size();
+        }
+
+        @Override
+        public void call(final List<HistoricalConnection> list) {
+            final List<HistoricalConnection> old = this.list;
+            this.list = list;
+
+            final int oldSize = old == null ? 0 : old.size();
+            final int newSize = list.size();
+            if (oldSize == 0) {
+                notifyDataSetChanged();
+            } else if (oldSize == newSize) {
+                // an element was selected
+                final int oldPosition = old.indexOf(list.get(0));
+                if (oldPosition != 0) {
+                    notifyItemMoved(oldPosition, 0);
+                }
+            } else if (oldSize < newSize) {
+                // new element (we always insert up front)
+                notifyItemInserted(0);
+            } else {
+                // deleted element
+                boolean found = false;
+                for (int i=0; i < oldSize; i++) {
+                    if (!list.contains(old.get(i))) {
+                        notifyItemRemoved(i);
+                        found = true;
+                        break;
+                    }
+                }
+
+                // just in case
+                if (!found) notifyDataSetChanged();
+            }
+
+            emptyView.setVisibility(newSize == 0 ? View.VISIBLE : View.GONE);
+        }
+
     }
 }

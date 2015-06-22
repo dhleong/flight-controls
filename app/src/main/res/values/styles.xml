@@ -14,4 +14,16 @@
         <item name="android:padding">@dimen/activity_horizontal_margin</item>
     </style>
 
+    <style name="Fab">
+        <item name="android:layout_margin">16dp</item>
+        <item name="elevation">8dp</item>
+        <item name="pressedTranslationZ">16dp</item>
+
+        <!--
+        I have no idea why, but it does not
+        render correctly on L w/0 borderWidth=0
+        -->
+        <item name="borderWidth">0dp</item>
+    </style>
+
 </resources>

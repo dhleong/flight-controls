@@ -7,6 +7,8 @@
     <string name="ip_address">IP Address</string>
     <string name="port">Port</string>
     <string name="connect">Connect</string>
+    <string name="connecting">Connecting…</string>
+    <string name="no_connections">No connections saved</string>
 
     <string name="beacon_lights">BCN</string>
     <string name="landing_lights">LAND</string>

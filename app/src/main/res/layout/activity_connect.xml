@@ -8,9 +8,24 @@
         android:focusableInTouchMode="true"
         tools:context=".ConnectActivity">
 
-    <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+    <android.support.v7.widget.RecyclerView
+            android:id="@+id/connections"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+        />
+
+    <TextView
+            android:id="@+id/empty"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="@string/no_connections"
+            android:textSize="20sp"
+            />
+
+    <LinearLayout android:id="@+id/new_connection"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:layout_gravity="center"
             android:orientation="vertical"
             android:gravity="center"
@@ -18,6 +33,8 @@
             android:paddingRight="@dimen/activity_horizontal_margin"
             android:paddingTop="@dimen/activity_vertical_margin"
             android:paddingBottom="@dimen/activity_vertical_margin"
+            android:background="#f0FFFFFF"
+            android:visibility="gone"
             >
 
         <!--
@@ -62,14 +79,11 @@
     </LinearLayout>
 
     <android.support.design.widget.FloatingActionButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_marginLeft="@dimen/activity_horizontal_margin"
-        android:layout_marginRight="@dimen/activity_horizontal_margin"
-        android:layout_marginBottom="@dimen/activity_vertical_margin"
-        android:src="@drawable/ic_fab_plus"
-        app:fabSize="normal"
-        />
+            android:id="@+id/fab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:src="@drawable/ic_fab_plus"
+            style="@style/Fab"/>
 
 </android.support.design.widget.CoordinatorLayout>
