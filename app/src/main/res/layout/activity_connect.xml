@@ -20,19 +20,24 @@
         tools:ignore="UnusedAttribute" />
 
     <android.support.v7.widget.RecyclerView
-            android:id="@+id/connections"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
+        android:id="@+id/connections"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="?attr/actionBarSize"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:clipToPadding="false"
         />
 
     <TextView
-            android:id="@+id/empty"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:text="@string/no_connections"
-            android:textSize="20sp"
-            />
+        android:id="@+id/empty"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:text="@string/no_connections"
+        android:textSize="20sp"
+        android:layout_marginTop="?attr/actionBarSize"
+        />
 
     <include
         layout="@layout/overlay_new_connection"
