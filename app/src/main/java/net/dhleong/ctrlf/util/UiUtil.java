@@ -1,13 +1,17 @@
 package net.dhleong.ctrlf.util;
 
+import android.animation.ValueAnimator;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.Resources;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
+import android.support.annotation.ColorRes;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.View.OnSystemUiVisibilityChangeListener;
+import android.view.Window;
 
 /**
  * @author dhleong
@@ -96,5 +100,29 @@ public class UiUtil {
                 decorView.setSystemUiVisibility(newVisibility);
             }
         });
+    }
+
+    @TargetApi(VERSION_CODES.LOLLIPOP)
+    public static void animateStatusBarColor(final Window window, @ColorRes final int fromResId,
+            @ColorRes final int toResId) {
+
+        if (VERSION.SDK_INT < VERSION_CODES.LOLLIPOP) {
+            // nothing to see here....
+            return;
+        }
+
+        final Resources res = window.getContext().getResources();
+        final int from = res.getColor(fromResId);
+        final int to = res.getColor(toResId);
+        final ValueAnimator colorAnimation = ValueAnimator.ofArgb(from, to);
+        colorAnimation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+
+            @Override
+            public void onAnimationUpdate(ValueAnimator animator) {
+                window.setStatusBarColor((Integer) animator.getAnimatedValue());
+            }
+
+        });
+        colorAnimation.start();
     }
 }

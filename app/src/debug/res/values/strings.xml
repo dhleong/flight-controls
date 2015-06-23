@@ -1,3 +1,4 @@
 <resources>
     <string name="action_dummy">Connect in Dummy Mode</string>
+    <string name="action_fake_list">Toggle Fake List</string>
 </resources>
