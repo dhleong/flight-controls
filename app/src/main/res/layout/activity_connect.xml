@@ -8,6 +8,17 @@
         android:focusableInTouchMode="true"
         tools:context=".ConnectActivity">
 
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary"
+        android:minHeight="?attr/actionBarSize"
+        android:elevation="@dimen/appbar_elevation"
+        app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+        tools:ignore="UnusedAttribute" />
+
     <android.support.v7.widget.RecyclerView
             android:id="@+id/connections"
             android:layout_width="match_parent"
@@ -23,60 +34,12 @@
             android:textSize="20sp"
             />
 
-    <LinearLayout android:id="@+id/new_connection"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_gravity="center"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:paddingLeft="@dimen/activity_horizontal_margin"
-            android:paddingRight="@dimen/activity_horizontal_margin"
-            android:paddingTop="@dimen/activity_vertical_margin"
-            android:paddingBottom="@dimen/activity_vertical_margin"
-            android:background="#f0FFFFFF"
-            android:visibility="gone"
-            >
-
-        <!--
-            We use "text" in case they want to enter an actual
-            host name (for whatever reason) or ipv6
-         -->
-        <android.support.design.widget.TextInputLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
-            <EditText
-                    android:id="@+id/host"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:hint="@string/ip_address"
-                    android:inputType="text|textUri"
-                    android:minEms="10"
-                    />
-        </android.support.design.widget.TextInputLayout>
-
-
-        <android.support.design.widget.TextInputLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
-            <EditText
-                    android:id="@+id/port"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:hint="@string/port"
-                    android:inputType="number"
-                    android:minEms="4"
-                    android:maxEms="5"
-                    />
-        </android.support.design.widget.TextInputLayout>
-
-        <Button
-                android:id="@+id/connect"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/connect"
-                />
-
-    </LinearLayout>
+    <include
+        layout="@layout/overlay_new_connection"
+        android:id="@+id/new_connection"
+        android:visibility="gone"
+        android:elevation="12dp"
+        tools:ignore="UnusedAttribute" />
 
     <android.support.design.widget.FloatingActionButton
             android:id="@+id/fab"

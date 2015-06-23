@@ -1,14 +1,18 @@
 package net.dhleong.ctrlf;
 
+import android.annotation.TargetApi;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.view.animation.FastOutLinearInInterpolator;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.ViewHolder;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -18,6 +22,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
+import android.view.ViewAnimationUtils;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import butterknife.ButterKnife;
@@ -29,7 +34,6 @@ import net.dhleong.ctrlf.history.ConnectionHistorian;
 import net.dhleong.ctrlf.history.HistoricalConnection;
 import net.dhleong.ctrlf.model.Connection;
 import net.dhleong.ctrlf.model.Connection.Lifecycle;
-import net.dhleong.ctrlf.util.scopes.IsDummyMode;
 import rx.Observable;
 import rx.Observer;
 import rx.android.schedulers.AndroidSchedulers;
@@ -53,10 +57,8 @@ public class ConnectActivity
     @Inject SharedPreferences prefs;
     @Inject ConnectionHistorian historian;
     @Inject Observable<Lifecycle> lifecycle;
-//    @Inject @Pref(LAST_HOST) String lastHost;
-//    @Inject @Pref(LAST_PORT) String lastPort;
-    @Inject @IsDummyMode boolean isDummyMode;
 
+    @InjectView(R.id.toolbar) Toolbar toolbar;
     @InjectView(R.id.fab) FloatingActionButton fab;
     @InjectView(R.id.root) View root;
     @InjectView(R.id.host) TextView host;
@@ -65,6 +67,7 @@ public class ConnectActivity
     @InjectView(R.id.connect) TextView connect;
     @InjectView(R.id.connections) RecyclerView connections;
     @InjectView(R.id.new_connection) View newConnections;
+    @InjectView(R.id.new_connection_toolbar) Toolbar newConnectionToolbar;
     @InjectViews({R.id.connections, R.id.connect, R.id.fab,
             R.id.host, R.id.port}) List<View> allViews;
 
@@ -82,16 +85,19 @@ public class ConnectActivity
         final App app = (App) getApplication();
         app.getAppComponent().inject(this);
 
+        setSupportActionBar(toolbar);
+
         adapter = new HistoryAdapter();
         connections.setLayoutManager(new LinearLayoutManager(this));
         connections.setAdapter(adapter);
 
-//        host.setText(lastHost);
-//        port.setText(lastPort);
-
-        if (isDummyMode) {
-            connect.setText(R.string.connect_dummy);
-        }
+        newConnectionToolbar.setNavigationIcon(R.drawable.ic_arrow_back_black_24dp);
+        newConnectionToolbar.setNavigationOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(final View v) {
+                onBackPressed();
+            }
+        });
 
         subscriptions.add(
             lifecycle.observeOn(AndroidSchedulers.mainThread())
@@ -196,22 +202,25 @@ public class ConnectActivity
         connect(new HistoricalConnection(hostRaw.trim(), portNo));
     }
 
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     @OnClick(R.id.fab) void openFab() {
         // might this be better as a dialog?
-        newConnections.setAlpha(0);
-        newConnections.setVisibility(View.VISIBLE);
-        newConnections.animate().alpha(1);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            newConnections.setVisibility(View.VISIBLE);
+            newConnections.setTranslationY(0);
 
-        final float translation = fab.getHeight() * 3;
-        fab.animate().translationY(translation)
-                     .withEndAction(new Runnable() {
-                         @Override
-                         public void run() {
-                             // NB: the fab behavior with snackbar overrides
-                             //  our translationY so we have to do this
-                             fab.setVisibility(View.GONE);
-                         }
-                     });
+            final float fabRadius = fab.getWidth() / 2f;
+            ViewAnimationUtils.createCircularReveal(newConnections,
+                    (int) (fab.getX() + fabRadius),
+                    (int) (fab.getY() + fabRadius),
+                    fabRadius,
+                    newConnections.getHeight() + newConnections.getWidth() / 2)
+                .start();
+        } else {
+            newConnections.setAlpha(0);
+            newConnections.setVisibility(View.VISIBLE);
+            newConnections.animate().alpha(1);
+        }
     }
 
     void closeFab() {
@@ -221,12 +230,10 @@ public class ConnectActivity
             return;
         }
 
-        final float translation = fab.getHeight() * 3;
-        fab.setTranslationY(translation);
-        fab.setVisibility(View.VISIBLE);
-        fab.animate().translationY(0);
         newConnections.animate()
-                      .alpha(0)
+                      .translationY(newConnections.getHeight())
+                      .setInterpolator(new FastOutLinearInInterpolator())
+                      .setDuration(175)
                       .withEndAction(new Runnable() {
                           @Override
                           public void run() {
@@ -236,7 +243,7 @@ public class ConnectActivity
     }
 
     void connect(final HistoricalConnection info) {
-        Snackbar.make(root, R.string.connecting, Snackbar.LENGTH_SHORT).show();
+        Snackbar.make(pickRoot(), R.string.connecting, Snackbar.LENGTH_SHORT).show();
         ButterKnife.apply(allViews, ENABLED, false);
         connections.animate().alpha(0.5f);
 
@@ -281,9 +288,15 @@ public class ConnectActivity
     void onDisconnected(final Throwable throwable) {
         connections.animate().alpha(1);
         ButterKnife.apply(allViews, ENABLED, true);
-        Snackbar.make(root,
+        Snackbar.make(pickRoot(),
                 pickDisconnectedMessage(throwable),
                 Snackbar.LENGTH_LONG).show();
+    }
+
+    private View pickRoot() {
+        return newConnections.getVisibility() == View.VISIBLE
+            ? newConnections
+            : root;
     }
 
     private CharSequence pickDisconnectedMessage(final Throwable throwable) {
