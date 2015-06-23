@@ -38,7 +38,6 @@
         layout="@layout/overlay_new_connection"
         android:id="@+id/new_connection"
         android:visibility="gone"
-        android:elevation="12dp"
         tools:ignore="UnusedAttribute" />
 
     <android.support.design.widget.FloatingActionButton

@@ -11,13 +11,15 @@
     tools:showIn="@layout/activity_connect"
     tools:ignore="UnusedAttribute">
 
+    <!-- NB: we need a background (sadly) for elevation to work -->
     <android.support.v7.widget.Toolbar
         android:id="@+id/new_connection_toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="top"
         android:minHeight="?attr/actionBarSize"
-        android:elevation="20dp"
+        android:elevation="@dimen/appbar_elevation"
+        android:background="#fff"
         tools:ignore="UnusedAttribute" />
 
     <LinearLayout

@@ -34,6 +34,7 @@ import net.dhleong.ctrlf.history.ConnectionHistorian;
 import net.dhleong.ctrlf.history.HistoricalConnection;
 import net.dhleong.ctrlf.model.Connection;
 import net.dhleong.ctrlf.model.Connection.Lifecycle;
+import net.dhleong.ctrlf.util.UiUtil;
 import rx.Observable;
 import rx.Observer;
 import rx.android.schedulers.AndroidSchedulers;
@@ -100,20 +101,20 @@ public class ConnectActivity
         });
 
         subscriptions.add(
-            lifecycle.observeOn(AndroidSchedulers.mainThread())
-                     .subscribe(new Action1<Lifecycle>() {
-                         @Override
-                         public void call(final Lifecycle lifecycle) {
-                             switch (lifecycle) {
-                             case DISCONNECTED:
-                                 onDisconnected(null);
-                                 break;
-                             case CONNECTED:
-                                 onConnected();
-                                 break;
+                lifecycle.observeOn(AndroidSchedulers.mainThread())
+                         .subscribe(new Action1<Lifecycle>() {
+                             @Override
+                             public void call(final Lifecycle lifecycle) {
+                                 switch (lifecycle) {
+                                 case DISCONNECTED:
+                                     onDisconnected(null);
+                                     break;
+                                 case CONNECTED:
+                                     onConnected();
+                                     break;
+                                 }
                              }
-                         }
-                     })
+                         })
         );
 
         subscriptions.add(
@@ -216,6 +217,14 @@ public class ConnectActivity
                     fabRadius,
                     newConnections.getHeight() + newConnections.getWidth() / 2)
                 .start();
+
+            // we *could* put this into the layout so it gets revealed as well...
+            UiUtil.animateStatusBarColor(
+                    getWindow(),
+                    R.color.primary_dark_material_dark,
+                    R.color.primary_dark_material_light
+            );
+
         } else {
             newConnections.setAlpha(0);
             newConnections.setVisibility(View.VISIBLE);
@@ -228,6 +237,10 @@ public class ConnectActivity
         if (newConnections.getVisibility() == View.GONE) {
             // nothing to do
             return;
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setStatusBarColor(getResources().getColor(R.color.primary_dark_material_dark));
         }
 
         newConnections.animate()
