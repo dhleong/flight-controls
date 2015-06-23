@@ -42,6 +42,7 @@ import rx.functions.Action1;
 import rx.subscriptions.CompositeSubscription;
 
 import javax.inject.Inject;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ConnectActivity
@@ -148,6 +149,22 @@ public class ConnectActivity
             finish();
             startActivity(new Intent(this, ConnectActivity.class));
             return true;
+
+        case R.id.action_fake_list:
+            if (connections.getAdapter() == adapter) {
+                final List<HistoricalConnection> dummies = new ArrayList<>();
+                for (int i=10001; i < 10021; i++) {
+                    dummies.add(new HistoricalConnection("192.168.1.1", i));
+                }
+
+                final HistoryAdapter adapter = new HistoryAdapter();
+                adapter.call(dummies);
+                connections.setAdapter(adapter);
+            } else {
+                connections.setAdapter(adapter);
+                adapter.call(adapter.list); // updates the empty view
+            }
+            return true;
         }
 
         return super.onOptionsItemSelected(item);
@@ -192,12 +209,6 @@ public class ConnectActivity
             port.setError(getString(R.string.illegal_port));
             return;
         }
-
-//        // save values
-//        prefs.edit()
-//             .putString(LAST_HOST, hostRaw)
-//             .putString(LAST_PORT, portRaw)
-//             .apply();
 
         connections.animate().alpha(0.5f);
         connect(new HistoricalConnection(hostRaw.trim(), portNo));
@@ -389,7 +400,7 @@ public class ConnectActivity
 
             final int oldSize = old == null ? 0 : old.size();
             final int newSize = list.size();
-            if (oldSize == 0) {
+            if (oldSize == 0 || Math.abs(oldSize - newSize) > 1) {
                 notifyDataSetChanged();
             } else if (oldSize == newSize) {
                 // an element was selected
