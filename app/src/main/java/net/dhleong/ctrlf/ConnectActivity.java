@@ -36,6 +36,7 @@ import net.dhleong.ctrlf.history.HistoricalConnection;
 import net.dhleong.ctrlf.model.Connection;
 import net.dhleong.ctrlf.model.Connection.Lifecycle;
 import net.dhleong.ctrlf.util.UiUtil;
+import net.dhleong.ctrlf.util.Undoable;
 import rx.Observable;
 import rx.Observer;
 import rx.android.schedulers.AndroidSchedulers;
@@ -55,6 +56,8 @@ public class ConnectActivity
             view.setEnabled(aBoolean);
         }
     };
+
+    public static final String TAG = "ctrlf";
 
     @Inject Connection connection;
     @Inject SharedPreferences prefs;
@@ -109,10 +112,22 @@ public class ConnectActivity
             @Override
             public void onSwiped(final ViewHolder viewHolder, final int direction) {
                 // callback for swipe to dismiss, removing item from data and adapter
+                final int position = viewHolder.getAdapterPosition();
                 final HistoryAdapter adapter = (HistoryAdapter) connections.getAdapter();
-                final HistoricalConnection removed =
-                        adapter.remove(viewHolder.getAdapterPosition());
-                historian.delete(removed);
+                final HistoricalConnection removed = adapter.remove(position);
+
+                // make the removal undoable
+                Undoable.from(connections, adapter)
+                        .remove(removed, position)
+                        .withLabel(getString(R.string.removed_history, removed.toString()))
+                        .onDelete(new Action1<HistoricalConnection>() {
+                            @Override
+                            public void call(final HistoricalConnection o) {
+                                Log.v(TAG, "Delete " + o);
+                                historian.delete(o);
+                            }
+                        })
+                        .perform();
             }
         });
         swipeToDismiss.attachToRecyclerView(connections);
@@ -305,13 +320,13 @@ public class ConnectActivity
                       .subscribe(new Observer<Connection>() {
                           @Override
                           public void onCompleted() {
-                              Log.v("ctrlf", "Connection ready");
+                              Log.v(TAG, "Connection ready");
                               // TODO some UI?
                           }
 
                           @Override
                           public void onError(final Throwable throwable) {
-                              Log.w("ctrlf", "Error connecting to sim", throwable);
+                              Log.w(TAG, "Error connecting to sim", throwable);
                               onDisconnected(throwable);
                           }
 
@@ -391,14 +406,15 @@ public class ConnectActivity
 
         @Override
         public void onClick(final View v) {
-            Log.v("ctrlf", "Select " + myConnection);
+            Log.v(TAG, "Select " + myConnection);
             connect(myConnection);
         }
     }
 
     class HistoryAdapter
             extends RecyclerView.Adapter<HistoryHolder>
-            implements Action1<List<HistoricalConnection>> {
+            implements Undoable.Adapter<HistoricalConnection>,
+                       Action1<List<HistoricalConnection>> {
 
         private LayoutInflater inflater = LayoutInflater.from(ConnectActivity.this);
 
@@ -457,11 +473,18 @@ public class ConnectActivity
             emptyView.setVisibility(newSize == 0 ? View.VISIBLE : View.GONE);
         }
 
+        @Override
         public HistoricalConnection remove(final int adapterPosition) {
             final HistoricalConnection removed =
                     list.remove(adapterPosition);
             notifyItemRemoved(adapterPosition);
             return removed;
+        }
+
+        @Override
+        public void insert(final int position, final HistoricalConnection removed) {
+            list.add(position, removed);
+            notifyItemInserted(position);
         }
     }
 }

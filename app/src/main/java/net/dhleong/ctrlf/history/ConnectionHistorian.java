@@ -13,5 +13,8 @@ public interface ConnectionHistorian {
 
     void delete(final HistoricalConnection connection);
 
+    void insert(int position, HistoricalConnection removed);
+
     Observable<List<HistoricalConnection>> load();
+
 }

@@ -32,4 +32,7 @@
     <string name="key_left">L</string>
     <string name="key_both">Both</string>
     <string name="key_start">Start</string>
+    <string name="removed_history">Removed %s</string>
+    <string name="undo">Undo</string>
+    <string name="undoable_remove_generic">Removed</string>
 </resources>

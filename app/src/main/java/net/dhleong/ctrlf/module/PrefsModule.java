@@ -62,6 +62,12 @@ public class PrefsModule {
             }
 
             @Override
+            public void insert(final int position, final HistoricalConnection removed) {
+                list.add(position, removed);
+                update();
+            }
+
+            @Override
             public Observable<List<HistoricalConnection>> load() {
                 return subject;
             }
