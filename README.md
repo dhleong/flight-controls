@@ -29,6 +29,14 @@ alternate versions for Jet-types may come along later
     - **Display is non-functioning**. This is mostly for a more 
     natural interface with the onscreen GPS *(for now)*
 
+Along the way, it's also become a bit of a playground for experimenting
+with Material Design and the new Design Support Library, including:
+
+- RecyclerView with Swipe to Delete via ItemTouchHelper
+- Snackbar + Floating Action Button via CoordinatorLayout
+- Fullscreen FAB transition
+- TextInputLayout
+
 ## Why?
 
 I recently got into flying planes in 
@@ -37,6 +45,7 @@ and wanted a better way to interact with some of the switches and
 instruments that I couldn't map onto my flight stick or throttle.
 
 Also, I wanted to try out [Dagger 2](http://google.github.io/dagger/)
+and the new [Design Support Library](http://android-developers.blogspot.com/2015/05/android-design-support-library.html)
 
 ## Special Thanks
 
