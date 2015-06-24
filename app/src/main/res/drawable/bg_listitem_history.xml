@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!--
+    NB: We need to layer like this so elevation works. For whatever
+    reason, if the view's background is just attr/selectableItemBackground
+    then the elevation refused to render.
+    -->
+    <item>
+        <color android:color="#fff" />
+    </item>
+    <item android:drawable="?attr/selectableItemBackground" />
+</layer-list>

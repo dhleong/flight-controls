@@ -13,6 +13,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.support.v7.widget.Toolbar;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -95,6 +96,27 @@ public class ConnectActivity
         connections.setLayoutManager(new LinearLayoutManager(this));
         connections.setAdapter(adapter);
 
+        // set up swipe-to-delete
+        final ItemTouchHelper swipeToDismiss = new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(
+            ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT
+        ) {
+            @Override
+            public boolean onMove(final RecyclerView recyclerView, final ViewHolder viewHolder,
+                    final ViewHolder target) {
+                return false; // disable drag and drop
+            }
+
+            @Override
+            public void onSwiped(final ViewHolder viewHolder, final int direction) {
+                // callback for swipe to dismiss, removing item from data and adapter
+                final HistoryAdapter adapter = (HistoryAdapter) connections.getAdapter();
+                final HistoricalConnection removed =
+                        adapter.remove(viewHolder.getAdapterPosition());
+                historian.delete(removed);
+            }
+        });
+        swipeToDismiss.attachToRecyclerView(connections);
+
         newConnectionToolbar.setNavigationIcon(R.drawable.ic_arrow_back_black_24dp);
         newConnectionToolbar.setNavigationOnClickListener(new OnClickListener() {
             @Override
@@ -146,10 +168,6 @@ public class ConnectActivity
 
         case R.id.action_dummy:
             App.setDummyMode(this, true);
-
-//            // restart with the proper injections
-//            finish();
-//            startActivity(new Intent(this, ConnectActivity.class));
             onConnected();
             return true;
 
@@ -439,5 +457,11 @@ public class ConnectActivity
             emptyView.setVisibility(newSize == 0 ? View.VISIBLE : View.GONE);
         }
 
+        public HistoricalConnection remove(final int adapterPosition) {
+            final HistoricalConnection removed =
+                    list.remove(adapterPosition);
+            notifyItemRemoved(adapterPosition);
+            return removed;
+        }
     }
 }

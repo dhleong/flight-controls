@@ -6,5 +6,5 @@
     android:textSize="16sp"
     android:padding="16dp"
     android:gravity="center_vertical|start"
-    android:background="?android:attr/selectableItemBackground"
+    android:background="@drawable/bg_listitem_history"
     />

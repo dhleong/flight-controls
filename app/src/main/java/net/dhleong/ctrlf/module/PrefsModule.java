@@ -23,9 +23,6 @@ public class PrefsModule {
 
     public static final String SCREEN_ON = "screen_on";
 
-//    public static final String LAST_HOST = "last_host";
-//    public static final String LAST_PORT = "last_port";
-
     public static final String HISTORY = "history";
 
     @Provides @Singleton SharedPreferences providePrefs(final Context context) {
@@ -35,14 +32,6 @@ public class PrefsModule {
     @Provides @Pref(SCREEN_ON) boolean provideScreenOnPref(SharedPreferences prefs) {
         return prefs.getBoolean("pref_screen_on", true);
     }
-
-//    @Provides @Pref(LAST_HOST) String provideLastHost(SharedPreferences prefs) {
-//        return prefs.getString(LAST_HOST, "");
-//    }
-//
-//    @Provides @Pref(LAST_PORT) String provideLastPort(SharedPreferences prefs) {
-//        return prefs.getString(LAST_PORT, "");
-//    }
 
     /**
      * Lame implementation using shared prefs
@@ -67,8 +56,9 @@ public class PrefsModule {
 
             @Override
             public void delete(final HistoricalConnection connection) {
-                list.remove(connection);
-                update();
+                if (list.remove(connection)) {
+                    update();
+                }
             }
 
             @Override
