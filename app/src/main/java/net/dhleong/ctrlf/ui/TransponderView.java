@@ -41,7 +41,7 @@ public class TransponderView extends BaseLedView {
     public final Button ident;
 
     private int cursor;
-    private int oldTransponder = -1;
+    private int currentTransponder = VFR_CODE;
 
     final PublishSubject<Integer> transponderChangesSubject =
             PublishSubject.create();
@@ -85,7 +85,7 @@ public class TransponderView extends BaseLedView {
     }
 
     public void setTransponderCode(final int code) {
-        oldTransponder = code;
+        currentTransponder = code;
         digits.setNumber(code);
         invalidate();
     }
@@ -95,10 +95,8 @@ public class TransponderView extends BaseLedView {
         super.setEnabled(enabled);
 
         if (enabled) {
-            final int old = oldTransponder;
-            setTransponderCode(old > 0 ? old : VFR_CODE);
+            setTransponderCode(currentTransponder);
         } else {
-            oldTransponder = digits.toNumber();
             digits.clear();
         }
     }
@@ -210,7 +208,13 @@ public class TransponderView extends BaseLedView {
             digits.setDigit(cursor, digit);
             cursor = (cursor + 1) % 4;
             invalidate();
-            return digits.toNumber();
+
+            // save the state
+            final int number = digits.toNumber();
+            TransponderView.this.currentTransponder = number;
+
+            // return the result
+            return number;
         }
     }
 }

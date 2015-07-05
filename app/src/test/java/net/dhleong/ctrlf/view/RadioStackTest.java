@@ -218,6 +218,28 @@ public class RadioStackTest extends BaseViewModuleTest<RadioStackView, RadioTest
     }
 
     @Test
+    public void transponderNotOverridden() {
+        view.xpndr.setEnabled(true);
+        assertThat(module.transponder).isEmpty();
+
+        view.xpndr.numbers.get(3).performClick();
+        assertThat(module.transponder).contains(3200);
+
+        // there should be no change
+        view.xpndr.setEnabled(true);
+        assertThat(view.xpndr.getTransponderCode()).isEqualTo(3200);
+
+        // disable (lose power)
+        view.xpndr.setEnabled(false);
+        assertThat(view.xpndr.getTransponderCode()).isEqualTo(-1);
+
+        // re-enable; stilo should be no change
+        view.xpndr.setEnabled(true);
+        assertThat(view.xpndr.getTransponderCode()).isEqualTo(3200);
+
+    }
+
+    @Test
     public void autopilotAltitude() {
         assertThat(module.apAltitudes).isEmpty();
 

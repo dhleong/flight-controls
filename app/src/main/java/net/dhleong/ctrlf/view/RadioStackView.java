@@ -57,6 +57,8 @@ public class RadioStackView
 
     @Override
     protected void onFinishInflate() {
+        super.onFinishInflate();
+
         // inject
         ButterKnife.inject(this);
 
